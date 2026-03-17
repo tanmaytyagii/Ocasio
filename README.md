@@ -25,9 +25,3 @@ The goal of Ocasio is to reduce manual effort, improve coordination, and provide
 
 ---
 
-## ⚙️ Installation & Setup
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/tanmaytyagii/Ocasio.git
-cd Ocasio
