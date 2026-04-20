@@ -1,27 +1,99 @@
-# 🎉 Ocasio – Smart Occasion Planner
+# 🎉 Ocasio — Smart Occasion Planning Platform
 
-Ocasio is a modern web application designed to simplify and streamline event planning. It enables users to efficiently organize and manage various occasions such as weddings, birthdays, parties, and corporate events from a single platform.
+Ocasio is a modern, scalable web application designed to streamline and simplify event planning. It enables users to efficiently organize, manage, and coordinate various occasions such as weddings, birthdays, parties, and corporate events — all from a single unified platform.
 
-The goal of Ocasio is to reduce manual effort, improve coordination, and provide a structured approach to planning important life events.
+The platform focuses on reducing manual effort, improving coordination, and delivering a structured and intelligent approach to managing important life events.
 
 ---
 
-## 🚀 Features
+## 🚀 Key Features
 
-- 🎯 Plan and manage multiple types of occasions  
-- 📋 Event and task organization  
-- 📅 Schedule management for events  
-- 👨‍👩‍👧‍👦 Reduces family workload through structured planning  
-- 💡 Clean and user-friendly interface  
-- 📦 Centralized system for all event-related activities  
+- 📌 **Multi-Event Management**  
+  Plan and manage different types of occasions in one place  
+
+- 🗂️ **Task & Workflow Organization**  
+  Break down events into structured, manageable tasks  
+
+- 📅 **Smart Scheduling System**  
+  Efficiently manage timelines, deadlines, and event schedules  
+
+- 👨‍👩‍👧 **Workload Optimization**  
+  Reduces manual coordination effort for families and organizers  
+
+- 🎯 **Centralized Dashboard**  
+  Single interface for tracking all event-related activities  
+
+- ✨ **Clean & Intuitive UI**  
+  Designed for seamless user experience and accessibility  
+
+---
+
+## 🧠 Problem Statement
+
+Event planning often involves scattered communication, manual coordination, and lack of structured workflows, leading to inefficiencies and stress.
+
+**Ocasio addresses these challenges by:**
+- Centralizing event management  
+- Structuring planning workflows  
+- Reducing manual dependency  
+- Improving visibility across all event activities  
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** React.js, Tailwind CSS, JavaScript / TypeScript  
-- **Build Tool:** Vite  
-- **Version Control:** Git & GitHub  
+| Category        | Technologies Used |
+|----------------|------------------|
+| **Frontend**   | React.js, TypeScript, Tailwind CSS |
+| **Build Tool** | Vite |
+| **Version Control** | Git, GitHub |
 
 ---
 
+## 📦 Project Structure
+
+
+Ocasio/
+├── src/
+│ ├── components/
+│ ├── pages/
+│ ├── assets/
+│ └── utils/
+├── public/
+├── package.json
+└── README.md
+
+
+---
+
+## ⚙️ Installation & Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/tanmaytyagii/Ocasio.git
+
+# Navigate to project folder
+cd Ocasio
+
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+📈 Future Enhancements
+🤖 AI-powered event recommendations
+📊 Budget tracking & analytics
+📩 Automated reminders & notifications
+🤝 Vendor marketplace integration
+🌐 Multi-user collaboration system
+👥 Contributors
+Tanmay Tyagi — Backend Development, AI Integration, System Design
+Khushi Saroha — Frontend Development, UI/UX Design
+
+📄 License
+
+This project is open-source and available under the MIT License.
+
+⭐ Support
+
+If you found this project useful, consider giving it a ⭐ on GitHub!
