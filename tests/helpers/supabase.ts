@@ -81,3 +81,13 @@ export async function stackIsRunning(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Columns anon may read from vendors.
+ *
+ * owner_id is excluded: migration 20260919000003 drops the table-level SELECT
+ * grant for anon and re-grants these columns individually, so `select('*')`
+ * is denied. Tests query the way the application does.
+ */
+export const PUBLIC_VENDOR_COLUMNS =
+  'id, slug, business_name, description, category, location, status, phone, email, website, business_hours, hero_image_url, rating, review_count, starting_price, created_at, updated_at';

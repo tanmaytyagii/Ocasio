@@ -13,6 +13,7 @@ import {
   deleteTestUser,
   serviceClient,
   stackIsRunning,
+  PUBLIC_VENDOR_COLUMNS,
   type TestUser,
 } from './helpers/supabase';
 
@@ -66,7 +67,7 @@ afterAll(async () => {
 
 describe.runIf(await stackIsRunning())('public (unauthenticated) access', () => {
   it('can read active vendors — the marketplace is genuinely public', async () => {
-    const { data, error } = await anonClient().from('vendors').select('*').eq('status', 'active');
+    const { data, error } = await anonClient().from('vendors').select(PUBLIC_VENDOR_COLUMNS).eq('status', 'active');
     expect(error).toBeNull();
     expect(data!.length).toBeGreaterThanOrEqual(40);
   });
@@ -74,7 +75,7 @@ describe.runIf(await stackIsRunning())('public (unauthenticated) access', () => 
   it('can read a vendor by slug', async () => {
     const { data, error } = await anonClient()
       .from('vendors')
-      .select('*, vendor_services(*), vendor_media(*)')
+      .select(`${PUBLIC_VENDOR_COLUMNS}, vendor_services(*), vendor_media(*)`)
       .eq('slug', 'taj-palace')
       .single();
     expect(error).toBeNull();
@@ -111,7 +112,7 @@ describe.runIf(await stackIsRunning())('public (unauthenticated) access', () => 
       .single();
     expect(pending!.status).toBe('pending');
 
-    const { data } = await anonClient().from('vendors').select('*').eq('id', vendorAId);
+    const { data } = await anonClient().from('vendors').select(PUBLIC_VENDOR_COLUMNS).eq('id', vendorAId);
     expect(data).toEqual([]);
 
     await admin.from('vendors').update({ status: 'active' }).eq('id', vendorAId);
@@ -278,7 +279,7 @@ describe.runIf(await stackIsRunning())('privilege escalation (brief section 28)'
     expect(data.status).toBe('pending');
 
     // It is not publicly visible.
-    const { data: pub } = await anonClient().from('vendors').select('*').eq('id', data.id);
+    const { data: pub } = await anonClient().from('vendors').select(PUBLIC_VENDOR_COLUMNS).eq('id', data.id);
     expect(pub).toEqual([]);
 
     // And the applicant is still a customer.

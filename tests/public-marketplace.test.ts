@@ -5,7 +5,7 @@
  * by the database rather than a client-side catalogue.
  */
 import { describe, expect, it } from 'vitest';
-import { anonClient, stackIsRunning } from './helpers/supabase';
+import { anonClient, stackIsRunning, PUBLIC_VENDOR_COLUMNS } from './helpers/supabase';
 
 const running = await stackIsRunning();
 
@@ -13,7 +13,7 @@ describe.runIf(running)('public vendor discovery', () => {
   it('lists active vendors without authentication', async () => {
     const { data, error } = await anonClient()
       .from('vendors')
-      .select('*')
+      .select(PUBLIC_VENDOR_COLUMNS)
       .eq('status', 'active')
       .order('rating', { ascending: false });
 
@@ -24,7 +24,7 @@ describe.runIf(running)('public vendor discovery', () => {
   it('resolves a vendor by stable slug with services and media', async () => {
     const { data, error } = await anonClient()
       .from('vendors')
-      .select('*, vendor_services(*), vendor_media(*)')
+      .select(`${PUBLIC_VENDOR_COLUMNS}, vendor_services(*), vendor_media(*)`)
       .eq('slug', 'royal-caterers')
       .eq('status', 'active')
       .single();
@@ -38,7 +38,7 @@ describe.runIf(running)('public vendor discovery', () => {
   it('filters by category', async () => {
     const { data } = await anonClient()
       .from('vendors')
-      .select('*')
+      .select(PUBLIC_VENDOR_COLUMNS)
       .eq('status', 'active')
       .ilike('category', 'venues');
 
@@ -49,7 +49,7 @@ describe.runIf(running)('public vendor discovery', () => {
   it('filters by location', async () => {
     const { data } = await anonClient()
       .from('vendors')
-      .select('*')
+      .select(PUBLIC_VENDOR_COLUMNS)
       .eq('status', 'active')
       .ilike('location', 'Mumbai');
 
@@ -81,7 +81,7 @@ describe.runIf(running)('public vendor discovery', () => {
     const term = '%photography%';
     const { data } = await anonClient()
       .from('vendors')
-      .select('*')
+      .select(PUBLIC_VENDOR_COLUMNS)
       .eq('status', 'active')
       .or(
         `business_name.ilike.${term},description.ilike.${term},category.ilike.${term},location.ilike.${term}`,
