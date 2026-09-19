@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { vendorData } from '../data/vendors';
 import { Star } from 'lucide-react';

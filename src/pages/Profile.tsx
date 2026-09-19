@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Calendar } from 'react-big-calendar';
 import { format } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
@@ -6,7 +6,7 @@ import { User, Settings, Bell, Heart, Calendar as CalendarIcon, MessageSquare, C
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { dateFnsLocalizer } from 'react-big-calendar';
 import { parse, startOfWeek, getDay } from 'date-fns';
-import enUS from 'date-fns/locale/en-US';
+import { enUS } from 'date-fns/locale/en-US';
 
 const locales = {
   'en-US': enUS,
