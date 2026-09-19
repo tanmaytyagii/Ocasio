@@ -198,6 +198,8 @@ export interface Payment {
   status: PaymentStatus;
   provider: string;
   provider_payment_id: string | null;
+  /** When the payment was handed to the provider. Staleness is measured here. */
+  processing_since: string | null;
   idempotency_key: string;
   metadata: Record<string, unknown>;
   created_at: string;
@@ -213,6 +215,28 @@ export interface Refund {
   provider_refund_id: string | null;
   idempotency_key: string;
   initiated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Reviews (Phase 5)
+// ---------------------------------------------------------------------------
+
+/**
+ * A review, as any client can read it.
+ *
+ * customer_id is absent by design: it is an auth.users UUID and no client role
+ * holds a column privilege on it (migration 20260919000006). Reviews are shown
+ * without attribution.
+ */
+export interface Review {
+  id: string;
+  booking_id: string;
+  vendor_id: string;
+  /** Whole stars, 1-5. vendors.rating is the mean of these. */
+  rating: number;
+  body: string | null;
   created_at: string;
   updated_at: string;
 }

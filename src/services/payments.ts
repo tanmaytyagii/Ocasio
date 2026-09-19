@@ -18,7 +18,7 @@ import { configuredProviderName, getProvider } from './payments/provider';
 import './payments/testProvider';
 
 const PAYMENT_COLUMNS =
-  'id, booking_id, customer_id, vendor_id, amount_minor, currency, amount_refunded_minor, status, provider, provider_payment_id, idempotency_key, metadata, created_at, updated_at';
+  'id, booking_id, customer_id, vendor_id, amount_minor, currency, amount_refunded_minor, status, provider, provider_payment_id, processing_since, idempotency_key, metadata, created_at, updated_at';
 
 const REFUND_COLUMNS =
   'id, payment_id, amount_minor, reason, status, provider_refund_id, idempotency_key, initiated_by, created_at, updated_at';

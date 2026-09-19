@@ -7,6 +7,7 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import FavoriteButton from '../components/FavoriteButton';
 import BookingRequestForm from '../components/BookingRequestForm';
 import { ErrorState } from '../components/AsyncStates';
+import VendorReviews from '../components/VendorReviews';
 import NotFound from './NotFound';
 
 interface Message {
@@ -234,6 +235,12 @@ const VendorPage = () => {
                 </div>
               </div>
             </div>
+
+            <VendorReviews
+              vendorId={vendor.id}
+              rating={vendor.rating}
+              reviewCount={vendor.review_count}
+            />
 
             {vendor.vendor_media.length > 0 && (
               <div className="mt-10 border-t pt-8">

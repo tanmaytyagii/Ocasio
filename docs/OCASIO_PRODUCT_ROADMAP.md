@@ -311,6 +311,26 @@ See [`OCASIO_PAYMENTS.md`](./OCASIO_PAYMENTS.md).
 
 ---
 
+## Phase 5a — Reviews & Reconciliation ✅ **Complete**
+
+Delivered: `reviews` gated on a completed booking with a database-enforced
+one-per-booking constraint; `vendors.rating` / `review_count` derived by trigger;
+payment reconciliation for the `processing` strand recorded as a Phase 4
+limitation.
+
+| Criterion | Evidence |
+|---|---|
+| One review per booking | `UNIQUE (booking_id)`; tested |
+| Only the booking's customer, only when completed | Tested across all five booking states |
+| Vendor cannot manufacture or alter reviews | Tested, function and direct writes |
+| Aggregates derived, not writable | Phase 1 guard preserved; tested |
+| Inconclusive provider answers change nothing | Tested for `pending` and `unknown` |
+| Reconciliation is service_role only | Tested for anon, customer and vendor |
+
+Not delivered: vendor responses, moderation, review editing (deliberately
+immutable), and a scheduler for the sweep. See
+[`OCASIO_REVIEWS.md`](./OCASIO_REVIEWS.md).
+
 ## Phase 5 — AI Discovery
 
 Replace `Chatbot.tsx`'s `String.includes` chain with tool-calling over the real catalogue.

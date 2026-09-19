@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePageMeta } from '../hooks/usePageMeta';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import PaymentPanel from '../components/PaymentPanel';
+import BookingReviewPanel from '../components/BookingReviewPanel';
 import { ErrorState } from '../components/AsyncStates';
 import NotFound from './NotFound';
 import type { BookingStatusHistoryEntry, BookingWithDetails } from '../types/database';
@@ -214,6 +215,8 @@ const BookingDetail = () => {
         </div>
 
         <PaymentPanel booking={booking} isCustomer={isCustomer} isVendor={isVendor} />
+
+        <BookingReviewPanel booking={booking} isCustomer={isCustomer} />
 
         <section className="mt-8 rounded-lg bg-white p-8 shadow-sm">
           <h2 className="mb-6 text-lg font-semibold text-gray-900">Status history</h2>
