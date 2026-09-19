@@ -16,6 +16,8 @@ import BecomeVendor from './pages/BecomeVendor';
 import Blog from './pages/Blog';
 import Profile from './pages/Profile';
 import Favorites from './pages/Favorites';
+import Bookings from './pages/Bookings';
+import BookingDetail from './pages/BookingDetail';
 import VendorDashboard from './pages/VendorDashboard';
 import Auth from './pages/Auth';
 import NotFound from './pages/NotFound';
@@ -92,6 +94,24 @@ function App() {
                       element={
                         <RequireAuth>
                           <Favorites />
+                        </RequireAuth>
+                      }
+                    />
+                    <Route
+                      path="/bookings"
+                      element={
+                        <RequireAuth>
+                          <Bookings />
+                        </RequireAuth>
+                      }
+                    />
+                    {/* Readable by the customer and by the vendor owner; RLS
+                        decides which, and anything else renders not-found. */}
+                    <Route
+                      path="/bookings/:id"
+                      element={
+                        <RequireAuth>
+                          <BookingDetail />
                         </RequireAuth>
                       }
                     />

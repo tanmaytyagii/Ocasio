@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Search, Menu, X, Heart, User, Settings, LogOut, LayoutDashboard } from 'lucide-react';
+import { Search, Menu, X, Heart, User, Settings, LogOut, LayoutDashboard, CalendarDays } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -154,6 +154,14 @@ const Navbar = () => {
                         Profile
                       </Link>
                       <Link
+                        to="/bookings"
+                        role="menuitem"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <CalendarDays className="mr-2 h-4 w-4" aria-hidden="true" />
+                        My bookings
+                      </Link>
+                      <Link
                         to="/profile?tab=settings"
                         role="menuitem"
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -240,12 +248,20 @@ const Navbar = () => {
               Become a vendor
             </Link>
             {user && (
-              <Link
-                to="/favorites"
-                className="block rounded px-2 py-2 text-gray-700 hover:bg-gray-50 hover:text-purple-600"
-              >
-                Saved vendors
-              </Link>
+              <>
+                <Link
+                  to="/favorites"
+                  className="block rounded px-2 py-2 text-gray-700 hover:bg-gray-50 hover:text-purple-600"
+                >
+                  Saved vendors
+                </Link>
+                <Link
+                  to="/bookings"
+                  className="block rounded px-2 py-2 text-gray-700 hover:bg-gray-50 hover:text-purple-600"
+                >
+                  My bookings
+                </Link>
+              </>
             )}
           </div>
         </div>

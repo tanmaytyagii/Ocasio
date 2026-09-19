@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Star, MapPin, Phone, Mail, Globe, Clock, Send, Calendar, Info } from 'lucide-react';
+import { Star, MapPin, Phone, Mail, Globe, Clock, Send, CalendarCheck, Info } from 'lucide-react';
 import { getVendorBySlug } from '../services/vendors';
 import { useAsync } from '../hooks/useAsync';
 import { usePageMeta } from '../hooks/usePageMeta';
 import FavoriteButton from '../components/FavoriteButton';
-import MockCheckout from '../components/MockCheckout';
+import BookingRequestForm from '../components/BookingRequestForm';
 import { ErrorState } from '../components/AsyncStates';
 import NotFound from './NotFound';
 
@@ -15,19 +15,6 @@ interface Message {
   sender: 'user' | 'vendor';
   timestamp: Date;
 }
-
-interface BookingDetails {
-  eventType: string;
-  date: string;
-  guestCount: number;
-  additionalNotes: string;
-}
-
-/**
- * Placeholder deposit for the demo checkout. Real pricing comes from
- * vendor_services; the amount charged must always be computed server-side.
- */
-const BOOKING_DEPOSIT = 25000;
 
 const formatRupees = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
@@ -46,16 +33,9 @@ const VendorPage = () => {
 
   const [showContact, setShowContact] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
-  const [showPayment, setShowPayment] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [bookingDetails, setBookingDetails] = useState<BookingDetails>({
-    eventType: '',
-    date: '',
-    guestCount: 0,
-    additionalNotes: '',
-  });
-  const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [submittedBookingId, setSubmittedBookingId] = useState<string | null>(null);
 
   usePageMeta(
     vendor ? `${vendor.business_name} — ${vendor.category} in ${vendor.location} — Ocasio` : 'Vendor — Ocasio',
@@ -100,31 +80,34 @@ const VendorPage = () => {
     setMessage('');
   };
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowPayment(true);
-  };
-
-  if (bookingConfirmed) {
+  if (submittedBookingId) {
     return (
       <div className="min-h-screen bg-gray-50 pt-16">
         <div className="mx-auto max-w-3xl px-4 py-16">
           <div className="rounded-lg bg-white p-8 text-center shadow-lg">
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-              <Calendar className="h-8 w-8 text-green-600" aria-hidden="true" />
+              <CalendarCheck className="h-8 w-8 text-green-600" aria-hidden="true" />
             </div>
-            <h2 className="mb-4 text-2xl font-bold text-gray-900">Demo booking recorded</h2>
+            <h2 className="mb-4 text-2xl font-bold text-gray-900">Booking request submitted</h2>
             <p className="mb-6 text-gray-600">
-              This is a simulated booking with {vendor.business_name}. No payment was taken, no
-              email will be sent, and nothing was saved. Real bookings arrive once the booking
-              lifecycle is built.
+              Your request has been sent to {vendor.business_name}. It is now awaiting their
+              response — this is not a confirmed booking, and no payment has been taken. You can
+              track its status and cancel it from your bookings.
             </p>
-            <Link
-              to="/"
-              className="inline-block rounded-lg bg-purple-600 px-6 py-3 text-white hover:bg-purple-700"
-            >
-              Return to home
-            </Link>
+            <div className="flex flex-col justify-center gap-3 sm:flex-row">
+              <Link
+                to={`/bookings/${submittedBookingId}`}
+                className="inline-block rounded-lg bg-purple-600 px-6 py-3 text-white hover:bg-purple-700"
+              >
+                View this request
+              </Link>
+              <Link
+                to="/bookings"
+                className="inline-block rounded-lg border border-gray-300 px-6 py-3 text-gray-700 hover:bg-gray-50"
+              >
+                All my bookings
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -246,7 +229,7 @@ const VendorPage = () => {
                     onClick={() => setShowBooking(true)}
                     className="w-full rounded-lg border border-purple-600 py-3 text-purple-600 transition duration-300 hover:bg-purple-50"
                   >
-                    Request a booking (demo)
+                    Request a booking
                   </button>
                 </div>
               </div>
@@ -316,80 +299,12 @@ const VendorPage = () => {
           </div>
         )}
 
-        {showBooking && !showPayment && (
-          <div className="mt-8 rounded-lg bg-white p-6 shadow-lg">
+        {showBooking && (
+          <div className="mt-8 rounded-lg bg-white p-6 shadow-lg" id="booking">
             <h2 className="mb-4 text-xl font-semibold">Request a booking</h2>
-            <DemoNotice>
-              Booking requests are not stored yet. This form demonstrates the flow; the real
-              booking lifecycle is the next phase.
-            </DemoNotice>
-
-            <form onSubmit={handleBookingSubmit} className="mt-4 space-y-6">
-              <div>
-                <label htmlFor="eventType" className="mb-2 block text-sm font-medium text-gray-700">
-                  Event type
-                </label>
-                <select
-                  id="eventType"
-                  required
-                  value={bookingDetails.eventType}
-                  onChange={(e) => setBookingDetails({ ...bookingDetails, eventType: e.target.value })}
-                  className="w-full rounded-lg border p-2"
-                >
-                  <option value="">Select an event type</option>
-                  <option value="Wedding">Wedding</option>
-                  <option value="Corporate">Corporate</option>
-                  <option value="Birthday">Birthday</option>
-                  <option value="Religious">Religious</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="eventDate" className="mb-2 block text-sm font-medium text-gray-700">
-                  Event date
-                </label>
-                <input
-                  id="eventDate"
-                  type="date"
-                  required
-                  value={bookingDetails.date}
-                  onChange={(e) => setBookingDetails({ ...bookingDetails, date: e.target.value })}
-                  className="w-full rounded-lg border p-2"
-                />
-              </div>
-              <div>
-                <label htmlFor="guestCount" className="mb-2 block text-sm font-medium text-gray-700">
-                  Approximate guests
-                </label>
-                <input
-                  id="guestCount"
-                  type="number"
-                  min={1}
-                  required
-                  value={bookingDetails.guestCount || ''}
-                  onChange={(e) =>
-                    setBookingDetails({ ...bookingDetails, guestCount: Number(e.target.value) })
-                  }
-                  className="w-full rounded-lg border p-2"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-purple-600 py-3 text-white hover:bg-purple-700"
-              >
-                Continue
-              </button>
-            </form>
-          </div>
-        )}
-
-        {showPayment && (
-          <div className="mt-8 rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="mb-6 text-xl font-semibold">Confirm your booking</h2>
-            <MockCheckout
-              amount={BOOKING_DEPOSIT}
-              description={`Booking deposit — ${vendor.business_name}`}
-              submitLabel={`Simulate payment of ${formatRupees(BOOKING_DEPOSIT)}`}
-              onConfirm={() => setBookingConfirmed(true)}
+            <BookingRequestForm
+              vendor={vendor}
+              onSubmitted={(id) => setSubmittedBookingId(id)}
             />
           </div>
         )}

@@ -97,7 +97,7 @@ export async function getVendorBySlug(slug: string): Promise<VendorWithDetails |
   const { data, error } = await supabase
     .from('vendors')
     .select(
-      `${PUBLIC_VENDOR_COLUMNS}, vendor_services(id, vendor_id, name, description, price, sort_order, created_at, updated_at), vendor_media(id, vendor_id, url, alt_text, sort_order, created_at)`,
+      `${PUBLIC_VENDOR_COLUMNS}, vendor_services(id, vendor_id, name, description, price, is_active, sort_order, created_at, updated_at), vendor_media(id, vendor_id, url, alt_text, sort_order, created_at)`,
     )
     .eq('slug', slug)
     .eq('status', 'active')

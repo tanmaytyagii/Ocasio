@@ -60,6 +60,8 @@ export interface VendorService {
   name: string;
   description: string | null;
   price: number | null;
+  /** Whether the service accepts new bookings. Existing bookings are unaffected. */
+  is_active: boolean;
   sort_order: number;
   created_at: string;
   updated_at: string;
