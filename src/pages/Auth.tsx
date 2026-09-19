@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [userType, setUserType] = useState<'user' | 'vendor'>('user');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,17 +23,14 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
-        navigate(userType === 'vendor' ? '/vendor/dashboard' : '/');
+        // Where to land is decided by the database-backed role, not by a form
+        // toggle. Return the user wherever they were headed, or home.
+        const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname;
+        navigate(from ?? '/', { replace: true });
       } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              user_type: userType
-            }
-          }
-        });
+        // No role in metadata. handle_new_user() always provisions
+        // role='customer'; becoming a vendor goes through onboarding review.
+        const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         setError('Please check your email for verification.');
       }
@@ -47,7 +44,7 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h1 className="text-4xl font-bold text-center text-purple-600 mb-2">Occasio</h1>
+        <Link to="/" className="block text-4xl font-bold text-center text-purple-600 mb-2">Ocasio</Link>
         <h2 className="text-center text-xl text-gray-600 mb-8">
           Find the perfect vendors for your special occasions
         </h2>
@@ -55,35 +52,18 @@ const Auth = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              I am a:
-            </label>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setUserType('user')}
-                className={`p-4 text-center rounded-lg border ${
-                  userType === 'user'
-                    ? 'border-purple-600 bg-purple-50 text-purple-600'
-                    : 'border-gray-200 hover:border-purple-600'
-                }`}
-              >
-                User
-              </button>
-              <button
-                type="button"
-                onClick={() => setUserType('vendor')}
-                className={`p-4 text-center rounded-lg border ${
-                  userType === 'vendor'
-                    ? 'border-purple-600 bg-purple-50 text-purple-600'
-                    : 'border-gray-200 hover:border-purple-600'
-                }`}
-              >
-                Vendor
-              </button>
+          {!isLogin && (
+            <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+              <p>
+                Every account starts as a customer account. To list a business, create an
+                account and then apply through{' '}
+                <Link to="/become-vendor" className="font-medium text-purple-600 hover:underline">
+                  Become a vendor
+                </Link>
+                . Vendor listings go live after review.
+              </p>
             </div>
-          </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Calendar } from 'react-big-calendar';
 import { format } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Settings, Bell, Heart, Calendar as CalendarIcon, MessageSquare, Clock } from 'lucide-react';
+import { User, Settings, Bell, Heart, Calendar as CalendarIcon, MessageSquare, Clock , Info} from 'lucide-react';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { dateFnsLocalizer } from 'react-big-calendar';
 import { parse, startOfWeek, getDay } from 'date-fns';
-import enUS from 'date-fns/locale/en-US';
+import { enUS } from 'date-fns/locale/en-US';
 
 const locales = {
   'en-US': enUS,
@@ -65,6 +65,18 @@ const Profile = () => {
   return (
     <div className="pt-16 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-6 flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4" role="note">
+          <Info className="h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />
+          <div className="text-sm text-amber-900">
+            <p className="font-semibold">Demonstration data</p>
+            <p className="mt-1">
+              The figures, bookings and messages on this page are placeholders, not your real
+              business data. Vendor and customer workspaces move to live data when the booking
+              and messaging systems are built.
+            </p>
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="md:flex">
             {/* Sidebar */}

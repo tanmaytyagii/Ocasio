@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Check, CreditCard } from 'lucide-react';
+import { Check } from 'lucide-react';
+import MockCheckout from '../components/MockCheckout';
 
 interface SubscriptionPlan {
   name: string;
@@ -54,7 +55,6 @@ const BecomeVendor = () => {
   const [selectedPlan, setSelectedPlan] = useState<string>('Professional');
   const [showPayment, setShowPayment] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('');
   const [formData, setFormData] = useState({
     businessName: '',
     category: '',
@@ -75,13 +75,14 @@ const BecomeVendor = () => {
     }));
   };
 
+  const selectedPlanPrice = plans.find((p) => p.name === selectedPlan)?.price ?? 0;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setShowPayment(true);
   };
 
-  const handlePayment = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePayment = () => {
     setShowConfirmation(true);
   };
 
@@ -93,9 +94,11 @@ const BecomeVendor = () => {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Check className="h-8 w-8 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Application Submitted Successfully!</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Demo application received</h2>
             <p className="text-gray-600 mb-6">
-              Your application is under process. Our team will review your details and get back to you within 2-3 business days.
+              This is a simulated submission. No payment was taken and your details have not
+              been stored or sent anywhere. Vendor applications will be reviewed for real once
+              Ocasio is connected to its database.
             </p>
             <button
               onClick={() => window.location.href = '/'}
@@ -114,108 +117,13 @@ const BecomeVendor = () => {
       <div className="pt-16 bg-gray-50 min-h-screen">
         <div className="max-w-3xl mx-auto px-4 py-16">
           <div className="bg-white p-8 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold mb-6">Payment Details</h2>
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-2">Selected Plan: {selectedPlan}</h3>
-              <p className="text-gray-600">Amount: ₹{plans.find(p => p.name === selectedPlan)?.price}</p>
-            </div>
-            <form onSubmit={handlePayment}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Payment Method
-                  </label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {['Credit Card', 'UPI', 'Net Banking'].map((method) => (
-                      <button
-                        key={method}
-                        type="button"
-                        onClick={() => setPaymentMethod(method)}
-                        className={`p-4 border rounded-lg flex items-center justify-center ${
-                          paymentMethod === method ? 'border-purple-600 bg-purple-50' : 'border-gray-200'
-                        }`}
-                      >
-                        <CreditCard className="h-5 w-5 mr-2" />
-                        {method}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {paymentMethod === 'Credit Card' && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Card Number
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border rounded-lg"
-                        placeholder="1234 5678 9012 3456"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Expiry Date
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full p-2 border rounded-lg"
-                          placeholder="MM/YY"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          CVV
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full p-2 border rounded-lg"
-                          placeholder="123"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {paymentMethod === 'UPI' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      UPI ID
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full p-2 border rounded-lg"
-                      placeholder="username@upi"
-                    />
-                  </div>
-                )}
-
-                {paymentMethod === 'Net Banking' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Select Bank
-                    </label>
-                    <select className="w-full p-2 border rounded-lg">
-                      <option value="">Select your bank</option>
-                      <option value="sbi">State Bank of India</option>
-                      <option value="hdfc">HDFC Bank</option>
-                      <option value="icici">ICICI Bank</option>
-                      <option value="axis">Axis Bank</option>
-                    </select>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={!paymentMethod}
-                  className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 disabled:bg-gray-400"
-                >
-                  Pay ₹{plans.find(p => p.name === selectedPlan)?.price}
-                </button>
-              </div>
-            </form>
+            <h2 className="text-2xl font-bold mb-6">Confirm your application</h2>
+            <MockCheckout
+              amount={selectedPlanPrice}
+              description={`${selectedPlan} plan — vendor subscription`}
+              submitLabel="Submit application"
+              onConfirm={handlePayment}
+            />
           </div>
         </div>
       </div>
@@ -226,7 +134,7 @@ const BecomeVendor = () => {
     <div className="pt-16 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Join Occasio as a Vendor</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Join Ocasio as a Vendor</h1>
           <p className="text-xl text-gray-600">
             Reach thousands of potential customers and grow your business
           </p>
