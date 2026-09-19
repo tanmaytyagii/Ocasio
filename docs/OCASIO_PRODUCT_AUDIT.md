@@ -3,6 +3,10 @@
 **Date:** 2026-09-19
 **Commit audited:** `79f5f46` (branch `main`, clean tree)
 **Auditor:** Claude Opus 5
+**Superseded in part:** Phases 0 and 1 are complete. Findings SEC-1 (partially — see §9),
+SEC-2, SEC-3, BUG-1 through BUG-10 and BUG-12 are resolved. This document is retained as the
+record of the starting state; current architecture is in
+[`OCASIO_DATABASE.md`](./OCASIO_DATABASE.md).
 **Audience:** Engineers who will maintain and extend this codebase.
 
 This document records what Ocasio **is today**, verified by reading every source file and

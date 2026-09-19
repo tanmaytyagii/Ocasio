@@ -18,7 +18,7 @@ The standard this roadmap builds toward:
 
 ---
 
-## Phase 0 — Safety & Truth *(in progress)*
+## Phase 0 — Safety & Truth ✅ **Complete**
 
 **Goal:** make the repository safe to publish and its build honest. No database required.
 
@@ -40,7 +40,7 @@ tracked · vendor identical across two refreshes · every homepage card resolves
 
 ---
 
-## Phase 1 — Foundation
+## Phase 1 — Foundation ✅ **Complete**
 
 **Goal:** a real database with real roles, and a marketplace the public can see.
 
@@ -157,9 +157,32 @@ Fixes BUG-10 and BUG-6. Adds a real 404.
 `supabase/seed.sql` — the Phase 0 seeded catalogue promoted to SQL with fixed UUIDs, so local,
 CI and preview environments are byte-identical.
 
-**Exit criteria:** migrations apply from empty · RLS proven by test (customer A cannot read
-customer B's booking) · seed is idempotent · homepage renders from Postgres · site browsable
-logged out.
+**Exit criteria — all met:**
+
+| Criterion | Evidence |
+|---|---|
+| Migrations apply from empty | `supabase db reset` rebuilds both migrations + seed |
+| RLS proven by test | 24 authorization tests; mutation-tested to confirm they can fail |
+| Seed is idempotent | `on conflict do nothing` throughout |
+| Homepage renders from Postgres | Verified with the anon key against the local stack |
+| Site browsable logged out | Public route split; 7 public-marketplace tests |
+
+**Delivered beyond the plan:** favourites persisted end to end (table, RLS,
+service, page), working mobile navigation, a 404 route, and per-route titles and
+meta descriptions.
+
+**Deviations from the original plan, with reasons:**
+
+- **No `events` table.** The product has no event functionality to model. See
+  `OCASIO_DATABASE.md` §9.
+- **Types are hand-written, not generated.** `supabase gen types` needs a running
+  stack; committing generated types would make the build depend on infrastructure
+  contributors may not have. `npm run db:types` produces them on demand.
+- **Ownership, not role, authorises vendor management.** Lets a pending applicant
+  manage their own listing without holding the vendor role, and keeps role
+  changes rare and reviewed.
+- **`/contact` link removed rather than given a placeholder page.** There is no
+  contact page and no real contact details to put on one.
 
 ---
 
@@ -259,8 +282,8 @@ honestly · no LLM key in the client bundle · hallucination regression test pas
 
 | Phase | Theme | Depends on | Blocking risk if skipped |
 |---|---|---|---|
-| 0 | Safety & truth | — | Credentials exposed; card fields live |
-| 1 | Foundation | 0 | Everything |
+| 0 | Safety & truth | — | ✅ Complete |
+| 1 | Foundation | 0 | ✅ Complete |
 | 2 | Marketplace | 1 | No discovery |
 | 3 | Transactions | 1, 2 | No product |
 | 4 | Trust & money | 3 | No revenue |
