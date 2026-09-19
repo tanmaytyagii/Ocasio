@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment — never commit real credentials, use .env.example as the template
+.env
+.env.*
+!.env.example
+
+# TypeScript incremental build artifacts
+*.tsbuildinfo
