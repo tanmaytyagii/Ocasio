@@ -12,18 +12,6 @@ const teamMembers = [
     skills: ['AI Developer', 'Backend Developer'],
     image: 'https://images.unsplash.com/photo-1556157382-97eda2f9e2bf?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   },
-  {
-    name: 'Rohan Sharma',
-    role: 'Design Lead',
-    skills: ['UI/UX Designer', 'Frontend Developer'],
-    image: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    name: 'Ayush Anand',
-    role: 'Frontend Lead',
-    skills: ['UI/UX Designer', 'Frontend Developer'],
-    image: 'https://images.unsplash.com/photo-1557862921-37829c790f19?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  },
 ];
 
 const AboutUs = () => {
@@ -38,7 +26,7 @@ const AboutUs = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 max-w-3xl mx-auto">
           {teamMembers.map((member) => (
             <div key={member.name} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="aspect-w-1 aspect-h-1">
