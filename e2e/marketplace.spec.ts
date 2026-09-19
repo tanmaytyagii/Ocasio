@@ -60,11 +60,15 @@ test.describe('marketplace discovery', () => {
   }) => {
     // --- Homepage, signed out -------------------------------------------
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: /Find the Perfect Vendors/i })).toBeVisible();
+    // Assert the hero's role rather than its exact wording, so a copy change
+    // does not fail the test while a missing hero still would.
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByRole('search', { name: 'Find vendors' })).toBeVisible();
 
     // Top-rated vendors come from the database, so at least one card renders.
     await expect(page.getByRole('heading', { name: 'Top-rated vendors' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Popular categories' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Browse by service' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'How Ocasio works' })).toBeVisible();
 
     // --- Search ----------------------------------------------------------
     await page.goto('/search?q=photography');

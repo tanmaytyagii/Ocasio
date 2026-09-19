@@ -2,20 +2,24 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import Hero from '../components/Hero';
 import PopularCategories from '../components/PopularCategories';
 import FeaturedVendors from '../components/FeaturedVendors';
+import HowItWorks from '../components/HowItWorks';
+import VendorCta from '../components/VendorCta';
 
 const Home = () => {
   usePageMeta(
     'Ocasio — Find and book event vendors across India',
-    'Discover top-rated venues, catering, photography and decoration vendors for weddings, corporate events and parties across India.',
+    'Compare venues, catering, photography and decoration vendors across India. Send a booking request, track it to completion, and review the work.',
   );
 
   return (
-    <div>
+    <>
       <Hero />
       <PopularCategories />
       <FeaturedVendors />
-    </div>
+      <HowItWorks />
+      <VendorCta />
+    </>
   );
-}
+};
 
 export default Home;

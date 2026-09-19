@@ -55,9 +55,14 @@ const PopularCategories = () => {
   if (!loading && !error && categories.length === 0) return null;
 
   return (
-    <div className="bg-gray-50 py-16">
+    <section className="bg-canvas py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Popular categories</h2>
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-display-sm text-ink">Browse by service</h2>
+            <p className="mt-2 text-muted">Every category below has vendors you can book today.</p>
+          </div>
+        </div>
 
         {error && !loading && (
           <ErrorState message={error} onRetry={() => setNonce((n) => n + 1)} />
@@ -66,25 +71,25 @@ const PopularCategories = () => {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-64 w-full animate-pulse rounded-lg bg-gray-200" />
+                <div key={i} className="h-60 w-full animate-pulse rounded-card bg-line" />
               ))
             : !error && categories.map((category) => (
                 <Link
                   to={`/category/${category.category.toLowerCase()}`}
                   key={category.category}
-                  className="group relative cursor-pointer"
+                  className="group relative rounded-card"
                 >
-                  <div className="relative h-64 w-full overflow-hidden rounded-lg">
+                  <div className="relative h-60 w-full overflow-hidden rounded-card">
                     <img
                       src={CATEGORY_IMAGES[category.category] ?? FALLBACK_IMAGE}
                       alt={category.category}
                       loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
                     <div className="absolute bottom-4 left-4">
-                      <h3 className="text-xl font-semibold text-white">{category.category}</h3>
-                      <p className="text-sm text-white/80">
+                      <h3 className="text-lg font-semibold text-white">{category.category}</h3>
+                      <p className="mt-0.5 text-sm text-white/75">
                         {category.vendor_count} vendor{category.vendor_count === 1 ? '' : 's'}
                       </p>
                     </div>
@@ -93,7 +98,7 @@ const PopularCategories = () => {
               ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
