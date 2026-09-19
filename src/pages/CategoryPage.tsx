@@ -1,59 +1,27 @@
-import { Link, useParams } from 'react-router-dom';
-import { listVendors } from '../services/vendors';
-import { useAsync } from '../hooks/useAsync';
+import { useParams } from 'react-router-dom';
+import VendorDiscovery from '../components/VendorDiscovery';
 import { usePageMeta } from '../hooks/usePageMeta';
-import VendorCard from '../components/VendorCard';
-import { VendorGridSkeleton, ErrorState, EmptyState } from '../components/AsyncStates';
 
+/**
+ * Category pages are the discovery surface with the category pinned. The URL
+ * segment is title-cased to match the stored category value; there is no
+ * hardcoded per-category vendor list.
+ */
 const CategoryPage = () => {
   const { categoryName = '' } = useParams();
-  const label = categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
+  const label = categoryName.charAt(0).toUpperCase() + categoryName.slice(1).toLowerCase();
 
   usePageMeta(
     `${label} vendors — Ocasio`,
-    `Compare ${categoryName} vendors for weddings, corporate events and parties across India on Ocasio.`,
-  );
-
-  const { data, loading, error, retry } = useAsync(
-    () => listVendors({ category: categoryName }),
-    [categoryName],
+    `Compare ${label.toLowerCase()} vendors for weddings, corporate events and parties across India.`,
   );
 
   return (
-    <div className="bg-gray-50 pt-16">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="mb-2 text-4xl font-bold capitalize text-gray-900">{label} vendors</h1>
-        <p className="mb-8 text-gray-600">
-          {loading ? 'Loading vendors…' : `${data?.length ?? 0} vendors found`}
-        </p>
-
-        {loading && <VendorGridSkeleton />}
-        {error && !loading && <ErrorState message={error} onRetry={retry} />}
-
-        {!loading && !error && data?.length === 0 && (
-          <EmptyState
-            title={`No ${categoryName} vendors yet`}
-            description="Nothing is listed in this category right now. Try another category or search across all vendors."
-            action={
-              <Link
-                to="/vendors"
-                className="rounded-lg bg-purple-600 px-5 py-2.5 text-white hover:bg-purple-700"
-              >
-                Browse all vendors
-              </Link>
-            }
-          />
-        )}
-
-        {!loading && !error && data && data.length > 0 && (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {data.map((vendor) => (
-              <VendorCard key={vendor.id} vendor={vendor} showCategory={false} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <VendorDiscovery
+      title={`${label} vendors`}
+      subtitle={`Browse ${label.toLowerCase()} vendors across India.`}
+      fixedCategory={label}
+    />
   );
 };
 
