@@ -231,7 +231,7 @@ meta descriptions.
 
 ---
 
-## Phase 3 — Transactions
+## Phase 3 — Transactions ✅ **Bookings complete; messaging deferred**
 
 - Booking lifecycle with server-enforced transitions and `booking_status_history`.
 - Availability calendar; double-booking prevented by a DB constraint, not UI state.
@@ -242,8 +242,28 @@ meta descriptions.
   Supabase Realtime on the open thread only.
 - Functional vendor onboarding writing a real `vendors` row in `pending` status.
 
-**Exit criteria:** booking survives refresh · vendor B cannot mutate vendor A's booking
-(test-proven) · illegal transitions rejected by the database · messages persist.
+**Delivered:** booking lifecycle with server-enforced transitions and immutable
+status history; customer booking flow, `/bookings` and `/bookings/:id`; vendor
+booking management in the existing dashboard.
+
+| Criterion | Evidence |
+|---|---|
+| Booking survives refresh | Persisted in Postgres; E2E reloads across sign-ins |
+| Vendor B cannot mutate vendor A's booking | Test-proven; returns "not found" |
+| Illegal transitions rejected by the database | All four terminal escapes tested |
+| Price cannot be spoofed | Derived in `create_booking`; tested |
+
+**Not delivered in this phase, by instruction:**
+
+- **Messaging** — deferred. The vendor page's contact panel remains a labelled
+  placeholder; no chat data is stored.
+- **Availability / calendar** — deliberately not built. Two customers can
+  request the same date and a vendor can accept both. Modelling a calendar
+  honestly is a phase of its own; faking one would be worse than its absence.
+- **Payments** — Phase 4. `accepted` is the natural trigger.
+
+See [`OCASIO_BOOKINGS.md`](./OCASIO_BOOKINGS.md) for the full lifecycle,
+permissions and limitations.
 
 ---
 
@@ -316,7 +336,7 @@ honestly · no LLM key in the client bundle · hallucination regression test pas
 | 0 | Safety & truth | — | ✅ Complete |
 | 1 | Foundation | 0 | ✅ Complete |
 | 2 | Marketplace | 1 | ✅ Complete |
-| 3 | Transactions | 1, 2 | No product |
+| 3 | Transactions | 1, 2 | ✅ Bookings complete |
 | 4 | Trust & money | 3 | No revenue |
 | 5 | AI | 2, 3 | Differentiator only |
 | 6 | Hardening | all | Cannot safely operate |
