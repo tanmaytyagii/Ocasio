@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Star, MapPin, Phone, Mail, Globe, Clock, Send, Calendar, Heart, Info } from 'lucide-react';
+import { Star, MapPin, Phone, Mail, Globe, Clock, Send, Calendar, Info } from 'lucide-react';
 import { getVendorBySlug } from '../services/vendors';
-import { addFavorite, removeFavorite, listMyFavoriteVendors } from '../services/favorites';
 import { useAsync } from '../hooks/useAsync';
 import { usePageMeta } from '../hooks/usePageMeta';
-import { useAuth } from '../contexts/AuthContext';
+import FavoriteButton from '../components/FavoriteButton';
 import MockCheckout from '../components/MockCheckout';
 import { ErrorState } from '../components/AsyncStates';
 import NotFound from './NotFound';
@@ -42,13 +41,8 @@ const DemoNotice = ({ children }: { children: React.ReactNode }) => (
 
 const VendorPage = () => {
   const { slug = '' } = useParams();
-  const { user } = useAuth();
 
   const { data: vendor, loading, error, retry } = useAsync(() => getVendorBySlug(slug), [slug]);
-  const { data: favorites, retry: refreshFavorites } = useAsync(
-    () => (user ? listMyFavoriteVendors() : Promise.resolve([])),
-    [user?.id],
-  );
 
   const [showContact, setShowContact] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
@@ -67,15 +61,6 @@ const VendorPage = () => {
     vendor ? `${vendor.business_name} — ${vendor.category} in ${vendor.location} — Ocasio` : 'Vendor — Ocasio',
     vendor?.description ?? undefined,
   );
-
-  const isSaved = Boolean(vendor && favorites?.some((v) => v.id === vendor.id));
-
-  const toggleSaved = async () => {
-    if (!vendor) return;
-    if (isSaved) await removeFavorite(vendor.id);
-    else await addFavorite(vendor.id);
-    refreshFavorites();
-  };
 
   if (loading) {
     return (
@@ -156,19 +141,11 @@ const VendorPage = () => {
               alt={vendor.business_name}
               className="h-full w-full object-cover"
             />
-            {user && (
-              <button
-                onClick={toggleSaved}
-                aria-pressed={isSaved}
-                aria-label={isSaved ? 'Remove from saved vendors' : 'Save this vendor'}
-                className="absolute right-4 top-4 rounded-full bg-white/90 p-3 shadow-sm transition-colors hover:bg-white"
-              >
-                <Heart
-                  className={`h-6 w-6 ${isSaved ? 'fill-current text-purple-600' : 'text-gray-600'}`}
-                  aria-hidden="true"
-                />
-              </button>
-            )}
+            <FavoriteButton
+              vendorId={vendor.id}
+              vendorName={vendor.business_name}
+              className="absolute right-4 top-4"
+            />
           </div>
 
           <div className="p-8">
@@ -227,14 +204,27 @@ const VendorPage = () => {
 
               <div>
                 <h2 className="mb-4 text-xl font-semibold">Services</h2>
-                <ul className="space-y-2">
-                  {vendor.vendor_services.map((service) => (
-                    <li key={service.id} className="flex items-center">
-                      <span className="mr-2 h-2 w-2 rounded-full bg-purple-600" aria-hidden="true" />
-                      {service.name}
-                    </li>
-                  ))}
-                </ul>
+                {vendor.vendor_services.length === 0 ? (
+                  <p className="text-gray-600">This vendor has not listed services yet.</p>
+                ) : (
+                  <ul className="divide-y rounded-lg border">
+                    {vendor.vendor_services.map((service) => (
+                      <li key={service.id} className="flex items-start justify-between gap-4 p-3">
+                        <div>
+                          <p className="font-medium text-gray-900">{service.name}</p>
+                          {service.description && (
+                            <p className="mt-0.5 text-sm text-gray-600">{service.description}</p>
+                          )}
+                        </div>
+                        {service.price !== null && (
+                          <p className="whitespace-nowrap text-sm font-semibold text-gray-900">
+                            {formatRupees(service.price)}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
                 {vendor.starting_price !== null && (
                   <div className="mt-8">
@@ -256,11 +246,31 @@ const VendorPage = () => {
                     onClick={() => setShowBooking(true)}
                     className="w-full rounded-lg border border-purple-600 py-3 text-purple-600 transition duration-300 hover:bg-purple-50"
                   >
-                    Request a booking
+                    Request a booking (demo)
                   </button>
                 </div>
               </div>
             </div>
+
+            {vendor.vendor_media.length > 0 && (
+              <div className="mt-10 border-t pt-8">
+                <h2 className="mb-2 text-xl font-semibold">Portfolio</h2>
+                <p className="mb-4 text-sm text-gray-500">
+                  Sample imagery supplied with this demo listing, not verified client work.
+                </p>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                  {vendor.vendor_media.map((media) => (
+                    <img
+                      key={media.id}
+                      src={media.url}
+                      alt={media.alt_text ?? `${vendor.business_name} portfolio image`}
+                      loading="lazy"
+                      className="h-40 w-full rounded-lg object-cover"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
