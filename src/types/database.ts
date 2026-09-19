@@ -116,3 +116,48 @@ export interface CategoryCount {
   category: string;
   vendor_count: number;
 }
+
+// ---------------------------------------------------------------------------
+// Bookings
+// ---------------------------------------------------------------------------
+
+export type BookingStatus = 'pending' | 'accepted' | 'declined' | 'cancelled' | 'completed';
+
+/** Statuses from which nothing can change. */
+export const TERMINAL_BOOKING_STATUSES: readonly BookingStatus[] = [
+  'declined',
+  'cancelled',
+  'completed',
+];
+
+export interface Booking {
+  id: string;
+  customer_id: string;
+  vendor_id: string;
+  vendor_service_id: string;
+  event_date: string;
+  event_location: string;
+  customer_notes: string | null;
+  /** Integer rupees, derived server-side. Informational: no payments exist. */
+  quoted_price: number;
+  status: BookingStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BookingStatusHistoryEntry {
+  id: string;
+  booking_id: string;
+  /** Null on the opening row: the booking did not exist before it was requested. */
+  from_status: BookingStatus | null;
+  to_status: BookingStatus;
+  changed_by: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+/** Joined shape used by the booking lists and detail pages. */
+export interface BookingWithDetails extends Booking {
+  vendors: Pick<Vendor, 'id' | 'slug' | 'business_name' | 'category' | 'location'> | null;
+  vendor_services: Pick<VendorService, 'id' | 'name' | 'description'> | null;
+}
