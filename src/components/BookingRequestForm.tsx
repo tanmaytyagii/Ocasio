@@ -52,6 +52,10 @@ const BookingRequestForm = ({
   const selected = bookableServices.find((s) => s.id === serviceId);
   const quote = quoteFor(selected, vendor.starting_price);
 
+  const goToSignIn = () => {
+    navigate('/auth', { state: { from: location }, replace: false });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Guards against a double click or a resubmitted form; the database also
@@ -61,7 +65,7 @@ const BookingRequestForm = ({
     setError(null);
 
     if (!user) {
-      navigate('/auth', { state: { from: location }, replace: false });
+      goToSignIn();
       return;
     }
 
@@ -186,7 +190,7 @@ const BookingRequestForm = ({
                 : 'Based on this vendor’s starting price — this service has no separate price yet.'}
             </p>
           </div>
-          <p className="text-xl font-semibold text-gray-900">
+          <p className="text-xl font-semibold text-gray-900" data-testid="booking-quote">
             {quote === null ? 'On request' : formatRupees(quote)}
           </p>
         </div>
@@ -202,8 +206,14 @@ const BookingRequestForm = ({
         </div>
       )}
 
+      {/* Signed out, this is a plain button rather than a submit: the form's
+          required fields would otherwise block submission and the visitor
+          would never reach the sign-in redirect. While the session is still
+          resolving the label stays neutral, so a signed-in user never sees a
+          flash of "sign in". */}
       <button
-        type="submit"
+        type={user ? 'submit' : 'button'}
+        onClick={user ? undefined : goToSignIn}
         disabled={submitting || authLoading}
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 py-3 text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-400"
       >
@@ -215,7 +225,7 @@ const BookingRequestForm = ({
         ) : (
           <>
             <CalendarCheck className="h-5 w-5" aria-hidden="true" />
-            {user ? 'Send booking request' : 'Sign in to request a booking'}
+            {authLoading ? 'Checking your session…' : user ? 'Send booking request' : 'Sign in to request a booking'}
           </>
         )}
       </button>

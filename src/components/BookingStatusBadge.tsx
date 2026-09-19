@@ -40,6 +40,7 @@ const BookingStatusBadge = ({
   const style = STYLES[status];
   return (
     <span
+      data-testid="booking-status"
       className={`inline-flex items-center whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold ${style.className} ${className}`}
     >
       {style.label}
