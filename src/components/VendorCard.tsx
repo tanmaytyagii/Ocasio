@@ -13,6 +13,7 @@ export interface VendorCardData {
   hero_image_url: string | null;
   rating: number;
   review_count: number;
+  rating_is_demo: boolean;
   starting_price: number | null;
 }
 
@@ -54,7 +55,10 @@ const VendorCard = ({
           <Star className="h-5 w-5 fill-current text-yellow-400" aria-hidden="true" />
           <span className="ml-1 text-gray-700">{vendor.rating.toFixed(1)}</span>
           <span className="mx-1 text-gray-400">•</span>
-          <span className="text-gray-600">{vendor.review_count} reviews</span>
+          {/* A seeded figure is labelled rather than presented as review count. */}
+          <span className="text-gray-600">
+            {vendor.rating_is_demo ? 'sample rating' : `${vendor.review_count} reviews`}
+          </span>
         </div>
 
         <p className="mt-2 flex items-center text-gray-600">

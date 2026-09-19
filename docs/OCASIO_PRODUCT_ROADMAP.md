@@ -331,6 +331,19 @@ Not delivered: vendor responses, moderation, review editing (deliberately
 immutable), and a scheduler for the sweep. See
 [`OCASIO_REVIEWS.md`](./OCASIO_REVIEWS.md).
 
+## Phase 5.1 — Production readiness ✅ **Complete**
+
+Three limitations from Phase 5a:
+
+| Limitation | Outcome |
+|---|---|
+| Nothing scheduled the reconciliation sweep | **Fixed** — pg_cron every 15 min, Vault-backed, fails closed |
+| Seeded ratings indistinguishable from real ones | **Fixed** — `rating_is_demo` flag, UI labels them, values preserved so Phase 2 filters still work |
+| Account deletion blocked by ON DELETE RESTRICT | **Documented, not fixed** — needs a product/privacy decision; current behaviour pinned by tests |
+
+See [`OCASIO_OPERATIONS.md`](./OCASIO_OPERATIONS.md) and
+[`OCASIO_DATA_RETENTION.md`](./OCASIO_DATA_RETENTION.md).
+
 ## Phase 5 — AI Discovery
 
 Replace `Chatbot.tsx`'s `String.includes` chain with tool-calling over the real catalogue.

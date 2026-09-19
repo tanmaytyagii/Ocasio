@@ -40,6 +40,11 @@ export interface Vendor {
   hero_image_url: string | null;
   rating: number;
   review_count: number;
+  /**
+   * True when rating/review_count are seeded demo figures with no reviews
+   * behind them. Cleared permanently the moment a real review arrives.
+   */
+  rating_is_demo: boolean;
   starting_price: number | null;
   created_at: string;
   updated_at: string;
@@ -100,6 +105,7 @@ export interface VendorSearchResult {
   hero_image_url: string | null;
   rating: number;
   review_count: number;
+  rating_is_demo: boolean;
   starting_price: number | null;
   relevance: number;
   total_count: number;

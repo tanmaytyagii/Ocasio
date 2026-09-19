@@ -24,7 +24,7 @@ import type {
 
 /** Every publicly readable vendor column. Mirrors the grant in migration 3. */
 const PUBLIC_VENDOR_COLUMNS =
-  'id, slug, business_name, description, category, location, status, phone, email, website, business_hours, hero_image_url, rating, review_count, starting_price, created_at, updated_at';
+  'id, slug, business_name, description, category, location, status, phone, email, website, business_hours, hero_image_url, rating, review_count, rating_is_demo, starting_price, created_at, updated_at';
 
 export interface VendorSearchParams {
   query?: string;

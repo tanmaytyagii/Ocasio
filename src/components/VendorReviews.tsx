@@ -17,10 +17,13 @@ const VendorReviews = ({
   vendorId,
   rating,
   reviewCount,
+  ratingIsDemo,
 }: {
   vendorId: string;
   rating: number;
   reviewCount: number;
+  /** Seeded demo figures, with no reviews behind them. */
+  ratingIsDemo: boolean;
 }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,13 +49,23 @@ const VendorReviews = ({
     <div className="mt-10 border-t pt-8">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <h2 className="text-xl font-semibold">Reviews</h2>
-        {reviewCount > 0 && (
+        {reviewCount > 0 && !ratingIsDemo && (
           <span className="flex items-center gap-2 text-sm text-gray-600">
             <StarRating value={rating} size="sm" />
             {rating.toFixed(1)} · {reviewCount} review{reviewCount === 1 ? '' : 's'}
           </span>
         )}
       </div>
+
+      {/* Showing a seeded score next to "no reviews yet" would read as customer
+          feedback that does not exist. Say what the number actually is. */}
+      {ratingIsDemo && (
+        <p className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          The {rating.toFixed(1)} rating shown for this listing is illustrative sample data, not
+          customer feedback. It is replaced by the real average as soon as a completed booking is
+          reviewed.
+        </p>
+      )}
 
       {loading && (
         <div className="space-y-3" aria-hidden="true">

@@ -38,6 +38,8 @@ lines.push(`-- Ocasio — deterministic demo seed
 -- #  phone numbers and email addresses are fabricated for development.       #
 -- #  Every seeded vendor is owned by a profile named 'Ocasio Demo Vendor'    #
 -- #  so demo rows can be identified and purged before real vendors onboard.  #
+-- #  They also carry rating_is_demo = true, so the UI can label the rating    #
+-- #  as illustrative rather than passing it off as customer feedback.        #
 -- ############################################################################
 --
 -- Values are byte-identical to the Phase 0 client catalogue, so migrating
@@ -70,7 +72,10 @@ for (const v of vendors) {
   vendorRows.push(
     `  (${q(vendorId)}, ${q(userId)}, ${q(v.name)}, ${q(slug)}, ${q(v.description)}, ` +
       `${q(v.category)}, ${q(v.location)}, 'active', ${q(v.phone)}, ${q(v.email)}, ${q(v.website)}, ` +
-      `${q(v.businessHours)}, ${q(v.image)}, ${v.rating}, ${v.reviews}, ${startingPrice ?? 'null'})`,
+      // rating_is_demo = true: these figures are fabricated and have no
+      // reviews behind them. recalculate_vendor_rating() clears the flag for
+      // good the moment a real review arrives.
+      `${q(v.businessHours)}, ${q(v.image)}, ${v.rating}, ${v.reviews}, true, ${startingPrice ?? 'null'})`,
   );
 
   v.services.forEach((name, i) => {
@@ -105,7 +110,7 @@ where id in (${profileNameUpdates.map(q).join(', ')});
 
 lines.push(`insert into public.vendors
   (id, owner_id, business_name, slug, description, category, location, status,
-   phone, email, website, business_hours, hero_image_url, rating, review_count, starting_price)
+   phone, email, website, business_hours, hero_image_url, rating, review_count, rating_is_demo, starting_price)
 values
 ${vendorRows.join(',\n')}
 on conflict (id) do nothing;

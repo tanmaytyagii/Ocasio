@@ -101,7 +101,12 @@ transaction-scoped escape hatch Phase 4 used for payment status:
 `ocasio.allow_rating_recompute`, set only by `recalculate_vendor_rating()` and
 only for its own UPDATE.
 
-> ### ⚠️ Seeded ratings are not review-derived
+> ### ⚠️ Seeded ratings are not review-derived *(addressed in Phase 5.1)*
+>
+> **Update:** seeded vendors now carry `rating_is_demo = true` and the UI labels
+> their figures as illustrative sample data. The flag clears permanently the
+> first time a real review arrives. The paragraph below describes why the values
+> themselves were kept rather than zeroed.
 >
 > The 40 demo vendors carry fabricated ratings (4.0–5.0) and review counts
 > (57–495) with **no reviews behind them**. The trigger only fires when a review
@@ -228,14 +233,17 @@ built bundle. No sensitive payment data was introduced.
   Deno and needs `supabase functions serve`. The database function it calls is
   fully tested; the HTTP handler has not run in CI. Same caveat as the payment
   webhook.
-- **Nothing schedules the sweep.** It must be invoked by cron or an operator.
+- ~~**Nothing schedules the sweep.**~~ Addressed in Phase 5.1: a pg_cron job
+  runs it every 15 minutes. See [`OCASIO_OPERATIONS.md`](./OCASIO_OPERATIONS.md).
 - **Account deletion is blocked for users with financial or review history.**
   `payments.booking_id`, `reviews.booking_id` and `reviews.customer_id` are all
   `ON DELETE RESTRICT`, so deleting a profile fails once a booking has been paid
   or reviewed. This predates Phase 5 — `payments` introduced it in Phase 4 — and
   Phase 5 widens it. It is a real problem for account deletion and data-subject
   requests, and it needs a deliberate decision (anonymise vs. cascade) rather
-  than a late change to foreign keys. **Documented, not fixed.**
+  than a late change to foreign keys. **Documented, not fixed** — the full
+  analysis is in [`OCASIO_DATA_RETENTION.md`](./OCASIO_DATA_RETENTION.md), and
+  current behaviour is pinned by tests.
 
 ---
 

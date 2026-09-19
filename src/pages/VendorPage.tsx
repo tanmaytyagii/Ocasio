@@ -240,6 +240,7 @@ const VendorPage = () => {
               vendorId={vendor.id}
               rating={vendor.rating}
               reviewCount={vendor.review_count}
+              ratingIsDemo={vendor.rating_is_demo}
             />
 
             {vendor.vendor_media.length > 0 && (
