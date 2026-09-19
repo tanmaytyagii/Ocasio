@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
@@ -5,21 +6,21 @@ import { RequireAuth, RequireVendor } from './components/RouteGuards';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
-import CategoryPage from './pages/CategoryPage';
+const CategoryPage = lazy(() => import('./pages/CategoryPage'));
 import VendorPage from './pages/VendorPage';
 import VendorsIndex from './pages/VendorsIndex';
-import SearchResults from './pages/SearchResults';
-import AboutUs from './pages/AboutUs';
-import Contact from './pages/Contact';
-import BecomeVendor from './pages/BecomeVendor';
-import Blog from './pages/Blog';
-import Profile from './pages/Profile';
-import Favorites from './pages/Favorites';
-import Bookings from './pages/Bookings';
-import BookingDetail from './pages/BookingDetail';
-import VendorDashboard from './pages/VendorDashboard';
-import Auth from './pages/Auth';
-import NotFound from './pages/NotFound';
+const SearchResults = lazy(() => import('./pages/SearchResults'));
+const AboutUs = lazy(() => import('./pages/AboutUs'));
+const Contact = lazy(() => import('./pages/Contact'));
+const BecomeVendor = lazy(() => import('./pages/BecomeVendor'));
+const Blog = lazy(() => import('./pages/Blog'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Favorites = lazy(() => import('./pages/Favorites'));
+const Bookings = lazy(() => import('./pages/Bookings'));
+const BookingDetail = lazy(() => import('./pages/BookingDetail'));
+const VendorDashboard = lazy(() => import('./pages/VendorDashboard'));
+const Auth = lazy(() => import('./pages/Auth'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 /**
  * Route table.
@@ -31,6 +32,20 @@ import NotFound from './pages/NotFound';
  *
  * Guards here are UX. Data access is enforced by Row Level Security.
  */
+/**
+ * Shown while a route chunk loads. Reserves height so the header does not jump
+ * when the chunk arrives.
+ */
+const RouteFallback = () => (
+  <div className="flex min-h-[60vh] items-center justify-center" role="status" aria-live="polite">
+    <span className="sr-only">Loading…</span>
+    <div
+      className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-brand-600"
+      aria-hidden="true"
+    />
+  </div>
+);
+
 const SiteChrome = ({ children }: { children: React.ReactNode }) => (
   <>
     {/* First tab stop on every page; visible only when focused. */}
@@ -50,8 +65,9 @@ function App() {
     <AuthProvider>
       <Router>
         <FavoritesProvider>
-          <div className="flex min-h-screen flex-col bg-white">
-            <Routes>
+          <div className="flex min-h-screen flex-col bg-canvas">
+            <Suspense fallback={<RouteFallback />}>
+          <Routes>
             {/* Standalone: no site chrome. */}
             <Route path="/auth" element={<Auth />} />
 
@@ -128,6 +144,7 @@ function App() {
               }
             />
             </Routes>
+            </Suspense>
           </div>
         </FavoritesProvider>
       </Router>

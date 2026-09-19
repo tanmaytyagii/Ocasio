@@ -44,10 +44,14 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-canvas flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link to="/" className="block text-4xl font-bold text-center text-brand-700 mb-2">Ocasio</Link>
-        <h2 className="text-center text-xl text-muted mb-8">
+        <h1 className="mb-2 text-center">
+          <Link to="/" className="text-display-sm font-semibold text-brand-700">
+            Ocasio
+          </Link>
+        </h1>
+        <p className="mb-8 text-center text-muted">
           Find the perfect vendors for your special occasions
-        </h2>
+        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">

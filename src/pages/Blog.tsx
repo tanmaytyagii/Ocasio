@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { useState } from 'react';
+import { X } from 'lucide-react';
 
 interface BlogPost {
   id: number;
@@ -98,143 +98,17 @@ Finally, delivery is crucial. Use a reliable online gallery system and ensure ti
 ];
 
 const Blog = () => {
-  const [blogs, setBlogs] = useState<BlogPost[]>(initialBlogs);
+  const [blogs] = useState<BlogPost[]>(initialBlogs);
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
-  const [showNewBlogForm, setShowNewBlogForm] = useState(false);
-  const [newBlog, setNewBlog] = useState({
-    title: '',
-    excerpt: '',
-    content: '',
-    image: '',
-    category: ''
-  });
-
-  const handleNewBlogSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const blogPost: BlogPost = {
-      id: blogs.length + 1,
-      ...newBlog,
-      author: 'Guest Author',
-      date: new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    };
-    setBlogs([blogPost, ...blogs]);
-    setShowNewBlogForm(false);
-    setNewBlog({
-      title: '',
-      excerpt: '',
-      content: '',
-      image: '',
-      category: ''
-    });
-  };
 
   return (
     <div className="min-h-screen bg-canvas">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-ink">Ocasio Blog</h1>
-          <button
-            onClick={() => setShowNewBlogForm(true)}
-            className="flex items-center bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Write Blog
-          </button>
         </div>
 
         {/* New Blog Form Modal */}
-        {showNewBlogForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg w-full max-w-4xl p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Write New Blog</h2>
-                <button
-                  onClick={() => setShowNewBlogForm(false)}
-                  className="text-muted hover:text-ink-soft"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <form onSubmit={handleNewBlogSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-ink-soft mb-2">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={newBlog.title}
-                    onChange={(e) => setNewBlog({ ...newBlog, title: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-ink-soft mb-2">
-                    Excerpt
-                  </label>
-                  <textarea
-                    value={newBlog.excerpt}
-                    onChange={(e) => setNewBlog({ ...newBlog, excerpt: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
-                    rows={2}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-ink-soft mb-2">
-                    Content
-                  </label>
-                  <textarea
-                    value={newBlog.content}
-                    onChange={(e) => setNewBlog({ ...newBlog, content: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
-                    rows={8}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-ink-soft mb-2">
-                    Image URL
-                  </label>
-                  <input
-                    type="url"
-                    value={newBlog.image}
-                    onChange={(e) => setNewBlog({ ...newBlog, image: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-ink-soft mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={newBlog.category}
-                    onChange={(e) => setNewBlog({ ...newBlog, category: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    <option value="Wedding Planning">Wedding Planning</option>
-                    <option value="Venues">Venues</option>
-                    <option value="Corporate Events">Corporate Events</option>
-                    <option value="Photography">Photography</option>
-                  </select>
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-brand-600 text-white py-2 rounded-lg hover:bg-brand-700"
-                >
-                  Publish Blog
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
 
         {/* Blog Post Modal */}
         {selectedBlog && (
