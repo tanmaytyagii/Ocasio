@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 const Auth = () => {
@@ -44,7 +44,7 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <a href="/" className="block text-4xl font-bold text-center text-purple-600 mb-2">Ocasio</a>
+        <Link to="/" className="block text-4xl font-bold text-center text-purple-600 mb-2">Ocasio</Link>
         <h2 className="text-center text-xl text-gray-600 mb-8">
           Find the perfect vendors for your special occasions
         </h2>
@@ -57,9 +57,9 @@ const Auth = () => {
               <p>
                 Every account starts as a customer account. To list a business, create an
                 account and then apply through{' '}
-                <a href="/become-vendor" className="font-medium text-purple-600 hover:underline">
+                <Link to="/become-vendor" className="font-medium text-purple-600 hover:underline">
                   Become a vendor
-                </a>
+                </Link>
                 . Vendor listings go live after review.
               </p>
             </div>

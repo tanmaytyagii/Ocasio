@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -65,12 +65,12 @@ export const RequireVendor = ({ children }: { children: ReactNode }) => {
             This area is for approved vendors. If you have applied, your application is still
             under review.
           </p>
-          <a
-            href="/become-vendor"
+          <Link
+            to="/become-vendor"
             className="inline-block rounded-lg bg-purple-600 px-5 py-2.5 text-white transition-colors hover:bg-purple-700"
           >
             Become a vendor
-          </a>
+          </Link>
         </div>
       </Centered>
     );
