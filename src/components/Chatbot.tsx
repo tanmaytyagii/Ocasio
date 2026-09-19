@@ -11,7 +11,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       type: 'bot',
-      content: 'Hi! I\'m your Occasio assistant. How can I help you plan your event today?'
+      content: 'Hi! I\'m your Ocasio assistant. How can I help you plan your event today?'
     }
   ]);
   const [input, setInput] = useState('');
@@ -89,7 +89,7 @@ const Chatbot = () => {
       {isOpen && (
         <div className="bg-white rounded-lg shadow-xl w-96 max-w-full">
           <div className="p-4 bg-purple-600 text-white rounded-t-lg flex justify-between items-center">
-            <h3 className="font-semibold">Occasio Assistant</h3>
+            <h3 className="font-semibold">Ocasio Assistant</h3>
             <button
               onClick={() => setIsOpen(false)}
               className="text-white hover:text-gray-200"

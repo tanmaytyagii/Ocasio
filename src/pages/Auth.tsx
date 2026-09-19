@@ -47,7 +47,7 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h1 className="text-4xl font-bold text-center text-purple-600 mb-2">Occasio</h1>
+        <h1 className="text-4xl font-bold text-center text-purple-600 mb-2">Ocasio</h1>
         <h2 className="text-center text-xl text-gray-600 mb-8">
           Find the perfect vendors for your special occasions
         </h2>

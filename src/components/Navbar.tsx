@@ -38,7 +38,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Menu className="h-6 w-6 md:hidden cursor-pointer" />
-            <Link to="/" className="text-2xl font-bold text-purple-600 ml-2 md:ml-0">Occasio</Link>
+            <Link to="/" className="text-2xl font-bold text-purple-600 ml-2 md:ml-0">Ocasio</Link>
           </div>
           
           <div className="hidden md:flex items-center space-x-8">

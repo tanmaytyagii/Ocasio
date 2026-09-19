@@ -31,7 +31,7 @@ const AboutUs = () => {
     <div className="pt-16 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">About Occasio</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">About Ocasio</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             We're a team of passionate individuals dedicated to revolutionizing the event planning
             industry in India through technology and innovation.
@@ -69,7 +69,7 @@ const AboutUs = () => {
         <div className="bg-white rounded-lg shadow-md p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h2>
           <p className="text-gray-600 mb-6">
-            At Occasio, we strive to simplify the event planning process by connecting people with the
+            At Ocasio, we strive to simplify the event planning process by connecting people with the
             best vendors across India. Our platform brings together carefully curated professionals
             who share our commitment to excellence and customer satisfaction.
           </p>

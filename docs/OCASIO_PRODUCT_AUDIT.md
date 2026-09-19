@@ -31,6 +31,7 @@ Three findings are severe enough to block any public deployment:
 | 1 | `.env` with live Supabase credentials is committed to git history | **Critical** |
 | 2 | Payment forms collect card numbers and CVVs, then discard them | **Critical** |
 | 3 | All three homepage "Top-Rated Vendors" cards link to vendors that do not exist | **High** |
+| 4 | `Ocasio` is a broken submodule gitlink with no `.gitmodules` | **Medium** |
 
 The gap between Ocasio-today and Ocasio-as-a-product is not more pages. It is persistence,
 authorization, and truthfulness about what is implemented.
@@ -303,6 +304,30 @@ The nav links are `hidden md:flex`. On phones, category navigation is completely
 For a marketplace this is fatal: no SEO, no organic discovery, no ability to evaluate the
 product before signing up, and no shareable vendor links.
 
+### BUG-12 — Broken submodule gitlink — **Medium**
+
+What looks like an empty directory named `Ocasio/` is actually a **gitlink**: git
+tracks it with mode `160000` pointing at commit `238db8f8da0901b2a2ba5915f6166f776ab42507`.
+
+```
+$ git ls-files -s Ocasio
+160000 238db8f8da0901b2a2ba5915f6166f776ab42507 0	Ocasio
+```
+
+There is **no `.gitmodules` file**, and the referenced commit does not exist in this
+repository. A nested git repository was committed by accident.
+
+Consequences:
+
+- `git clone --recurse-submodules` produces an empty `Ocasio/` that can never be populated,
+  because no URL was ever recorded.
+- CI checkouts configured with `submodules: true` (a common default in GitHub Actions
+  templates) will attempt to resolve it.
+- `git submodule update --init` cannot succeed.
+
+Verified by cloning the repository with `--recurse-submodules` and observing the empty,
+unpopulatable directory. Removed in Phase 0.
+
 ### BUG-11 — Dead loading branch — **Trivial**
 
 `AuthContext.tsx:34` renders `{!loading && children}`, so `ProtectedRoute`'s
@@ -435,7 +460,7 @@ Deleting `.env` in a new commit is **not sufficient** — the values remain in `
 | ID | Item | Effort |
 |---|---|---|
 | TD-1 | `package.json` still named `vite-react-typescript-starter`, version `0.0.0` | XS |
-| TD-2 | Empty tracked directory `Ocasio/` | XS |
+| TD-2 | Broken submodule gitlink `Ocasio` — see BUG-12 | XS |
 | TD-3 | Brand split: README says "Ocasio", all 8 UI files say "Occasio" | XS |
 | TD-4 | `.tsbuildinfo` artefacts not gitignored | XS |
 | TD-5 | `.bolt/` scaffolding from the original generator still present | XS |
@@ -499,6 +524,9 @@ Every command run during this audit, with its result.
 | 12 | Executed `generateVendorData()` | IDs are `venues-1..10`, `catering-11..20`, `photography-21..30`, `decoration-31..40`; `catering-1`/`decoration-1`/`photography-1` **NOT FOUND** → BUG-1 confirmed |
 | 13 | `grep -n "export" node_modules/date-fns/locale/en-US.js` | `exports.enUS` — **no default export** → BUG-5 confirmed |
 | 14 | Route/link cross-reference | `/favorites`, `/contact` linked but **undefined** → BUG-6 confirmed |
+| 15 | `git ls-files -s Ocasio` | mode **`160000`** (gitlink) → BUG-12 confirmed |
+| 16 | `git cat-file -t 238db8f8…` | **commit not present in repository** |
+| 17 | `git clone --recurse-submodules .` | reproduces empty, unpopulatable `Ocasio/` |
 
 ### Build output (command 2)
 
