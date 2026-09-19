@@ -30,3 +30,7 @@ dist-ssr
 
 # TypeScript incremental build artifacts
 *.tsbuildinfo
+
+# Supabase local stack artifacts
+supabase/.branches
+supabase/.temp
