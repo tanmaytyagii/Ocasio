@@ -94,15 +94,15 @@ const BecomeVendor = () => {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Check className="h-8 w-8 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Demo application received</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-bold text-ink mb-4">Demo application received</h2>
+            <p className="text-muted mb-6">
               This is a simulated submission. No payment was taken and your details have not
               been stored or sent anywhere. Vendor applications will be reviewed for real once
               Ocasio is connected to its database.
             </p>
             <button
               onClick={() => window.location.href = '/'}
-              className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700"
+              className="bg-brand-600 text-white px-6 py-3 rounded-lg hover:bg-brand-700"
             >
               Return to Home
             </button>
@@ -134,8 +134,8 @@ const BecomeVendor = () => {
     <div className="bg-canvas">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Join Ocasio as a Vendor</h1>
-          <p className="text-xl text-gray-600">
+          <h1 className="text-4xl font-bold text-ink mb-4">Join Ocasio as a Vendor</h1>
+          <p className="text-xl text-muted">
             Reach thousands of potential customers and grow your business
           </p>
         </div>
@@ -147,25 +147,25 @@ const BecomeVendor = () => {
               <div
                 key={plan.name}
                 className={`bg-white rounded-lg shadow-lg overflow-hidden ${
-                  plan.recommended ? 'ring-2 ring-purple-600' : ''
+                  plan.recommended ? 'ring-2 ring-brand-600' : ''
                 }`}
               >
                 {plan.recommended && (
-                  <div className="bg-purple-600 text-white text-center py-2">
+                  <div className="bg-brand-600 text-white text-center py-2">
                     Recommended
                   </div>
                 )}
                 <div className="p-6">
-                  <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
+                  <h3 className="text-2xl font-bold text-ink">{plan.name}</h3>
                   <div className="mt-4">
                     <span className="text-4xl font-bold">₹{plan.price}</span>
-                    <span className="text-gray-600">/month</span>
+                    <span className="text-muted">/month</span>
                   </div>
                   <ul className="mt-6 space-y-4">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-center">
                         <Check className="h-5 w-5 text-green-500 mr-2" />
-                        <span className="text-gray-600">{feature}</span>
+                        <span className="text-muted">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -173,8 +173,8 @@ const BecomeVendor = () => {
                     onClick={() => setSelectedPlan(plan.name)}
                     className={`mt-8 w-full py-3 px-4 rounded-lg font-semibold ${
                       selectedPlan === plan.name
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                        ? 'bg-brand-600 text-white'
+                        : 'bg-canvas text-ink hover:bg-line'
                     }`}
                   >
                     {selectedPlan === plan.name ? 'Selected' : 'Select Plan'}
@@ -190,7 +190,7 @@ const BecomeVendor = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-soft mb-2">
                   Business Name
                 </label>
                 <input
@@ -198,19 +198,19 @@ const BecomeVendor = () => {
                   name="businessName"
                   value={formData.businessName}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-600"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-soft mb-2">
                   Category
                 </label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-600"
                   required
                 >
                   <option value="">Select Category</option>
@@ -224,7 +224,7 @@ const BecomeVendor = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-soft mb-2">
                   Contact Person Name
                 </label>
                 <input
@@ -232,12 +232,12 @@ const BecomeVendor = () => {
                   name="contactName"
                   value={formData.contactName}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-600"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-soft mb-2">
                   Email
                 </label>
                 <input
@@ -245,7 +245,7 @@ const BecomeVendor = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-600"
                   required
                 />
               </div>
@@ -253,7 +253,7 @@ const BecomeVendor = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-soft mb-2">
                   Phone Number
                 </label>
                 <input
@@ -261,19 +261,19 @@ const BecomeVendor = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-600"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-soft mb-2">
                   City
                 </label>
                 <select
                   name="city"
                   value={formData.city}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-600"
                   required
                 >
                   <option value="">Select City</option>
@@ -288,7 +288,7 @@ const BecomeVendor = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-ink-soft mb-2">
                 Business Description
               </label>
               <textarea
@@ -296,14 +296,14 @@ const BecomeVendor = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={4}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-600"
                 required
               ></textarea>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-soft mb-2">
                   Price Range
                 </label>
                 <input
@@ -312,12 +312,12 @@ const BecomeVendor = () => {
                   value={formData.priceRange}
                   onChange={handleInputChange}
                   placeholder="e.g., ₹10,000 - ₹50,000"
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-600"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-soft mb-2">
                   Website (Optional)
                 </label>
                 <input
@@ -325,14 +325,14 @@ const BecomeVendor = () => {
                   name="website"
                   value={formData.website}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-600"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition-colors"
+              className="w-full bg-brand-600 text-white py-3 rounded-lg hover:bg-brand-700 transition-colors"
             >
               Submit Application
             </button>

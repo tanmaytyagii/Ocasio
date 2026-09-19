@@ -29,7 +29,7 @@ const StarRating = ({
           <Star
             key={star}
             aria-hidden="true"
-            className={`${icon} ${star <= Math.round(value) ? 'fill-current text-yellow-400' : 'text-gray-300'}`}
+            className={`${icon} ${star <= Math.round(value) ? 'fill-current text-amber-400' : 'text-line-strong'}`}
           />
         ))}
       </span>
@@ -46,11 +46,11 @@ const StarRating = ({
           aria-checked={value === star}
           aria-label={`${star} star${star === 1 ? '' : 's'}`}
           onClick={() => onChange(star)}
-          className="rounded p-0.5 focus:outline-none focus:ring-2 focus:ring-purple-600"
+          className="rounded p-0.5 focus:outline-none focus:ring-2 focus:ring-brand-600"
         >
           <Star
             aria-hidden="true"
-            className={`${icon} ${star <= value ? 'fill-current text-yellow-400' : 'text-gray-300'}`}
+            className={`${icon} ${star <= value ? 'fill-current text-amber-400' : 'text-line-strong'}`}
           />
         </button>
       ))}

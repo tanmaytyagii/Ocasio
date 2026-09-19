@@ -48,8 +48,9 @@ const MarketplaceFilters = ({
 }: Props) => {
   const [open, setOpen] = useState(false);
 
-  const field = 'w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-600';
-  const labelStyle = 'mb-1 block text-sm font-medium text-gray-700';
+  const field =
+    'h-10 w-full rounded-control border border-line-strong bg-surface px-2.5 text-sm text-ink focus:border-brand-500';
+  const labelStyle = 'mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted';
 
   return (
     <div className="mb-8">
@@ -58,23 +59,23 @@ const MarketplaceFilters = ({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-controls="marketplace-filters"
-        className="mb-4 flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white p-3 text-sm font-medium text-gray-700 md:hidden"
+        className="mb-4 flex w-full items-center justify-between rounded-control border border-line-strong bg-surface p-3 text-sm font-medium text-ink-soft md:hidden"
       >
         <span className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
           Filters
           {activeFilterCount > 0 && (
-            <span className="rounded-full bg-purple-600 px-2 py-0.5 text-xs text-white">
+            <span className="rounded-full bg-brand-600 px-2 py-0.5 text-xs text-white">
               {activeFilterCount}
             </span>
           )}
         </span>
-        <span className="text-purple-600">{open ? 'Hide' : 'Show'}</span>
+        <span className="text-brand-700">{open ? 'Hide' : 'Show'}</span>
       </button>
 
       <div
         id="marketplace-filters"
-        className={`rounded-lg bg-white p-4 shadow-sm ${open ? 'block' : 'hidden'} md:block`}
+        className={`rounded-card border border-line bg-surface p-4 ${open ? 'block' : 'hidden'} md:block`}
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {showCategory && (
@@ -192,7 +193,7 @@ const MarketplaceFilters = ({
             <button
               type="button"
               onClick={onClear}
-              className="inline-flex items-center gap-1 self-start rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 sm:self-auto"
+              className="inline-flex h-10 items-center gap-1 self-start rounded-control border border-line-strong px-4 text-sm text-ink-soft transition-colors hover:bg-canvas sm:self-auto"
             >
               <X className="h-4 w-4" aria-hidden="true" />
               Clear {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''}

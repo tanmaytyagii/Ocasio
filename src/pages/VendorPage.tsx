@@ -21,7 +21,7 @@ const formatRupees = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
 /** Marks a surface that does not persist yet, so nothing is mistaken for real. */
 const DemoNotice = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4" role="note">
+  <div className="flex gap-3 rounded-card border border-amber-300 bg-amber-50 p-4" role="note">
     <Info className="h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />
     <p className="text-sm text-amber-900">{children}</p>
   </div>
@@ -47,12 +47,12 @@ const VendorPage = () => {
     return (
       <div className="bg-canvas">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-lg bg-white shadow-lg">
-            <div className="h-96 animate-pulse bg-gray-200" />
+          <div className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
+            <div className="h-96 animate-pulse bg-line" />
             <div className="space-y-4 p-8">
-              <div className="h-8 w-1/3 animate-pulse rounded bg-gray-200" />
-              <div className="h-4 w-1/4 animate-pulse rounded bg-gray-200" />
-              <div className="h-24 w-full animate-pulse rounded bg-gray-200" />
+              <div className="h-8 w-1/3 animate-pulse rounded bg-line" />
+              <div className="h-4 w-1/4 animate-pulse rounded bg-line" />
+              <div className="h-24 w-full animate-pulse rounded bg-line" />
             </div>
           </div>
         </div>
@@ -85,12 +85,12 @@ const VendorPage = () => {
     return (
       <div className="min-h-screen bg-canvas">
         <div className="mx-auto max-w-3xl px-4 py-16">
-          <div className="rounded-lg bg-white p-8 text-center shadow-lg">
+          <div className="rounded-card border border-line bg-surface p-8 text-center shadow-card">
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
               <CalendarCheck className="h-8 w-8 text-green-600" aria-hidden="true" />
             </div>
-            <h2 className="mb-4 text-2xl font-bold text-gray-900">Booking request submitted</h2>
-            <p className="mb-6 text-gray-600">
+            <h2 className="mb-4 text-2xl font-bold text-ink">Booking request submitted</h2>
+            <p className="mb-6 text-muted">
               Your request has been sent to {vendor.business_name}. It is now awaiting their
               response — this is not a confirmed booking, and no payment has been taken. You can
               track its status and cancel it from your bookings.
@@ -98,13 +98,13 @@ const VendorPage = () => {
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <Link
                 to={`/bookings/${submittedBookingId}`}
-                className="inline-block rounded-lg bg-purple-600 px-6 py-3 text-white hover:bg-purple-700"
+                className="inline-flex h-12 items-center justify-center rounded-control bg-brand-600 px-6 text-sm font-medium text-white shadow-card transition-colors hover:bg-brand-700"
               >
                 View this request
               </Link>
               <Link
                 to="/bookings"
-                className="inline-block rounded-lg border border-gray-300 px-6 py-3 text-gray-700 hover:bg-gray-50"
+                className="inline-flex h-12 items-center justify-center rounded-control border border-line-strong bg-surface px-6 text-sm font-medium text-ink-soft transition-colors hover:bg-canvas"
               >
                 All my bookings
               </Link>
@@ -118,7 +118,7 @@ const VendorPage = () => {
   return (
     <div className="bg-canvas">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-lg bg-white shadow-lg">
+        <div className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
           <div className="relative h-96">
             <img
               src={vendor.hero_image_url ?? ''}
@@ -135,52 +135,52 @@ const VendorPage = () => {
           <div className="p-8">
             <div className="flex items-start justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{vendor.business_name}</h1>
-                <p className="mt-2 text-gray-600">{vendor.category}</p>
+                <h1 className="text-3xl font-bold text-ink">{vendor.business_name}</h1>
+                <p className="mt-2 text-muted">{vendor.category}</p>
               </div>
               <div className="text-right">
                 <div className="flex items-center">
-                  <Star className="h-6 w-6 fill-current text-yellow-400" aria-hidden="true" />
-                  <span className="ml-2 text-2xl font-bold text-gray-900">
+                  <Star className="h-6 w-6 fill-current text-amber-400" aria-hidden="true" />
+                  <span className="ml-2 text-2xl font-bold text-ink">
                     {vendor.rating.toFixed(1)}
                   </span>
                 </div>
-                <p className="text-gray-600">{vendor.review_count} reviews</p>
+                <p className="text-muted">{vendor.review_count} reviews</p>
               </div>
             </div>
 
             <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
               <div>
                 <h2 className="mb-4 text-xl font-semibold">About us</h2>
-                <p className="text-gray-600">{vendor.description}</p>
+                <p className="text-muted">{vendor.description}</p>
 
                 <div className="mt-6 space-y-3">
                   <div className="flex items-center">
-                    <MapPin className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                    <span className="ml-2 text-gray-600">{vendor.location}</span>
+                    <MapPin className="h-5 w-5 text-muted" aria-hidden="true" />
+                    <span className="ml-2 text-muted">{vendor.location}</span>
                   </div>
                   {vendor.phone && (
                     <div className="flex items-center">
-                      <Phone className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                      <span className="ml-2 text-gray-600">{vendor.phone}</span>
+                      <Phone className="h-5 w-5 text-muted" aria-hidden="true" />
+                      <span className="ml-2 text-muted">{vendor.phone}</span>
                     </div>
                   )}
                   {vendor.email && (
                     <div className="flex items-center">
-                      <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                      <span className="ml-2 text-gray-600">{vendor.email}</span>
+                      <Mail className="h-5 w-5 text-muted" aria-hidden="true" />
+                      <span className="ml-2 text-muted">{vendor.email}</span>
                     </div>
                   )}
                   {vendor.website && (
                     <div className="flex items-center">
-                      <Globe className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                      <span className="ml-2 text-gray-600">{vendor.website}</span>
+                      <Globe className="h-5 w-5 text-muted" aria-hidden="true" />
+                      <span className="ml-2 text-muted">{vendor.website}</span>
                     </div>
                   )}
                   {vendor.business_hours && (
                     <div className="flex items-center">
-                      <Clock className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                      <span className="ml-2 text-gray-600">{vendor.business_hours}</span>
+                      <Clock className="h-5 w-5 text-muted" aria-hidden="true" />
+                      <span className="ml-2 text-muted">{vendor.business_hours}</span>
                     </div>
                   )}
                 </div>
@@ -189,19 +189,19 @@ const VendorPage = () => {
               <div>
                 <h2 className="mb-4 text-xl font-semibold">Services</h2>
                 {vendor.vendor_services.length === 0 ? (
-                  <p className="text-gray-600">This vendor has not listed services yet.</p>
+                  <p className="text-muted">This vendor has not listed services yet.</p>
                 ) : (
                   <ul className="divide-y rounded-lg border">
                     {vendor.vendor_services.map((service) => (
                       <li key={service.id} className="flex items-start justify-between gap-4 p-3">
                         <div>
-                          <p className="font-medium text-gray-900">{service.name}</p>
+                          <p className="font-medium text-ink">{service.name}</p>
                           {service.description && (
-                            <p className="mt-0.5 text-sm text-gray-600">{service.description}</p>
+                            <p className="mt-0.5 text-sm text-muted">{service.description}</p>
                           )}
                         </div>
                         {service.price !== null && (
-                          <p className="whitespace-nowrap text-sm font-semibold text-gray-900">
+                          <p className="whitespace-nowrap text-sm font-semibold text-ink">
                             {formatRupees(service.price)}
                           </p>
                         )}
@@ -213,7 +213,7 @@ const VendorPage = () => {
                 {vendor.starting_price !== null && (
                   <div className="mt-8">
                     <h2 className="mb-4 text-xl font-semibold">Pricing</h2>
-                    <p className="text-gray-600">
+                    <p className="text-muted">
                       Starting from {formatRupees(vendor.starting_price)} onwards
                     </p>
                   </div>
@@ -222,13 +222,13 @@ const VendorPage = () => {
                 <div className="mt-8 space-y-4">
                   <button
                     onClick={() => setShowContact(true)}
-                    className="w-full rounded-lg bg-purple-600 py-3 text-white transition duration-300 hover:bg-purple-700"
+                    className="flex h-12 w-full items-center justify-center rounded-control bg-brand-600 text-sm font-medium text-white shadow-card transition-colors hover:bg-brand-700"
                   >
                     Contact vendor
                   </button>
                   <button
                     onClick={() => setShowBooking(true)}
-                    className="w-full rounded-lg border border-purple-600 py-3 text-purple-600 transition duration-300 hover:bg-purple-50"
+                    className="flex h-12 w-full items-center justify-center rounded-control border border-line-strong bg-surface text-sm font-medium text-ink-soft transition-colors hover:bg-canvas"
                   >
                     Request a booking
                   </button>
@@ -246,7 +246,7 @@ const VendorPage = () => {
             {vendor.vendor_media.length > 0 && (
               <div className="mt-10 border-t pt-8">
                 <h2 className="mb-2 text-xl font-semibold">Portfolio</h2>
-                <p className="mb-4 text-sm text-gray-500">
+                <p className="mb-4 text-sm text-muted">
                   Sample imagery supplied with this demo listing, not verified client work.
                 </p>
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
@@ -278,7 +278,7 @@ const VendorPage = () => {
                 <div key={m.id} className={m.sender === 'user' ? 'text-right' : 'text-left'}>
                   <div
                     className={`inline-block rounded-lg p-3 ${
-                      m.sender === 'user' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-800'
+                      m.sender === 'user' ? 'bg-brand-600 text-white' : 'bg-canvas text-ink-soft'
                     }`}
                   >
                     {m.text}
@@ -294,11 +294,11 @@ const VendorPage = () => {
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Type your message…"
                 aria-label="Message"
-                className="flex-1 rounded-lg border p-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="flex-1 rounded-lg border p-2 focus:outline-none focus:ring-2 focus:ring-brand-600"
               />
               <button
                 type="submit"
-                className="rounded-lg bg-purple-600 px-4 text-white hover:bg-purple-700"
+                className="rounded-lg bg-brand-600 px-4 text-white hover:bg-brand-700"
                 aria-label="Send message"
               >
                 <Send className="h-5 w-5" aria-hidden="true" />

@@ -136,10 +136,10 @@ const Blog = () => {
     <div className="min-h-screen bg-canvas">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Ocasio Blog</h1>
+          <h1 className="text-4xl font-bold text-ink">Ocasio Blog</h1>
           <button
             onClick={() => setShowNewBlogForm(true)}
-            className="flex items-center bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+            className="flex items-center bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700"
           >
             <Plus className="w-5 h-5 mr-2" />
             Write Blog
@@ -154,14 +154,14 @@ const Blog = () => {
                 <h2 className="text-2xl font-bold">Write New Blog</h2>
                 <button
                   onClick={() => setShowNewBlogForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-muted hover:text-ink-soft"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
               <form onSubmit={handleNewBlogSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-ink-soft mb-2">
                     Title
                   </label>
                   <input
@@ -173,7 +173,7 @@ const Blog = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-ink-soft mb-2">
                     Excerpt
                   </label>
                   <textarea
@@ -185,7 +185,7 @@ const Blog = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-ink-soft mb-2">
                     Content
                   </label>
                   <textarea
@@ -197,7 +197,7 @@ const Blog = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-ink-soft mb-2">
                     Image URL
                   </label>
                   <input
@@ -209,7 +209,7 @@ const Blog = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-ink-soft mb-2">
                     Category
                   </label>
                   <select
@@ -227,7 +227,7 @@ const Blog = () => {
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700"
+                  className="w-full bg-brand-600 text-white py-2 rounded-lg hover:bg-brand-700"
                 >
                   Publish Blog
                 </button>
@@ -254,19 +254,19 @@ const Blog = () => {
                 </button>
               </div>
               <div className="p-6">
-                <div className="flex items-center text-sm text-gray-500 mb-2">
+                <div className="flex items-center text-sm text-muted mb-2">
                   <span>{selectedBlog.author}</span>
                   <span className="mx-2">•</span>
                   <span>{selectedBlog.date}</span>
                   <span className="mx-2">•</span>
                   <span>{selectedBlog.category}</span>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                <h2 className="text-3xl font-bold text-ink mb-4">
                   {selectedBlog.title}
                 </h2>
                 <div className="prose max-w-none">
                   {selectedBlog.content.split('\n\n').map((paragraph, index) => (
-                    <p key={index} className="mb-4 text-gray-700">
+                    <p key={index} className="mb-4 text-ink-soft">
                       {paragraph}
                     </p>
                   ))}
@@ -286,24 +286,24 @@ const Blog = () => {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-4 left-4">
-                  <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm">
+                  <span className="bg-brand-600 text-white px-3 py-1 rounded-full text-sm">
                     {blog.category}
                   </span>
                 </div>
               </div>
               <div className="p-6">
-                <div className="flex items-center text-sm text-gray-500 mb-2">
+                <div className="flex items-center text-sm text-muted mb-2">
                   <span>{blog.author}</span>
                   <span className="mx-2">•</span>
                   <span>{blog.date}</span>
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                <h2 className="text-xl font-bold text-ink mb-2">
                   {blog.title}
                 </h2>
-                <p className="text-gray-600 mb-4">{blog.excerpt}</p>
+                <p className="text-muted mb-4">{blog.excerpt}</p>
                 <button
                   onClick={() => setSelectedBlog(blog)}
-                  className="text-purple-600 font-semibold hover:text-purple-700"
+                  className="text-brand-700 font-semibold hover:text-brand-700"
                 >
                   Read More →
                 </button>

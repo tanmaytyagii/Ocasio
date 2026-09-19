@@ -99,10 +99,10 @@ const BookingDetail = () => {
     return (
       <div className="min-h-screen bg-canvas">
         <div className="mx-auto max-w-3xl px-4 py-12">
-          <div className="rounded-lg bg-white p-8 shadow-sm">
-            <div className="mb-4 h-7 w-1/3 animate-pulse rounded bg-gray-200" />
-            <div className="mb-2 h-4 w-1/4 animate-pulse rounded bg-gray-200" />
-            <div className="h-24 w-full animate-pulse rounded bg-gray-200" />
+          <div className="rounded-card border border-line bg-surface p-6 sm:p-8">
+            <div className="mb-4 h-7 w-1/3 animate-pulse rounded bg-line" />
+            <div className="mb-2 h-4 w-1/4 animate-pulse rounded bg-line" />
+            <div className="h-24 w-full animate-pulse rounded bg-line" />
           </div>
         </div>
       </div>
@@ -132,16 +132,16 @@ const BookingDetail = () => {
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <Link
           to={isCustomer ? '/bookings' : '/vendor/dashboard'}
-          className="mb-6 inline-flex items-center text-sm text-purple-600 hover:underline"
+          className="mb-6 inline-flex items-center text-sm text-brand-700 hover:underline"
         >
           <ArrowLeft className="mr-1 h-4 w-4" aria-hidden="true" />
           {isCustomer ? 'Back to my bookings' : 'Back to dashboard'}
         </Link>
 
-        <div className="rounded-lg bg-white p-8 shadow-sm">
+        <div className="rounded-card border border-line bg-surface p-6 sm:p-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-ink">
                 {booking.vendors?.slug ? (
                   <Link to={`/vendors/${booking.vendors.slug}`} className="hover:underline">
                     {booking.vendors.business_name}
@@ -150,38 +150,38 @@ const BookingDetail = () => {
                   (booking.vendors?.business_name ?? 'Vendor')
                 )}
               </h1>
-              <p className="mt-1 text-gray-600">{booking.vendor_services?.name}</p>
+              <p className="mt-1 text-muted">{booking.vendor_services?.name}</p>
             </div>
             <BookingStatusBadge status={booking.status} />
           </div>
 
           <dl className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <dt className="text-sm text-gray-500">Event date</dt>
-              <dd className="mt-1 font-medium text-gray-900">{formatDate(booking.event_date)}</dd>
+              <dt className="text-sm text-muted">Event date</dt>
+              <dd className="mt-1 font-medium text-ink">{formatDate(booking.event_date)}</dd>
             </div>
             <div>
-              <dt className="text-sm text-gray-500">Location</dt>
-              <dd className="mt-1 flex items-center font-medium text-gray-900">
-                <MapPin className="mr-1 h-4 w-4 text-gray-400" aria-hidden="true" />
+              <dt className="text-sm text-muted">Location</dt>
+              <dd className="mt-1 flex items-center font-medium text-ink">
+                <MapPin className="mr-1 h-4 w-4 text-muted" aria-hidden="true" />
                 {booking.event_location}
               </dd>
             </div>
             <div>
-              <dt className="text-sm text-gray-500">Indicative quote</dt>
-              <dd className="mt-1 font-medium text-gray-900">
+              <dt className="text-sm text-muted">Indicative quote</dt>
+              <dd className="mt-1 font-medium text-ink">
                 {formatRupees(booking.quoted_price)}
               </dd>
               {/* Phase 4 made the old unconditional "no payment has been
                   taken" false once a payment settles. Payment state now lives
                   in the panel below; this line only describes the quote. */}
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-muted">
                 A starting figure, not a final invoice.
               </p>
             </div>
             <div>
-              <dt className="text-sm text-gray-500">Requested</dt>
-              <dd className="mt-1 font-medium text-gray-900">
+              <dt className="text-sm text-muted">Requested</dt>
+              <dd className="mt-1 font-medium text-ink">
                 {formatTimestamp(booking.created_at)}
               </dd>
             </div>
@@ -189,15 +189,15 @@ const BookingDetail = () => {
 
           {booking.customer_notes && (
             <div className="mt-6 border-t pt-6">
-              <h2 className="text-sm font-medium text-gray-500">Notes</h2>
-              <p className="mt-1 whitespace-pre-line text-gray-800">{booking.customer_notes}</p>
+              <h2 className="text-sm font-medium text-muted">Notes</h2>
+              <p className="mt-1 whitespace-pre-line text-ink-soft">{booking.customer_notes}</p>
             </div>
           )}
 
           {showCancel && (
             <div className="mt-8 border-t pt-6">
               {actionError && (
-                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3" role="alert">
+                <div className="mb-4 rounded-control border border-red-200 bg-red-50 p-3" role="alert">
                   <p className="text-sm text-red-800">{actionError}</p>
                 </div>
               )}
@@ -205,7 +205,7 @@ const BookingDetail = () => {
                 type="button"
                 onClick={handleCancel}
                 disabled={cancelling}
-                className="inline-flex items-center gap-2 rounded-lg border border-red-300 px-5 py-2.5 text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-11 items-center gap-2 rounded-control border border-red-300 bg-surface px-5 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {cancelling && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                 {cancelling ? 'Cancelling…' : 'Cancel this booking'}
@@ -218,18 +218,18 @@ const BookingDetail = () => {
 
         <BookingReviewPanel booking={booking} isCustomer={isCustomer} />
 
-        <section className="mt-8 rounded-lg bg-white p-8 shadow-sm">
-          <h2 className="mb-6 text-lg font-semibold text-gray-900">Status history</h2>
+        <section className="mt-6 rounded-card border border-line bg-surface p-6 sm:p-8">
+          <h2 className="mb-6 text-lg font-semibold text-ink">Status history</h2>
           <ol className="space-y-5">
             {history.map((entry) => (
               <li key={entry.id} className="flex gap-4">
-                <div className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-purple-600" aria-hidden="true" />
+                <div className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-brand-600" aria-hidden="true" />
                 <div>
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-ink">
                     {HISTORY_LABEL[entry.to_status] ?? entry.to_status}
                   </p>
-                  <p className="text-sm text-gray-500">{formatTimestamp(entry.created_at)}</p>
-                  {entry.note && <p className="mt-1 text-sm text-gray-700">“{entry.note}”</p>}
+                  <p className="text-sm text-muted">{formatTimestamp(entry.created_at)}</p>
+                  {entry.note && <p className="mt-1 text-sm text-ink-soft">“{entry.note}”</p>}
                 </div>
               </li>
             ))}

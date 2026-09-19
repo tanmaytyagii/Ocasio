@@ -25,10 +25,10 @@ const formatDate = (iso: string) =>
 const ListSkeleton = () => (
   <div className="space-y-4" aria-hidden="true">
     {Array.from({ length: 3 }).map((_, i) => (
-      <div key={i} className="rounded-lg bg-white p-6 shadow-sm">
-        <div className="mb-3 h-5 w-1/3 animate-pulse rounded bg-gray-200" />
-        <div className="mb-2 h-4 w-1/4 animate-pulse rounded bg-gray-200" />
-        <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
+      <div key={i} className="rounded-card border border-line bg-surface p-6">
+        <div className="mb-3 h-5 w-1/3 animate-pulse rounded bg-line" />
+        <div className="mb-2 h-4 w-1/4 animate-pulse rounded bg-line" />
+        <div className="h-4 w-1/2 animate-pulse rounded bg-line" />
       </div>
     ))}
   </div>
@@ -60,11 +60,11 @@ const Bookings = () => {
   return (
     <div className="min-h-screen bg-canvas">
       <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="mb-2 flex items-center gap-2 text-4xl font-bold text-gray-900">
-          <CalendarDays className="h-8 w-8 text-purple-600" aria-hidden="true" />
+        <h1 className="mb-2 flex items-center gap-2 text-4xl font-bold text-ink">
+          <CalendarDays className="h-8 w-8 text-brand-700" aria-hidden="true" />
           My bookings
         </h1>
-        <p className="mb-8 text-gray-600" aria-live="polite">
+        <p className="mb-8 text-muted" aria-live="polite">
           {loading ? 'Loading…' : `${bookings?.length ?? 0} booking request${bookings?.length === 1 ? '' : 's'}`}
         </p>
 
@@ -78,7 +78,7 @@ const Bookings = () => {
             action={
               <Link
                 to="/vendors"
-                className="rounded-lg bg-purple-600 px-5 py-2.5 text-white hover:bg-purple-700"
+                className="inline-flex h-11 items-center justify-center rounded-control bg-brand-600 px-5 text-sm font-medium text-white shadow-card transition-colors hover:bg-brand-700"
               >
                 Browse vendors
               </Link>
@@ -92,33 +92,33 @@ const Bookings = () => {
               <li key={booking.id}>
                 <Link
                   to={`/bookings/${booking.id}`}
-                  className="block rounded-lg bg-white p-6 shadow-sm transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  className="block rounded-card border border-line bg-surface p-6 shadow-card transition-shadow hover:shadow-card-hover"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-900">
+                      <h2 className="text-lg font-semibold text-ink">
                         {booking.vendors?.business_name ?? 'Vendor'}
                       </h2>
-                      <p className="text-gray-600">{booking.vendor_services?.name}</p>
+                      <p className="text-muted">{booking.vendor_services?.name}</p>
                     </div>
                     <BookingStatusBadge status={booking.status} />
                   </div>
 
                   <dl className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
                     <div>
-                      <dt className="text-gray-500">Event date</dt>
-                      <dd className="font-medium text-gray-900">{formatDate(booking.event_date)}</dd>
+                      <dt className="text-muted">Event date</dt>
+                      <dd className="font-medium text-ink">{formatDate(booking.event_date)}</dd>
                     </div>
                     <div>
-                      <dt className="text-gray-500">Location</dt>
-                      <dd className="flex items-center font-medium text-gray-900">
-                        <MapPin className="mr-1 h-4 w-4 text-gray-400" aria-hidden="true" />
+                      <dt className="text-muted">Location</dt>
+                      <dd className="flex items-center font-medium text-ink">
+                        <MapPin className="mr-1 h-4 w-4 text-muted" aria-hidden="true" />
                         {booking.event_location}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-gray-500">Indicative quote</dt>
-                      <dd className="font-medium text-gray-900">
+                      <dt className="text-muted">Indicative quote</dt>
+                      <dd className="font-medium text-ink">
                         {formatRupees(booking.quoted_price)}
                       </dd>
                     </div>

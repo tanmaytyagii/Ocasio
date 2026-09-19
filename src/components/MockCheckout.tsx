@@ -47,7 +47,7 @@ const MockCheckout = ({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div
         role="note"
-        className="flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4"
+        className="flex gap-3 rounded-card border border-amber-300 bg-amber-50 p-4"
       >
         <ShieldAlert className="h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />
         <div className="text-sm text-amber-900">
@@ -60,24 +60,24 @@ const MockCheckout = ({
         </div>
       </div>
 
-      <div className="rounded-lg bg-gray-50 p-4">
+      <div className="rounded-lg bg-canvas p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Paying for</p>
-            <p className="font-medium text-gray-900">{description}</p>
+            <p className="text-sm text-muted">Paying for</p>
+            <p className="font-medium text-ink">{description}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600">Amount</p>
-            <p className="text-xl font-semibold text-gray-900">{formatRupees(amount)}</p>
+            <p className="text-sm text-muted">Amount</p>
+            <p className="text-xl font-semibold text-ink">{formatRupees(amount)}</p>
           </div>
         </div>
       </div>
 
       <fieldset>
-        <legend className="mb-2 block text-sm font-medium text-gray-700">
+        <legend className="mb-2 block text-sm font-medium text-ink-soft">
           Preferred payment method
         </legend>
-        <p className="mb-3 text-sm text-gray-500">
+        <p className="mb-3 text-sm text-muted">
           Recorded as a preference only. You will not be asked for any credentials.
         </p>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -89,8 +89,8 @@ const MockCheckout = ({
               onClick={() => setPaymentMethod(method)}
               className={`flex items-center justify-center rounded-lg border p-4 transition-colors ${
                 paymentMethod === method
-                  ? 'border-purple-600 bg-purple-50 text-purple-700'
-                  : 'border-gray-200 hover:border-purple-400'
+                  ? 'border-brand-600 bg-brand-50 text-brand-700'
+                  : 'border-line hover:border-purple-400'
               }`}
             >
               <CreditCard className="mr-2 h-5 w-5" aria-hidden="true" />
@@ -103,7 +103,7 @@ const MockCheckout = ({
       <button
         type="submit"
         disabled={!paymentMethod}
-        className="w-full rounded-lg bg-purple-600 py-3 text-white transition-colors hover:bg-purple-700 disabled:bg-gray-400"
+        className="w-full rounded-lg bg-brand-600 py-3 text-white transition-colors hover:bg-brand-700 disabled:bg-gray-400"
       >
         {submitLabel}
       </button>

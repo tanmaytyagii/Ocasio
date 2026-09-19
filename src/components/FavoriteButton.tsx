@@ -35,10 +35,10 @@ const FavoriteButton = ({
         e.stopPropagation();
         void toggleFavorite(vendorId);
       }}
-      className={`rounded-full bg-white/90 p-2 shadow-sm transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-60 ${className}`}
+      className={`rounded-full bg-white/90 p-2 shadow-sm transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-brand-600 disabled:opacity-60 ${className}`}
     >
       <Heart
-        className={`${icon} ${saved ? 'fill-current text-purple-600' : 'text-gray-600'}`}
+        className={`${icon} ${saved ? 'fill-current text-brand-700' : 'text-muted'}`}
         aria-hidden="true"
       />
     </button>

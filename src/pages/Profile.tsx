@@ -80,10 +80,10 @@ const Profile = () => {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="md:flex">
             {/* Sidebar */}
-            <div className="md:w-64 bg-gray-50 p-6 border-r">
+            <div className="md:w-64 bg-canvas p-6 border-r">
               <div className="text-center mb-8">
-                <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="w-12 h-12 text-purple-600" />
+                <div className="w-24 h-24 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="w-12 h-12 text-brand-700" />
                 </div>
                 <h2 className="text-xl font-semibold">{user?.email}</h2>
               </div>
@@ -92,7 +92,7 @@ const Profile = () => {
                 <button
                   onClick={() => setActiveTab('dashboard')}
                   className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'dashboard' ? 'bg-purple-100 text-purple-600' : 'text-gray-600 hover:bg-gray-100'
+                    activeTab === 'dashboard' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
                   }`}
                 >
                   <CalendarIcon className="w-5 h-5 mr-3" />
@@ -101,7 +101,7 @@ const Profile = () => {
                 <button
                   onClick={() => setActiveTab('profile')}
                   className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'profile' ? 'bg-purple-100 text-purple-600' : 'text-gray-600 hover:bg-gray-100'
+                    activeTab === 'profile' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
                   }`}
                 >
                   <User className="w-5 h-5 mr-3" />
@@ -110,7 +110,7 @@ const Profile = () => {
                 <button
                   onClick={() => setActiveTab('settings')}
                   className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'settings' ? 'bg-purple-100 text-purple-600' : 'text-gray-600 hover:bg-gray-100'
+                    activeTab === 'settings' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
                   }`}
                 >
                   <Settings className="w-5 h-5 mr-3" />
@@ -119,7 +119,7 @@ const Profile = () => {
                 <button
                   onClick={() => setActiveTab('notifications')}
                   className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'notifications' ? 'bg-purple-100 text-purple-600' : 'text-gray-600 hover:bg-gray-100'
+                    activeTab === 'notifications' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
                   }`}
                 >
                   <Bell className="w-5 h-5 mr-3" />
@@ -128,7 +128,7 @@ const Profile = () => {
                 <button
                   onClick={() => setActiveTab('favorites')}
                   className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'favorites' ? 'bg-purple-100 text-purple-600' : 'text-gray-600 hover:bg-gray-100'
+                    activeTab === 'favorites' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
                   }`}
                 >
                   <Heart className="w-5 h-5 mr-3" />
@@ -148,37 +148,37 @@ const Profile = () => {
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Pending Confirmations</p>
-                          <p className="text-2xl font-bold text-gray-900">{stats.pendingConfirmations}</p>
+                          <p className="text-sm text-muted">Pending Confirmations</p>
+                          <p className="text-2xl font-bold text-ink">{stats.pendingConfirmations}</p>
                         </div>
-                        <Clock className="h-8 w-8 text-purple-600" />
+                        <Clock className="h-8 w-8 text-brand-700" />
                       </div>
                     </div>
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Vendors Contacted</p>
-                          <p className="text-2xl font-bold text-gray-900">{stats.vendorsContacted}</p>
+                          <p className="text-sm text-muted">Vendors Contacted</p>
+                          <p className="text-2xl font-bold text-ink">{stats.vendorsContacted}</p>
                         </div>
-                        <MessageSquare className="h-8 w-8 text-purple-600" />
+                        <MessageSquare className="h-8 w-8 text-brand-700" />
                       </div>
                     </div>
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Upcoming Meetings</p>
-                          <p className="text-2xl font-bold text-gray-900">{stats.upcomingMeetings}</p>
+                          <p className="text-sm text-muted">Upcoming Meetings</p>
+                          <p className="text-2xl font-bold text-ink">{stats.upcomingMeetings}</p>
                         </div>
-                        <CalendarIcon className="h-8 w-8 text-purple-600" />
+                        <CalendarIcon className="h-8 w-8 text-brand-700" />
                       </div>
                     </div>
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Saved Vendors</p>
-                          <p className="text-2xl font-bold text-gray-900">{stats.savedVendors}</p>
+                          <p className="text-sm text-muted">Saved Vendors</p>
+                          <p className="text-2xl font-bold text-ink">{stats.savedVendors}</p>
                         </div>
-                        <Heart className="h-8 w-8 text-purple-600" />
+                        <Heart className="h-8 w-8 text-brand-700" />
                       </div>
                     </div>
                   </div>
@@ -214,7 +214,7 @@ const Profile = () => {
                             {activity.type === 'meeting' && <Clock className="h-5 w-5 text-purple-500 mr-3" />}
                             <div>
                               <p className="font-medium">{activity.vendor}</p>
-                              <p className="text-sm text-gray-500">{activity.time}</p>
+                              <p className="text-sm text-muted">{activity.time}</p>
                             </div>
                           </div>
                         </div>
@@ -229,7 +229,7 @@ const Profile = () => {
                   <h3 className="text-2xl font-bold mb-6">Profile Information</h3>
                   <form className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink-soft mb-2">
                         Full Name
                       </label>
                       <input
@@ -239,18 +239,18 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink-soft mb-2">
                         Email
                       </label>
                       <input
                         type="email"
                         value={user?.email || ''}
                         disabled
-                        className="w-full p-2 border rounded-lg bg-gray-50"
+                        className="w-full p-2 border rounded-lg bg-canvas"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink-soft mb-2">
                         Phone Number
                       </label>
                       <input
@@ -261,7 +261,7 @@ const Profile = () => {
                     </div>
                     <button
                       type="submit"
-                      className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700"
+                      className="bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700"
                     >
                       Save Changes
                     </button>
@@ -307,13 +307,13 @@ const Profile = () => {
                 <div>
                   <h3 className="text-2xl font-bold mb-6">Notifications</h3>
                   <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="p-4 bg-canvas rounded-lg">
                       <p className="font-semibold">New message from Royal Caterers</p>
-                      <p className="text-gray-600">2 hours ago</p>
+                      <p className="text-muted">2 hours ago</p>
                     </div>
-                    <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="p-4 bg-canvas rounded-lg">
                       <p className="font-semibold">Booking confirmed with Dream Decorators</p>
-                      <p className="text-gray-600">1 day ago</p>
+                      <p className="text-muted">1 day ago</p>
                     </div>
                   </div>
                 </div>
@@ -325,11 +325,11 @@ const Profile = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 border rounded-lg">
                       <h4 className="font-semibold">Royal Caterers</h4>
-                      <p className="text-gray-600">Mumbai</p>
+                      <p className="text-muted">Mumbai</p>
                     </div>
                     <div className="p-4 border rounded-lg">
                       <h4 className="font-semibold">Dream Decorators</h4>
-                      <p className="text-gray-600">Delhi</p>
+                      <p className="text-muted">Delhi</p>
                     </div>
                   </div>
                 </div>

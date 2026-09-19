@@ -24,7 +24,7 @@ const AuthLoading = () => (
         className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-purple-200 border-t-purple-600"
         aria-hidden="true"
       />
-      <p className="text-gray-600">Checking your session…</p>
+      <p className="text-muted">Checking your session…</p>
     </div>
   </Centered>
 );
@@ -59,15 +59,15 @@ export const RequireVendor = ({ children }: { children: ReactNode }) => {
   if (role !== 'vendor') {
     return (
       <Centered>
-        <div className="max-w-md rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="mb-2 text-xl font-semibold text-gray-900">Vendor access required</h1>
-          <p className="mb-6 text-gray-600">
+        <div className="max-w-md rounded-lg border border-line bg-white p-8 text-center shadow-sm">
+          <h1 className="mb-2 text-xl font-semibold text-ink">Vendor access required</h1>
+          <p className="mb-6 text-muted">
             This area is for approved vendors. If you have applied, your application is still
             under review.
           </p>
           <Link
             to="/become-vendor"
-            className="inline-block rounded-lg bg-purple-600 px-5 py-2.5 text-white transition-colors hover:bg-purple-700"
+            className="inline-block rounded-lg bg-brand-600 px-5 py-2.5 text-white transition-colors hover:bg-brand-700"
           >
             Become a vendor
           </Link>

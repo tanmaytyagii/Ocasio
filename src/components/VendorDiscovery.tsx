@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { searchVendors, getFilterOptions } from '../services/vendors';
 import type { VendorSearchResponse } from '../services/vendors';
 import type { FilterOptions, VendorSort } from '../types/database';
@@ -7,7 +6,7 @@ import { useMarketplaceParams, SORT_LABELS } from '../hooks/useMarketplaceParams
 import VendorCard from './VendorCard';
 import MarketplaceFilters from './MarketplaceFilters';
 import Pagination from './Pagination';
-import { VendorGridSkeleton, ErrorState, EmptyState } from './ui';
+import { VendorGridSkeleton, ErrorState, EmptyState, Button, ButtonLink } from './ui';
 
 /**
  * The marketplace discovery surface, shared by /vendors, /search and
@@ -79,9 +78,9 @@ const VendorDiscovery = ({
 
   return (
     <div className="bg-canvas">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="mb-2 text-4xl font-bold text-gray-900">{title}</h1>
-        {subtitle && <p className="mb-6 text-gray-600">{subtitle}</p>}
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <h1 className="text-display-sm text-ink">{title}</h1>
+        {subtitle && <p className="mt-2 max-w-prose text-muted">{subtitle}</p>}
 
         <MarketplaceFilters
           options={options}
@@ -97,20 +96,20 @@ const VendorDiscovery = ({
           showCategory={!fixedCategory}
         />
 
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-gray-600" aria-live="polite">
+        <div className="mb-6 flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted" aria-live="polite">
             {resultSummary}
           </p>
 
           <div className="flex items-center gap-2">
-            <label htmlFor="sort-by" className="text-sm font-medium text-gray-700">
+            <label htmlFor="sort-by" className="text-sm font-medium text-ink-soft">
               Sort by
             </label>
             <select
               id="sort-by"
               value={params.sort}
               onChange={(e) => setParams({ sort: e.target.value as VendorSort })}
-              className="rounded-lg border border-gray-300 p-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              className="h-9 rounded-control border border-line-strong bg-surface px-2 text-sm text-ink focus:border-brand-500"
             >
               {Object.entries(SORT_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -134,19 +133,9 @@ const VendorDiscovery = ({
             }
             action={
               activeFilterCount > 0 ? (
-                <button
-                  onClick={clearFilters}
-                  className="rounded-lg bg-purple-600 px-5 py-2.5 text-white hover:bg-purple-700"
-                >
-                  Clear filters
-                </button>
+                <Button onClick={clearFilters}>Clear filters</Button>
               ) : (
-                <Link
-                  to="/vendors"
-                  className="rounded-lg bg-purple-600 px-5 py-2.5 text-white hover:bg-purple-700"
-                >
-                  Browse all vendors
-                </Link>
+                <ButtonLink to="/vendors">Browse all vendors</ButtonLink>
               )
             }
           />
@@ -154,7 +143,7 @@ const VendorDiscovery = ({
 
         {!loading && !error && result && result.vendors.length > 0 && (
           <>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {result.vendors.map((vendor) => (
                 <VendorCard key={vendor.id} vendor={vendor} />
               ))}

@@ -87,8 +87,8 @@ const BookingRequestForm = ({
 
   if (bookableServices.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
-        <p className="text-gray-700">
+      <div className="rounded-lg border border-line bg-canvas p-6 text-center">
+        <p className="text-ink-soft">
           {vendor.business_name} is not accepting online booking requests at the moment.
         </p>
       </div>
@@ -96,12 +96,12 @@ const BookingRequestForm = ({
   }
 
   const field =
-    'w-full rounded-lg border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-600';
-  const labelStyle = 'mb-2 block text-sm font-medium text-gray-700';
+    'w-full rounded-lg border border-line-strong p-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-600';
+  const labelStyle = 'mb-2 block text-sm font-medium text-ink-soft';
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate={false}>
-      <div className="flex gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4" role="note">
+      <div className="flex gap-3 rounded-card border border-blue-200 bg-blue-50 p-4" role="note">
         <Info className="h-5 w-5 shrink-0 text-blue-600" aria-hidden="true" />
         <p className="text-sm text-blue-900">
           This sends a request to {vendor.business_name}. It is not a confirmed booking and no
@@ -129,7 +129,7 @@ const BookingRequestForm = ({
           ))}
         </select>
         {selected?.description && (
-          <p className="mt-1 text-sm text-gray-600">{selected.description}</p>
+          <p className="mt-1 text-sm text-muted">{selected.description}</p>
         )}
       </div>
 
@@ -167,7 +167,7 @@ const BookingRequestForm = ({
 
       <div>
         <label htmlFor="booking-notes" className={labelStyle}>
-          Anything the vendor should know <span className="text-gray-400">(optional)</span>
+          Anything the vendor should know <span className="text-muted">(optional)</span>
         </label>
         <textarea
           id="booking-notes"
@@ -180,28 +180,28 @@ const BookingRequestForm = ({
         />
       </div>
 
-      <div className="rounded-lg bg-gray-50 p-4">
+      <div className="rounded-lg bg-canvas p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Indicative quote</p>
-            <p className="mt-0.5 text-xs text-gray-500">
+            <p className="text-sm text-muted">Indicative quote</p>
+            <p className="mt-0.5 text-xs text-muted">
               {selected?.price !== null && selected?.price !== undefined
                 ? 'Based on this service’s listed price.'
                 : 'Based on this vendor’s starting price — this service has no separate price yet.'}
             </p>
           </div>
-          <p className="text-xl font-semibold text-gray-900" data-testid="booking-quote">
+          <p className="text-xl font-semibold text-ink" data-testid="booking-quote">
             {quote === null ? 'On request' : formatRupees(quote)}
           </p>
         </div>
-        <p className="mt-3 border-t pt-3 text-xs text-gray-500">
+        <p className="mt-3 border-t pt-3 text-xs text-muted">
           Calculated by Ocasio when the request is created. It is a starting figure, not a final
           invoice, and no payment is collected at this stage.
         </p>
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4" role="alert">
+        <div className="rounded-control border border-red-200 bg-red-50 p-4" role="alert">
           <p className="text-sm text-red-800">{error}</p>
         </div>
       )}
@@ -215,7 +215,7 @@ const BookingRequestForm = ({
         type={user ? 'submit' : 'button'}
         onClick={user ? undefined : goToSignIn}
         disabled={submitting || authLoading}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 py-3 text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+        className="flex h-12 w-full items-center justify-center gap-2 rounded-control bg-brand-600 text-sm font-medium text-white shadow-card transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? (
           <>

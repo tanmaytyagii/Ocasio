@@ -42,10 +42,10 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-canvas flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link to="/" className="block text-4xl font-bold text-center text-purple-600 mb-2">Ocasio</Link>
-        <h2 className="text-center text-xl text-gray-600 mb-8">
+        <Link to="/" className="block text-4xl font-bold text-center text-brand-700 mb-2">Ocasio</Link>
+        <h2 className="text-center text-xl text-muted mb-8">
           Find the perfect vendors for your special occasions
         </h2>
       </div>
@@ -53,11 +53,11 @@ const Auth = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {!isLogin && (
-            <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+            <div className="mb-6 rounded-lg border border-line bg-canvas p-4 text-sm text-muted">
               <p>
                 Every account starts as a customer account. To list a business, create an
                 account and then apply through{' '}
-                <Link to="/become-vendor" className="font-medium text-purple-600 hover:underline">
+                <Link to="/become-vendor" className="font-medium text-brand-700 hover:underline">
                   Become a vendor
                 </Link>
                 . Vendor listings go live after review.
@@ -67,7 +67,7 @@ const Auth = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-ink-soft">
                 Email address
               </label>
               <div className="mt-1">
@@ -78,13 +78,13 @@ const Auth = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                  className="appearance-none block w-full px-3 py-2 border border-line-strong rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-brand-500"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-ink-soft">
                 Password
               </label>
               <div className="mt-1">
@@ -95,7 +95,7 @@ const Auth = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                  className="appearance-none block w-full px-3 py-2 border border-line-strong rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-brand-500"
                 />
               </div>
             </div>
@@ -110,7 +110,7 @@ const Auth = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
               >
                 {loading ? 'Loading...' : isLogin ? 'Sign in' : 'Sign up'}
               </button>
@@ -120,10 +120,10 @@ const Auth = () => {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-line-strong" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
+                <span className="px-2 bg-white text-muted">
                   {isLogin ? "Don't have an account?" : "Already have an account?"}
                 </span>
               </div>
@@ -132,7 +132,7 @@ const Auth = () => {
             <div className="mt-6">
               <button
                 onClick={() => setIsLogin(!isLogin)}
-                className="w-full flex justify-center py-2 px-4 border border-purple-300 rounded-md shadow-sm text-sm font-medium text-purple-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                className="w-full flex justify-center py-2 px-4 border border-purple-300 rounded-md shadow-sm text-sm font-medium text-brand-700 bg-white hover:bg-canvas focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
               >
                 {isLogin ? 'Create new account' : 'Log in'}
               </button>

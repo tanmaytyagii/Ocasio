@@ -29,10 +29,10 @@ const ACTION_LABEL: Partial<Record<BookingStatus, string>> = {
 };
 
 const ACTION_STYLE: Partial<Record<BookingStatus, string>> = {
-  accepted: 'bg-purple-600 text-white hover:bg-purple-700',
-  declined: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
-  completed: 'bg-purple-600 text-white hover:bg-purple-700',
-  cancelled: 'border border-red-300 text-red-700 hover:bg-red-50',
+  accepted: 'bg-brand-600 text-white shadow-card hover:bg-brand-700',
+  declined: 'border border-line-strong bg-surface text-ink-soft hover:bg-canvas',
+  completed: 'bg-brand-600 text-white shadow-card hover:bg-brand-700',
+  cancelled: 'border border-red-300 bg-surface text-red-700 hover:bg-red-50',
 };
 
 const formatRupees = (n: number) => `₹${n.toLocaleString('en-IN')}`;
@@ -86,7 +86,7 @@ const VendorBookingRequests = () => {
       <h3 className="mb-6 text-2xl font-bold">Booking requests</h3>
 
       {actionError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3" role="alert">
+        <div className="mb-4 rounded-control border border-red-200 bg-red-50 p-3" role="alert">
           <p className="text-sm text-red-800">{actionError}</p>
         </div>
       )}
@@ -94,9 +94,9 @@ const VendorBookingRequests = () => {
       {loading && (
         <div className="space-y-4" aria-hidden="true">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-lg bg-white p-6 shadow-sm">
-              <div className="mb-3 h-5 w-1/3 animate-pulse rounded bg-gray-200" />
-              <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
+            <div key={i} className="rounded-card border border-line bg-surface p-6">
+              <div className="mb-3 h-5 w-1/3 animate-pulse rounded bg-line" />
+              <div className="h-4 w-1/2 animate-pulse rounded bg-line" />
             </div>
           ))}
         </div>
@@ -118,13 +118,13 @@ const VendorBookingRequests = () => {
             const busy = pendingId === booking.id;
 
             return (
-              <li key={booking.id} className="rounded-lg bg-white p-6 shadow-sm">
+              <li key={booking.id} className="rounded-card border border-line bg-surface p-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900">
+                    <h4 className="text-lg font-semibold text-ink">
                       {booking.vendor_services?.name}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted">
                       Requested {formatDate(booking.created_at.slice(0, 10))}
                     </p>
                   </div>
@@ -133,28 +133,28 @@ const VendorBookingRequests = () => {
 
                 <dl className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
                   <div>
-                    <dt className="text-gray-500">Event date</dt>
-                    <dd className="font-medium text-gray-900">{formatDate(booking.event_date)}</dd>
+                    <dt className="text-muted">Event date</dt>
+                    <dd className="font-medium text-ink">{formatDate(booking.event_date)}</dd>
                   </div>
                   <div>
-                    <dt className="text-gray-500">Location</dt>
-                    <dd className="flex items-center font-medium text-gray-900">
-                      <MapPin className="mr-1 h-4 w-4 text-gray-400" aria-hidden="true" />
+                    <dt className="text-muted">Location</dt>
+                    <dd className="flex items-center font-medium text-ink">
+                      <MapPin className="mr-1 h-4 w-4 text-muted" aria-hidden="true" />
                       {booking.event_location}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-gray-500">Quote</dt>
-                    <dd className="font-medium text-gray-900">
+                    <dt className="text-muted">Quote</dt>
+                    <dd className="font-medium text-ink">
                       {formatRupees(booking.quoted_price)}
                     </dd>
                   </div>
                 </dl>
 
                 {booking.customer_notes && (
-                  <div className="mt-4 rounded-lg bg-gray-50 p-3">
-                    <p className="text-xs font-medium text-gray-500">Customer notes</p>
-                    <p className="mt-1 whitespace-pre-line text-sm text-gray-800">
+                  <div className="mt-4 rounded-lg bg-canvas p-3">
+                    <p className="text-xs font-medium text-muted">Customer notes</p>
+                    <p className="mt-1 whitespace-pre-line text-sm text-ink-soft">
                       {booking.customer_notes}
                     </p>
                   </div>
@@ -167,7 +167,7 @@ const VendorBookingRequests = () => {
                       type="button"
                       onClick={() => act(booking.id, next)}
                       disabled={busy}
-                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${ACTION_STYLE[next]}`}
+                      className={`inline-flex h-10 items-center gap-2 rounded-control px-4 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${ACTION_STYLE[next]}`}
                     >
                       {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                       {ACTION_LABEL[next]}
@@ -176,7 +176,7 @@ const VendorBookingRequests = () => {
 
                   <Link
                     to={`/bookings/${booking.id}`}
-                    className="text-sm text-purple-600 hover:underline"
+                    className="text-sm text-brand-700 hover:underline"
                   >
                     View details and history
                   </Link>

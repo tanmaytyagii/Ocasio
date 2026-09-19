@@ -134,20 +134,20 @@ const VendorDashboard = () => {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="md:flex">
             {/* Sidebar */}
-            <div className="md:w-64 bg-gray-50 p-6 border-r">
+            <div className="md:w-64 bg-canvas p-6 border-r">
               <div className="text-center mb-8">
-                <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="w-12 h-12 text-purple-600" />
+                <div className="w-24 h-24 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="w-12 h-12 text-brand-700" />
                 </div>
                 <h2 className="text-xl font-semibold">{user?.email}</h2>
-                <p className="text-sm text-gray-600">Vendor Dashboard</p>
+                <p className="text-sm text-muted">Vendor Dashboard</p>
               </div>
               
               <nav className="space-y-2">
                 <button
                   onClick={() => setActiveTab('dashboard')}
                   className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'dashboard' ? 'bg-purple-100 text-purple-600' : 'text-gray-600 hover:bg-gray-100'
+                    activeTab === 'dashboard' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
                   }`}
                 >
                   <Package className="w-5 h-5 mr-3" />
@@ -156,7 +156,7 @@ const VendorDashboard = () => {
                 <button
                   onClick={() => setActiveTab('bookings')}
                   className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'bookings' ? 'bg-purple-100 text-purple-600' : 'text-gray-600 hover:bg-gray-100'
+                    activeTab === 'bookings' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
                   }`}
                 >
                   <CalendarIcon className="w-5 h-5 mr-3" />
@@ -165,7 +165,7 @@ const VendorDashboard = () => {
                 <button
                   onClick={() => setActiveTab('messages')}
                   className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'messages' ? 'bg-purple-100 text-purple-600' : 'text-gray-600 hover:bg-gray-100'
+                    activeTab === 'messages' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
                   }`}
                 >
                   <MessageSquare className="w-5 h-5 mr-3" />
@@ -174,7 +174,7 @@ const VendorDashboard = () => {
                 <button
                   onClick={() => setActiveTab('settings')}
                   className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'settings' ? 'bg-purple-100 text-purple-600' : 'text-gray-600 hover:bg-gray-100'
+                    activeTab === 'settings' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
                   }`}
                 >
                   <Settings className="w-5 h-5 mr-3" />
@@ -194,37 +194,37 @@ const VendorDashboard = () => {
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Total bookings</p>
-                          <p className="text-2xl font-bold text-gray-900">{statTile(stats?.total)}</p>
+                          <p className="text-sm text-muted">Total bookings</p>
+                          <p className="text-2xl font-bold text-ink">{statTile(stats?.total)}</p>
                         </div>
-                        <CalendarIcon className="h-8 w-8 text-purple-600" />
+                        <CalendarIcon className="h-8 w-8 text-brand-700" />
                       </div>
                     </div>
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Pending requests</p>
-                          <p className="text-2xl font-bold text-gray-900">{statTile(stats?.pending)}</p>
+                          <p className="text-sm text-muted">Pending requests</p>
+                          <p className="text-2xl font-bold text-ink">{statTile(stats?.pending)}</p>
                         </div>
-                        <Clock className="h-8 w-8 text-purple-600" />
+                        <Clock className="h-8 w-8 text-brand-700" />
                       </div>
                     </div>
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Accepted</p>
-                          <p className="text-2xl font-bold text-gray-900">{statTile(stats?.accepted)}</p>
+                          <p className="text-sm text-muted">Accepted</p>
+                          <p className="text-2xl font-bold text-ink">{statTile(stats?.accepted)}</p>
                         </div>
-                        <DollarSign className="h-8 w-8 text-purple-600" />
+                        <DollarSign className="h-8 w-8 text-brand-700" />
                       </div>
                     </div>
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Completed</p>
-                          <p className="text-2xl font-bold text-gray-900">{statTile(stats?.completed)}</p>
+                          <p className="text-sm text-muted">Completed</p>
+                          <p className="text-2xl font-bold text-ink">{statTile(stats?.completed)}</p>
                         </div>
-                        <Users className="h-8 w-8 text-purple-600" />
+                        <Users className="h-8 w-8 text-brand-700" />
                       </div>
                     </div>
                   </div>
@@ -249,12 +249,12 @@ const VendorDashboard = () => {
                   <div>
                     <h4 className="text-lg font-semibold mb-4">Booking requests</h4>
                     <div className="bg-white rounded-lg shadow border p-6">
-                      <p className="text-gray-600">
+                      <p className="text-muted">
                         Accept, decline and complete requests from the{' '}
                         <button
                           type="button"
                           onClick={() => setActiveTab('bookings')}
-                          className="font-medium text-purple-600 hover:underline"
+                          className="font-medium text-brand-700 hover:underline"
                         >
                           Booking requests
                         </button>{' '}
@@ -281,19 +281,19 @@ const VendorDashboard = () => {
                           <div
                             key={message.id}
                             onClick={() => setSelectedMessage(message)}
-                            className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
-                              selectedMessage?.id === message.id ? 'bg-purple-50' : ''
+                            className={`p-4 border-b cursor-pointer hover:bg-canvas ${
+                              selectedMessage?.id === message.id ? 'bg-brand-50' : ''
                             }`}
                           >
                             <div className="flex justify-between items-start mb-1">
                               <h5 className="font-medium">{message.from}</h5>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-muted">
                                 {format(message.timestamp, 'MMM d, h:mm a')}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-600 truncate">{message.content}</p>
+                            <p className="text-sm text-muted truncate">{message.content}</p>
                             {message.unread && (
-                              <span className="inline-block w-2 h-2 bg-purple-600 rounded-full mt-1"></span>
+                              <span className="inline-block w-2 h-2 bg-brand-600 rounded-full mt-1"></span>
                             )}
                           </div>
                         ))}
@@ -309,9 +309,9 @@ const VendorDashboard = () => {
                           </div>
                           <div className="flex-1 overflow-y-auto p-4">
                             <div className="space-y-4">
-                              <div className="bg-gray-100 rounded-lg p-4 max-w-[80%]">
-                                <p className="text-gray-800">{selectedMessage.content}</p>
-                                <span className="text-xs text-gray-500 mt-1 block">
+                              <div className="bg-canvas rounded-lg p-4 max-w-[80%]">
+                                <p className="text-ink-soft">{selectedMessage.content}</p>
+                                <span className="text-xs text-muted mt-1 block">
                                   {format(selectedMessage.timestamp, 'MMM d, h:mm a')}
                                 </span>
                               </div>
@@ -324,10 +324,10 @@ const VendorDashboard = () => {
                                 .map((reply) => (
                                   <div
                                     key={reply.id}
-                                    className="bg-purple-100 rounded-lg p-4 max-w-[80%] ml-auto"
+                                    className="bg-brand-100 rounded-lg p-4 max-w-[80%] ml-auto"
                                   >
-                                    <p className="text-gray-800">{reply.content}</p>
-                                    <span className="text-xs text-gray-500 mt-1 block">
+                                    <p className="text-ink-soft">{reply.content}</p>
+                                    <span className="text-xs text-muted mt-1 block">
                                       {format(reply.timestamp, 'MMM d, h:mm a')}
                                     </span>
                                   </div>
@@ -341,11 +341,11 @@ const VendorDashboard = () => {
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
                                 placeholder="Type your message..."
-                                className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                                className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
                               />
                               <button
                                 type="submit"
-                                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+                                className="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700"
                               >
                                 <Send className="h-5 w-5" />
                               </button>
@@ -353,7 +353,7 @@ const VendorDashboard = () => {
                           </div>
                         </div>
                       ) : (
-                        <div className="h-full flex items-center justify-center text-gray-500">
+                        <div className="h-full flex items-center justify-center text-muted">
                           Select a conversation to start messaging
                         </div>
                       )}
@@ -371,7 +371,7 @@ const VendorDashboard = () => {
                       <h4 className="text-lg font-semibold mb-4">Profile Settings</h4>
                       <form className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-ink-soft mb-2">
                             Business Name
                           </label>
                           <input
@@ -381,7 +381,7 @@ const VendorDashboard = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-ink-soft mb-2">
                             Contact Email
                           </label>
                           <input
@@ -391,7 +391,7 @@ const VendorDashboard = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-ink-soft mb-2">
                             Phone Number
                           </label>
                           <input
@@ -402,7 +402,7 @@ const VendorDashboard = () => {
                         </div>
                         <button
                           type="submit"
-                          className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700"
+                          className="bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700"
                         >
                           Save Changes
                         </button>
@@ -431,7 +431,7 @@ const VendorDashboard = () => {
                         ))}
                         <button
                           type="button"
-                          className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700"
+                          className="bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700"
                         >
                           Update Hours
                         </button>
@@ -456,7 +456,7 @@ const VendorDashboard = () => {
                         </label>
                         <button
                           type="button"
-                          className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700"
+                          className="bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700"
                         >
                           Save Preferences
                         </button>

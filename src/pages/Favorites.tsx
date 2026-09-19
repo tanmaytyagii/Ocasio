@@ -44,11 +44,11 @@ const Favorites = () => {
   return (
     <div className="min-h-screen bg-canvas">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="mb-2 flex items-center gap-2 text-4xl font-bold text-gray-900">
-          <Heart className="h-8 w-8 text-purple-600" aria-hidden="true" />
+        <h1 className="mb-2 flex items-center gap-2 text-4xl font-bold text-ink">
+          <Heart className="h-8 w-8 text-brand-700" aria-hidden="true" />
           Saved vendors
         </h1>
-        <p className="mb-8 text-gray-600" aria-live="polite">
+        <p className="mb-8 text-muted" aria-live="polite">
           {loading ? 'Loading…' : `${visible.length} saved`}
         </p>
 
@@ -62,7 +62,7 @@ const Favorites = () => {
             action={
               <Link
                 to="/vendors"
-                className="rounded-lg bg-purple-600 px-5 py-2.5 text-white hover:bg-purple-700"
+                className="inline-flex h-11 items-center justify-center rounded-control bg-brand-600 px-5 text-sm font-medium text-white shadow-card transition-colors hover:bg-brand-700"
               >
                 Browse vendors
               </Link>

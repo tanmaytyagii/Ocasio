@@ -22,11 +22,11 @@ const STYLES: Record<BookingStatus, { label: string; className: string }> = {
   },
   cancelled: {
     label: 'Cancelled',
-    className: 'bg-gray-100 text-gray-700 border-gray-200',
+    className: 'bg-canvas text-ink-soft border-line',
   },
   completed: {
     label: 'Completed',
-    className: 'bg-purple-100 text-purple-800 border-purple-200',
+    className: 'bg-brand-100 text-purple-800 border-purple-200',
   },
 };
 
