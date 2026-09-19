@@ -89,11 +89,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       if (!active) return;
       setSession(nextSession);
-      await loadProfile(nextSession?.user.id);
-      setLoading(false);
+
+      // Deliberately not an async callback, and the profile read is deferred
+      // out of it.
+      //
+      // supabase-js holds an internal auth lock while it runs these callbacks.
+      // Awaiting another supabase call inside one deadlocks on page load, when
+      // the client is also refreshing the token: the query waits on the lock
+      // the callback still holds. The symptom is every data fetch hanging
+      // forever after a refresh while signed in, so pages sit on their loading
+      // skeleton and never resolve.
+      //
+      // Deferring to a macrotask lets the callback return and release the lock
+      // before the profile query starts.
+      setTimeout(() => {
+        if (!active) return;
+        void loadProfile(nextSession?.user.id).finally(() => {
+          if (active) setLoading(false);
+        });
+      }, 0);
     });
 
     return () => {
