@@ -163,3 +163,56 @@ export interface BookingWithDetails extends Booking {
   vendors: Pick<Vendor, 'id' | 'slug' | 'business_name' | 'category' | 'location'> | null;
   vendor_services: Pick<VendorService, 'id' | 'name' | 'description'> | null;
 }
+
+// ---------------------------------------------------------------------------
+// Payments (Phase 4)
+// ---------------------------------------------------------------------------
+
+export type PaymentStatus =
+  | 'pending'
+  | 'processing'
+  | 'succeeded'
+  | 'failed'
+  | 'cancelled'
+  | 'refunded'
+  | 'partially_refunded';
+
+export type RefundStatus = 'pending' | 'succeeded' | 'failed';
+
+/** Statuses from which a payment can no longer be started or cancelled. */
+export const SETTLED_PAYMENT_STATUSES: readonly PaymentStatus[] = [
+  'succeeded',
+  'refunded',
+  'partially_refunded',
+];
+
+export interface Payment {
+  id: string;
+  booking_id: string;
+  customer_id: string;
+  vendor_id: string;
+  /** Integer MINOR units (paise). Bookings store rupees; payments store paise. */
+  amount_minor: number;
+  currency: string;
+  amount_refunded_minor: number;
+  status: PaymentStatus;
+  provider: string;
+  provider_payment_id: string | null;
+  idempotency_key: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Refund {
+  id: string;
+  payment_id: string;
+  amount_minor: number;
+  reason: string | null;
+  status: RefundStatus;
+  provider_refund_id: string | null;
+  idempotency_key: string;
+  initiated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}

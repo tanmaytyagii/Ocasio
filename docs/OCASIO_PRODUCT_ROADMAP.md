@@ -267,7 +267,7 @@ permissions and limitations.
 
 ---
 
-## Phase 4 — Trust & Money
+## Phase 4 — Trust & Money ⚠️ **Domain complete; no provider integrated**
 
 - Reviews gated on a `completed` booking, one per booking, rating recomputed by trigger.
 - **Payments — Razorpay** (INR-native, UPI support; the existing UI already offers UPI):
@@ -280,8 +280,34 @@ permissions and limitations.
   > authority. This is the direct fix for SEC-2.
 - Notifications: email on booking request / acceptance / payment.
 
-**Exit criteria:** replayed webhook does not double-credit · forged signature rejected ·
-frontend callback alone cannot confirm a booking · no card data in Ocasio's database.
+**Exit criteria — all met:**
+
+| Criterion | Evidence |
+|---|---|
+| Replayed webhook does not double-credit | Tested; mutation-verified |
+| Forged signature rejected | `signature_verified=false` refused even under service_role |
+| Frontend cannot confirm a payment | `process_payment_event` is service_role + INVOKER |
+| No card data in the database | Trigger rejects sensitive metadata keys |
+
+**Delivered:** `payments`, `refunds`, `payment_events`, `audit_log`; a provider
+adapter boundary with a deterministic local adapter; server-derived amounts with
+a price snapshot; four independent idempotency guards; a signature-verifying
+webhook edge function; vendor/admin-only refunds including partials.
+
+**NOT delivered — read before assuming this is shippable:**
+
+- **No real payment provider.** Money does not move. The domain and its rules
+  are real and tested; the adapter is local.
+- **No payouts, ledger, commission, disputes or chargebacks.**
+- **No reconciliation** for payments stranded in `processing`.
+- **The webhook edge function is not covered by automated tests** — its
+  signature verification is unit-tested, and the database side it calls is fully
+  covered, but the HTTP handler has not run in CI.
+
+**Reviews remain outstanding** from the original Phase 4 scope; they were not
+part of this phase's brief.
+
+See [`OCASIO_PAYMENTS.md`](./OCASIO_PAYMENTS.md).
 
 ---
 
@@ -337,7 +363,7 @@ honestly · no LLM key in the client bundle · hallucination regression test pas
 | 1 | Foundation | 0 | ✅ Complete |
 | 2 | Marketplace | 1 | ✅ Complete |
 | 3 | Transactions | 1, 2 | ✅ Bookings complete |
-| 4 | Trust & money | 3 | No revenue |
+| 4 | Trust & money | 3 | ⚠️ Domain complete, no provider |
 | 5 | AI | 2, 3 | Differentiator only |
 | 6 | Hardening | all | Cannot safely operate |
 

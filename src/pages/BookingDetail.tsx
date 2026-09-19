@@ -10,6 +10,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { usePageMeta } from '../hooks/usePageMeta';
 import BookingStatusBadge from '../components/BookingStatusBadge';
+import PaymentPanel from '../components/PaymentPanel';
 import { ErrorState } from '../components/AsyncStates';
 import NotFound from './NotFound';
 import type { BookingStatusHistoryEntry, BookingWithDetails } from '../types/database';
@@ -120,6 +121,9 @@ const BookingDetail = () => {
   if (!booking) return <NotFound />;
 
   const isCustomer = user?.id === booking.customer_id;
+  // RLS already limits this page to the two parties, so anyone who is not the
+  // customer and can see it is the vendor owner.
+  const isVendor = Boolean(user) && !isCustomer;
   const showCancel = isCustomer && canCustomerCancel(booking.status);
 
   return (
@@ -167,8 +171,11 @@ const BookingDetail = () => {
               <dd className="mt-1 font-medium text-gray-900">
                 {formatRupees(booking.quoted_price)}
               </dd>
+              {/* Phase 4 made the old unconditional "no payment has been
+                  taken" false once a payment settles. Payment state now lives
+                  in the panel below; this line only describes the quote. */}
               <p className="mt-1 text-xs text-gray-500">
-                A starting figure, not an invoice. No payment has been taken.
+                A starting figure, not a final invoice.
               </p>
             </div>
             <div>
@@ -205,6 +212,8 @@ const BookingDetail = () => {
             </div>
           )}
         </div>
+
+        <PaymentPanel booking={booking} isCustomer={isCustomer} isVendor={isVendor} />
 
         <section className="mt-8 rounded-lg bg-white p-8 shadow-sm">
           <h2 className="mb-6 text-lg font-semibold text-gray-900">Status history</h2>

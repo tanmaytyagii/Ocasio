@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getCategoryCounts } from '../services/vendors';
+import { ErrorState } from './AsyncStates';
 import type { CategoryCount } from '../types/database';
 
 /**
@@ -24,15 +25,22 @@ const FALLBACK_IMAGE = CATEGORY_IMAGES.Venues;
 const PopularCategories = () => {
   const [categories, setCategories] = useState<CategoryCount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [nonce, setNonce] = useState(0);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setError(null);
     getCategoryCounts()
       .then((c) => {
         if (active) setCategories(c);
       })
-      .catch(() => {
-        if (active) setCategories([]);
+      .catch((e: unknown) => {
+        // Previously this swallowed the failure and hid the section, so a
+        // broken load was indistinguishable from an empty catalogue. It now
+        // reports like every other async surface.
+        if (active) setError(e instanceof Error ? e.message : 'Unable to load categories');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -40,21 +48,27 @@ const PopularCategories = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [nonce]);
 
-  if (!loading && categories.length === 0) return null;
+  // An empty catalogue is still a legitimate reason to render nothing; a
+  // failure is not.
+  if (!loading && !error && categories.length === 0) return null;
 
   return (
     <div className="bg-gray-50 py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Popular categories</h2>
 
+        {error && !loading && (
+          <ErrorState message={error} onRetry={() => setNonce((n) => n + 1)} />
+        )}
+
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="h-64 w-full animate-pulse rounded-lg bg-gray-200" />
               ))
-            : categories.map((category) => (
+            : !error && categories.map((category) => (
                 <Link
                   to={`/category/${category.category.toLowerCase()}`}
                   key={category.category}
