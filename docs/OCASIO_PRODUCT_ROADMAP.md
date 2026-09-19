@@ -146,8 +146,10 @@ an `on_auth_user_created` trigger. `ProtectedRoute` reads `profiles`, not the JW
 ### 1.5 Public/private split
 
 ```
-PUBLIC   /  /vendors  /vendors/:slug  /category/:slug  /search  /about  /contact  /blog  /auth
-PRIVATE  /dashboard  /favorites  /bookings  /messages  /vendor/dashboard
+PUBLIC   /  /vendors  /vendors/:slug  /category/:slug  /search  /about
+         /contact  /become-vendor  /blog  /auth  +  404 wildcard
+PRIVATE  /profile  /favorites  /vendor/dashboard
+DEFERRED /messages  /bookings   (Phase 3 — features do not exist yet)
 ```
 
 Fixes BUG-10 and BUG-6. Adds a real 404.
@@ -181,8 +183,14 @@ meta descriptions.
 - **Ownership, not role, authorises vendor management.** Lets a pending applicant
   manage their own listing without holding the vendor role, and keeps role
   changes rare and reviewed.
-- **`/contact` link removed rather than given a placeholder page.** There is no
-  contact page and no real contact details to put on one.
+- **`/contact` now exists** and carries no contact form — a form posting nowhere
+  would claim a message was sent when nothing was. `SUPPORT_EMAIL` in
+  `src/pages/Contact.tsx` is a placeholder and must be replaced before launch.
+- **`/messages` and `/bookings` are deferred to Phase 3.** Messaging and bookings
+  do not exist, so those routes would be pages existing only to satisfy a route
+  table.
+- **`/profile` was kept** rather than renamed to `/dashboard`; a rename is
+  cosmetic and would break existing links for no functional gain.
 
 ---
 
