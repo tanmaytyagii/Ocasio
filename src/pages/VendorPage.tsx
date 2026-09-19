@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Star, MapPin, Phone, Mail, Globe, Clock, Send, Calendar } from 'lucide-react';
-import { vendorData } from '../data/vendors';
+import { useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { Star, MapPin, Phone, Mail, Globe, Clock, Send, Calendar, Heart, Info } from 'lucide-react';
+import { getVendorBySlug } from '../services/vendors';
+import { addFavorite, removeFavorite, listMyFavoriteVendors } from '../services/favorites';
+import { useAsync } from '../hooks/useAsync';
+import { usePageMeta } from '../hooks/usePageMeta';
+import { useAuth } from '../contexts/AuthContext';
 import MockCheckout from '../components/MockCheckout';
+import { ErrorState } from '../components/AsyncStates';
+import NotFound from './NotFound';
 
 interface Message {
-  id: number;
+  id: string;
   text: string;
   sender: 'user' | 'vendor';
   timestamp: Date;
@@ -19,61 +25,94 @@ interface BookingDetails {
 }
 
 /**
- * Placeholder deposit shown during the demo checkout. Real pricing comes from
- * vendor_services once Phase 1 lands; the amount charged must always be
- * computed server-side, never read from the client.
+ * Placeholder deposit for the demo checkout. Real pricing comes from
+ * vendor_services; the amount charged must always be computed server-side.
  */
 const BOOKING_DEPOSIT = 25000;
 
+const formatRupees = (n: number) => `₹${n.toLocaleString('en-IN')}`;
+
+/** Marks a surface that does not persist yet, so nothing is mistaken for real. */
+const DemoNotice = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4" role="note">
+    <Info className="h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />
+    <p className="text-sm text-amber-900">{children}</p>
+  </div>
+);
+
 const VendorPage = () => {
-  const { vendorId } = useParams();
-  const vendor = vendorData.find(v => v.id === vendorId);
+  const { slug = '' } = useParams();
+  const { user } = useAuth();
+
+  const { data: vendor, loading, error, retry } = useAsync(() => getVendorBySlug(slug), [slug]);
+  const { data: favorites, retry: refreshFavorites } = useAsync(
+    () => (user ? listMyFavoriteVendors() : Promise.resolve([])),
+    [user?.id],
+  );
+
   const [showContact, setShowContact] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: 'Hello! How can I help you today?',
-      sender: 'vendor',
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [bookingDetails, setBookingDetails] = useState<BookingDetails>({
     eventType: '',
     date: '',
     guestCount: 0,
-    additionalNotes: ''
+    additionalNotes: '',
   });
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
-  if (!vendor) {
-    return <div className="pt-20 text-center">Vendor not found</div>;
+  usePageMeta(
+    vendor ? `${vendor.business_name} — ${vendor.category} in ${vendor.location} — Ocasio` : 'Vendor — Ocasio',
+    vendor?.description ?? undefined,
+  );
+
+  const isSaved = Boolean(vendor && favorites?.some((v) => v.id === vendor.id));
+
+  const toggleSaved = async () => {
+    if (!vendor) return;
+    if (isSaved) await removeFavorite(vendor.id);
+    else await addFavorite(vendor.id);
+    refreshFavorites();
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gray-50 pt-16">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="overflow-hidden rounded-lg bg-white shadow-lg">
+            <div className="h-96 animate-pulse bg-gray-200" />
+            <div className="space-y-4 p-8">
+              <div className="h-8 w-1/3 animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-1/4 animate-pulse rounded bg-gray-200" />
+              <div className="h-24 w-full animate-pulse rounded bg-gray-200" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 pt-24">
+        <ErrorState message={error} onRetry={retry} />
+      </div>
+    );
+  }
+
+  if (!vendor) return <NotFound />;
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
 
-    const userMessage: Message = {
-      id: messages.length + 1,
-      text: message,
-      sender: 'user',
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), text: message, sender: 'user', timestamp: new Date() },
+    ]);
     setMessage('');
-
-    setTimeout(() => {
-      const vendorMessage: Message = {
-        id: messages.length + 2,
-        text: "Thank you for your message. I'll get back to you shortly with more details.",
-        sender: 'vendor',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, vendorMessage]);
-    }, 1000);
   };
 
   const handleBookingSubmit = (e: React.FormEvent) => {
@@ -81,30 +120,26 @@ const VendorPage = () => {
     setShowPayment(true);
   };
 
-  const handlePayment = () => {
-    setBookingConfirmed(true);
-  };
-
   if (bookingConfirmed) {
     return (
-      <div className="pt-16 bg-gray-50 min-h-screen">
-        <div className="max-w-3xl mx-auto px-4 py-16">
-          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Calendar className="h-8 w-8 text-green-600" />
+      <div className="min-h-screen bg-gray-50 pt-16">
+        <div className="mx-auto max-w-3xl px-4 py-16">
+          <div className="rounded-lg bg-white p-8 text-center shadow-lg">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <Calendar className="h-8 w-8 text-green-600" aria-hidden="true" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Demo booking recorded</h2>
-            <p className="text-gray-600 mb-6">
-              This is a simulated booking with {vendor.name}. No payment was taken and no
-              email will be sent. Real bookings and confirmations arrive once Ocasio is
-              connected to its database and payment provider.
+            <h2 className="mb-4 text-2xl font-bold text-gray-900">Demo booking recorded</h2>
+            <p className="mb-6 text-gray-600">
+              This is a simulated booking with {vendor.business_name}. No payment was taken, no
+              email will be sent, and nothing was saved. Real bookings arrive once the booking
+              lifecycle is built.
             </p>
-            <button
-              onClick={() => window.location.href = '/'}
-              className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700"
+            <Link
+              to="/"
+              className="inline-block rounded-lg bg-purple-600 px-6 py-3 text-white hover:bg-purple-700"
             >
-              Return to Home
-            </button>
+              Return to home
+            </Link>
           </div>
         </div>
       </div>
@@ -112,89 +147,116 @@ const VendorPage = () => {
   }
 
   return (
-    <div className="pt-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="bg-gray-50 pt-16">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="overflow-hidden rounded-lg bg-white shadow-lg">
           <div className="relative h-96">
             <img
-              src={vendor.image}
-              alt={vendor.name}
+              src={vendor.hero_image_url ?? ''}
+              alt={vendor.business_name}
               className="h-full w-full object-cover"
             />
+            {user && (
+              <button
+                onClick={toggleSaved}
+                aria-pressed={isSaved}
+                aria-label={isSaved ? 'Remove from saved vendors' : 'Save this vendor'}
+                className="absolute right-4 top-4 rounded-full bg-white/90 p-3 shadow-sm transition-colors hover:bg-white"
+              >
+                <Heart
+                  className={`h-6 w-6 ${isSaved ? 'fill-current text-purple-600' : 'text-gray-600'}`}
+                  aria-hidden="true"
+                />
+              </button>
+            )}
           </div>
-          
+
           <div className="p-8">
-            <div className="flex justify-between items-start">
+            <div className="flex items-start justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{vendor.name}</h1>
-                <p className="text-gray-600 mt-2">{vendor.category}</p>
+                <h1 className="text-3xl font-bold text-gray-900">{vendor.business_name}</h1>
+                <p className="mt-2 text-gray-600">{vendor.category}</p>
               </div>
               <div className="text-right">
                 <div className="flex items-center">
-                  <Star className="h-6 w-6 text-yellow-400 fill-current" />
-                  <span className="ml-2 text-2xl font-bold text-gray-900">{vendor.rating}</span>
+                  <Star className="h-6 w-6 fill-current text-yellow-400" aria-hidden="true" />
+                  <span className="ml-2 text-2xl font-bold text-gray-900">
+                    {vendor.rating.toFixed(1)}
+                  </span>
                 </div>
-                <p className="text-gray-600">{vendor.reviews} reviews</p>
+                <p className="text-gray-600">{vendor.review_count} reviews</p>
               </div>
             </div>
 
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
               <div>
-                <h2 className="text-xl font-semibold mb-4">About Us</h2>
+                <h2 className="mb-4 text-xl font-semibold">About us</h2>
                 <p className="text-gray-600">{vendor.description}</p>
-                
+
                 <div className="mt-6 space-y-3">
                   <div className="flex items-center">
-                    <MapPin className="h-5 w-5 text-gray-400" />
+                    <MapPin className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     <span className="ml-2 text-gray-600">{vendor.location}</span>
                   </div>
-                  <div className="flex items-center">
-                    <Phone className="h-5 w-5 text-gray-400" />
-                    <span className="ml-2 text-gray-600">{vendor.phone}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Mail className="h-5 w-5 text-gray-400" />
-                    <span className="ml-2 text-gray-600">{vendor.email}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Globe className="h-5 w-5 text-gray-400" />
-                    <span className="ml-2 text-gray-600">{vendor.website}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Clock className="h-5 w-5 text-gray-400" />
-                    <span className="ml-2 text-gray-600">{vendor.businessHours}</span>
-                  </div>
+                  {vendor.phone && (
+                    <div className="flex items-center">
+                      <Phone className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      <span className="ml-2 text-gray-600">{vendor.phone}</span>
+                    </div>
+                  )}
+                  {vendor.email && (
+                    <div className="flex items-center">
+                      <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      <span className="ml-2 text-gray-600">{vendor.email}</span>
+                    </div>
+                  )}
+                  {vendor.website && (
+                    <div className="flex items-center">
+                      <Globe className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      <span className="ml-2 text-gray-600">{vendor.website}</span>
+                    </div>
+                  )}
+                  {vendor.business_hours && (
+                    <div className="flex items-center">
+                      <Clock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      <span className="ml-2 text-gray-600">{vendor.business_hours}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div>
-                <h2 className="text-xl font-semibold mb-4">Services</h2>
+                <h2 className="mb-4 text-xl font-semibold">Services</h2>
                 <ul className="space-y-2">
-                  {vendor.services.map((service, index) => (
-                    <li key={index} className="flex items-center">
-                      <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
-                      {service}
+                  {vendor.vendor_services.map((service) => (
+                    <li key={service.id} className="flex items-center">
+                      <span className="mr-2 h-2 w-2 rounded-full bg-purple-600" aria-hidden="true" />
+                      {service.name}
                     </li>
                   ))}
                 </ul>
 
-                <div className="mt-8">
-                  <h2 className="text-xl font-semibold mb-4">Pricing</h2>
-                  <p className="text-gray-600">{vendor.pricing}</p>
-                </div>
+                {vendor.starting_price !== null && (
+                  <div className="mt-8">
+                    <h2 className="mb-4 text-xl font-semibold">Pricing</h2>
+                    <p className="text-gray-600">
+                      Starting from {formatRupees(vendor.starting_price)} onwards
+                    </p>
+                  </div>
+                )}
 
                 <div className="mt-8 space-y-4">
-                  <button 
+                  <button
                     onClick={() => setShowContact(true)}
-                    className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition duration-300"
+                    className="w-full rounded-lg bg-purple-600 py-3 text-white transition duration-300 hover:bg-purple-700"
                   >
-                    Contact Vendor
+                    Contact vendor
                   </button>
-                  <button 
+                  <button
                     onClick={() => setShowBooking(true)}
-                    className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-300"
+                    className="w-full rounded-lg border border-purple-600 py-3 text-purple-600 transition duration-300 hover:bg-purple-50"
                   >
-                    Book Now
+                    Request a booking
                   </button>
                 </div>
               </div>
@@ -202,221 +264,128 @@ const VendorPage = () => {
           </div>
         </div>
 
-        {/* Contact Modal */}
         {showContact && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-              <div className="p-6 border-b">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{vendor.name}</h2>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-gray-600 flex items-center">
-                        <Phone className="h-4 w-4 mr-2" />
-                        {vendor.phone}
-                      </p>
-                      <p className="text-gray-600 flex items-center">
-                        <Mail className="h-4 w-4 mr-2" />
-                        {vendor.email}
-                      </p>
-                    </div>
+          <div className="mt-8 rounded-lg bg-white p-6 shadow-lg">
+            <h2 className="mb-4 text-xl font-semibold">Message {vendor.business_name}</h2>
+            <DemoNotice>
+              Messaging is not connected yet — nothing you type here is sent or saved. Persistent
+              conversations arrive with the messaging system.
+            </DemoNotice>
+
+            <div className="mt-4 max-h-64 space-y-3 overflow-y-auto">
+              {messages.map((m) => (
+                <div key={m.id} className={m.sender === 'user' ? 'text-right' : 'text-left'}>
+                  <div
+                    className={`inline-block rounded-lg p-3 ${
+                      m.sender === 'user' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {m.text}
                   </div>
-                  <button 
-                    onClick={() => setShowContact(false)}
-                    className="text-gray-400 hover:text-gray-500"
-                  >
-                    <span className="text-2xl">&times;</span>
-                  </button>
                 </div>
-              </div>
-
-              <div className="h-[60vh] overflow-y-auto p-6">
-                <div className="space-y-4">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-[70%] rounded-lg p-4 ${
-                          msg.sender === 'user'
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-100 text-gray-900'
-                        }`}
-                      >
-                        <p>{msg.text}</p>
-                        <p className={`text-xs mt-1 ${
-                          msg.sender === 'user' ? 'text-purple-100' : 'text-gray-500'
-                        }`}>
-                          {msg.timestamp.toLocaleTimeString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-6 border-t">
-                <form onSubmit={handleSendMessage} className="flex gap-4">
-                  <input
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Type your message..."
-                    className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 flex items-center"
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    Send
-                  </button>
-                </form>
-              </div>
+              ))}
             </div>
+
+            <form onSubmit={handleSendMessage} className="mt-4 flex gap-4">
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type your message…"
+                aria-label="Message"
+                className="flex-1 rounded-lg border p-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              />
+              <button
+                type="submit"
+                className="rounded-lg bg-purple-600 px-4 text-white hover:bg-purple-700"
+                aria-label="Send message"
+              >
+                <Send className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </form>
           </div>
         )}
 
-        {/* Booking Modal */}
         {showBooking && !showPayment && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
-              <div className="p-6 border-b">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold text-gray-900">Book {vendor.name}</h2>
-                  <button
-                    onClick={() => setShowBooking(false)}
-                    className="text-gray-400 hover:text-gray-500"
-                  >
-                    <span className="text-2xl">&times;</span>
-                  </button>
-                </div>
-              </div>
+          <div className="mt-8 rounded-lg bg-white p-6 shadow-lg">
+            <h2 className="mb-4 text-xl font-semibold">Request a booking</h2>
+            <DemoNotice>
+              Booking requests are not stored yet. This form demonstrates the flow; the real
+              booking lifecycle is the next phase.
+            </DemoNotice>
 
-              <form onSubmit={handleBookingSubmit} className="p-6 space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Event Type
-                  </label>
-                  <select
-                    value={bookingDetails.eventType}
-                    onChange={(e) => setBookingDetails({ ...bookingDetails, eventType: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
-                    required
-                  >
-                    <option value="">Select Event Type</option>
-                    <option value="Wedding">Wedding</option>
-                    <option value="Corporate">Corporate Event</option>
-                    <option value="Birthday">Birthday Party</option>
-                    <option value="Religious">Religious Ceremony</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Event Date
-                  </label>
-                  <input
-                    type="date"
-                    value={bookingDetails.date}
-                    onChange={(e) => setBookingDetails({ ...bookingDetails, date: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Number of Guests
-                  </label>
-                  <input
-                    type="number"
-                    value={bookingDetails.guestCount}
-                    onChange={(e) => setBookingDetails({ ...bookingDetails, guestCount: parseInt(e.target.value) })}
-                    className="w-full p-2 border rounded-lg"
-                    required
-                    min="1"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Additional Notes
-                  </label>
-                  <textarea
-                    value={bookingDetails.additionalNotes}
-                    onChange={(e) => setBookingDetails({ ...bookingDetails, additionalNotes: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
-                    rows={4}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700"
+            <form onSubmit={handleBookingSubmit} className="mt-4 space-y-6">
+              <div>
+                <label htmlFor="eventType" className="mb-2 block text-sm font-medium text-gray-700">
+                  Event type
+                </label>
+                <select
+                  id="eventType"
+                  required
+                  value={bookingDetails.eventType}
+                  onChange={(e) => setBookingDetails({ ...bookingDetails, eventType: e.target.value })}
+                  className="w-full rounded-lg border p-2"
                 >
-                  Proceed to Payment
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Payment Modal */}
-        {showPayment && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
-              <div className="p-6 border-b">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold text-gray-900">Payment Details</h2>
-                  <button
-                    onClick={() => setShowPayment(false)}
-                    className="text-gray-400 hover:text-gray-500"
-                  >
-                    <span className="text-2xl">&times;</span>
-                  </button>
-                </div>
+                  <option value="">Select an event type</option>
+                  <option value="Wedding">Wedding</option>
+                  <option value="Corporate">Corporate</option>
+                  <option value="Birthday">Birthday</option>
+                  <option value="Religious">Religious</option>
+                </select>
               </div>
-
-              <div className="p-6">
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold mb-4">Booking Summary</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-600">Event Type</p>
-                        <p className="font-medium">{bookingDetails.eventType}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Date</p>
-                        <p className="font-medium">{bookingDetails.date}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Guests</p>
-                        <p className="font-medium">{bookingDetails.guestCount}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Amount</p>
-                        <p className="font-medium">₹{BOOKING_DEPOSIT.toLocaleString('en-IN')}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <MockCheckout
-                  amount={BOOKING_DEPOSIT}
-                  description={`Booking deposit — ${vendor.name}`}
-                  submitLabel={`Simulate payment of ₹${BOOKING_DEPOSIT.toLocaleString('en-IN')}`}
-                  onConfirm={handlePayment}
+              <div>
+                <label htmlFor="eventDate" className="mb-2 block text-sm font-medium text-gray-700">
+                  Event date
+                </label>
+                <input
+                  id="eventDate"
+                  type="date"
+                  required
+                  value={bookingDetails.date}
+                  onChange={(e) => setBookingDetails({ ...bookingDetails, date: e.target.value })}
+                  className="w-full rounded-lg border p-2"
                 />
               </div>
-            </div>
+              <div>
+                <label htmlFor="guestCount" className="mb-2 block text-sm font-medium text-gray-700">
+                  Approximate guests
+                </label>
+                <input
+                  id="guestCount"
+                  type="number"
+                  min={1}
+                  required
+                  value={bookingDetails.guestCount || ''}
+                  onChange={(e) =>
+                    setBookingDetails({ ...bookingDetails, guestCount: Number(e.target.value) })
+                  }
+                  className="w-full rounded-lg border p-2"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full rounded-lg bg-purple-600 py-3 text-white hover:bg-purple-700"
+              >
+                Continue
+              </button>
+            </form>
+          </div>
+        )}
+
+        {showPayment && (
+          <div className="mt-8 rounded-lg bg-white p-6 shadow-lg">
+            <h2 className="mb-6 text-xl font-semibold">Confirm your booking</h2>
+            <MockCheckout
+              amount={BOOKING_DEPOSIT}
+              description={`Booking deposit — ${vendor.business_name}`}
+              submitLabel={`Simulate payment of ${formatRupees(BOOKING_DEPOSIT)}`}
+              onConfirm={() => setBookingConfirmed(true)}
+            />
           </div>
         )}
       </div>
     </div>
   );
-}
+};
 
 export default VendorPage;

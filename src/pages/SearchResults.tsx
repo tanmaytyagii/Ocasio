@@ -1,74 +1,68 @@
 import { Link, useSearchParams } from 'react-router-dom';
-import { Star } from 'lucide-react';
-import { vendorData } from '../data/vendors';
+import { listVendors } from '../services/vendors';
+import { useAsync } from '../hooks/useAsync';
+import { usePageMeta } from '../hooks/usePageMeta';
+import VendorCard from '../components/VendorCard';
+import { VendorGridSkeleton, ErrorState, EmptyState } from '../components/AsyncStates';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
-  const query = searchParams.get('q')?.toLowerCase() || '';
-  const eventType = searchParams.get('type')?.toLowerCase() || '';
-  const city = searchParams.get('city')?.toLowerCase() || '';
+  const query = searchParams.get('q') ?? '';
+  const city = searchParams.get('city') ?? '';
+  const eventType = searchParams.get('type') ?? '';
 
-  const filteredVendors = vendorData.filter(vendor => {
-    const matchesQuery = !query || 
-      vendor.name.toLowerCase().includes(query) ||
-      vendor.category.toLowerCase().includes(query) ||
-      vendor.location.toLowerCase().includes(query) ||
-      vendor.description.toLowerCase().includes(query);
+  usePageMeta(
+    query ? `"${query}" — vendor search — Ocasio` : 'Search vendors — Ocasio',
+    'Search venues, catering, photography and decoration vendors across India.',
+  );
 
-    const matchesType = !eventType || 
-      (vendor.eventTypes?.some(type => type.toLowerCase() === eventType.toLowerCase()) ||
-      vendor.category.toLowerCase().includes(eventType.toLowerCase()));
-
-    const matchesCity = !city || 
-      vendor.location.toLowerCase() === city.toLowerCase();
-
-    return matchesQuery && matchesType && matchesCity;
-  }).sort((a, b) => b.rating - a.rating);
+  // eventType maps onto the free-text query until vendor_event_types exists.
+  const { data, loading, error, retry } = useAsync(
+    () => listVendors({ query: query || eventType || undefined, location: city || undefined }),
+    [query, city, eventType],
+  );
 
   return (
-    <div className="pt-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Search Results
+    <div className="bg-gray-50 pt-16">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <h1 className="mb-4 text-3xl font-bold text-gray-900">
+          Search results
           {query && ` for "${query}"`}
-          {eventType && ` in ${eventType}`}
-          {city && ` at ${city}`}
+          {eventType && !query && ` for ${eventType}`}
+          {city && ` in ${city}`}
         </h1>
-        <p className="text-gray-600 mb-8">{filteredVendors.length} vendors found</p>
+        <p className="mb-8 text-gray-600">
+          {loading ? 'Searching…' : `${data?.length ?? 0} vendors found`}
+        </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredVendors.map((vendor) => (
-            <div key={vendor.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="relative h-48">
-                <img
-                  src={vendor.image}
-                  alt={vendor.name}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-gray-900">{vendor.name}</h3>
-                <p className="text-gray-600">{vendor.category}</p>
-                <div className="mt-2 flex items-center">
-                  <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                  <span className="ml-1 text-gray-700">{vendor.rating}</span>
-                  <span className="mx-1 text-gray-400">•</span>
-                  <span className="text-gray-600">{vendor.reviews} reviews</span>
-                </div>
-                <p className="mt-2 text-gray-600">{vendor.location}</p>
-                <Link
-                  to={`/vendor/${vendor.id}`}
-                  className="mt-4 block w-full bg-purple-600 text-white text-center py-2 rounded hover:bg-purple-700 transition duration-300"
-                >
-                  View Details
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+        {loading && <VendorGridSkeleton />}
+        {error && !loading && <ErrorState message={error} onRetry={retry} />}
+
+        {!loading && !error && data?.length === 0 && (
+          <EmptyState
+            title="No vendors match that search"
+            description="Try a different city, a broader search term, or browse every vendor."
+            action={
+              <Link
+                to="/vendors"
+                className="rounded-lg bg-purple-600 px-5 py-2.5 text-white hover:bg-purple-700"
+              >
+                Browse all vendors
+              </Link>
+            }
+          />
+        )}
+
+        {!loading && !error && data && data.length > 0 && (
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {data.map((vendor) => (
+              <VendorCard key={vendor.id} vendor={vendor} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default SearchResults;

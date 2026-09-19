@@ -27,6 +27,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+!.env.local.example
 
 # TypeScript incremental build artifacts
 *.tsbuildinfo
