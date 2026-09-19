@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Star, MapPin, Phone, Mail, Globe, Clock, Send, Calendar, CreditCard } from 'lucide-react';
+import { Star, MapPin, Phone, Mail, Globe, Clock, Send, Calendar } from 'lucide-react';
 import { vendorData } from '../data/vendors';
+import MockCheckout from '../components/MockCheckout';
 
 interface Message {
   id: number;
@@ -16,6 +17,13 @@ interface BookingDetails {
   guestCount: number;
   additionalNotes: string;
 }
+
+/**
+ * Placeholder deposit shown during the demo checkout. Real pricing comes from
+ * vendor_services once Phase 1 lands; the amount charged must always be
+ * computed server-side, never read from the client.
+ */
+const BOOKING_DEPOSIT = 25000;
 
 const VendorPage = () => {
   const { vendorId } = useParams();
@@ -38,7 +46,6 @@ const VendorPage = () => {
     guestCount: 0,
     additionalNotes: ''
   });
-  const [paymentMethod, setPaymentMethod] = useState('');
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
   if (!vendor) {
@@ -74,8 +81,7 @@ const VendorPage = () => {
     setShowPayment(true);
   };
 
-  const handlePayment = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePayment = () => {
     setBookingConfirmed(true);
   };
 
@@ -87,9 +93,11 @@ const VendorPage = () => {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Calendar className="h-8 w-8 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Booking Confirmed!</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Demo booking recorded</h2>
             <p className="text-gray-600 mb-6">
-              Your booking with {vendor.name} has been confirmed. You will receive a confirmation email shortly with all the details.
+              This is a simulated booking with {vendor.name}. No payment was taken and no
+              email will be sent. Real bookings and confirmations arrive once Ocasio is
+              connected to its database and payment provider.
             </p>
             <button
               onClick={() => window.location.href = '/'}
@@ -390,107 +398,18 @@ const VendorPage = () => {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Amount</p>
-                        <p className="font-medium">₹25,000</p>
+                        <p className="font-medium">₹{BOOKING_DEPOSIT.toLocaleString('en-IN')}</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <form onSubmit={handlePayment} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Select Payment Method
-                    </label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {['Credit Card', 'UPI', 'Net Banking'].map((method) => (
-                        <button
-                          key={method}
-                          type="button"
-                          onClick={() => setPaymentMethod(method)}
-                          className={`p-4 border rounded-lg flex items-center justify-center ${
-                            paymentMethod === method ? 'border-purple-600 bg-purple-50' : 'border-gray-200'
-                          }`}
-                        >
-                          <CreditCard className="h-5 w-5 mr-2" />
-                          {method}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {paymentMethod === 'Credit Card' && (
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Card Number
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full p-2 border rounded-lg"
-                          placeholder="1234 5678 9012 3456"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Expiry Date
-                          </label>
-                          <input
-                            type="text"
-                            className="w-full p-2 border rounded-lg"
-                            placeholder="MM/YY"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            CVV
-                          </label>
-                          <input
-                            type="text"
-                            className="w-full p-2 border rounded-lg"
-                            placeholder="123"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {paymentMethod === 'UPI' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        UPI ID
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border rounded-lg"
-                        placeholder="username@upi"
-                      />
-                    </div>
-                  )}
-
-                  {paymentMethod === 'Net Banking' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Select Bank
-                      </label>
-                      <select className="w-full p-2 border rounded-lg">
-                        <option value="">Select your bank</option>
-                        <option value="sbi">State Bank of India</option>
-                        <option value="hdfc">HDFC Bank</option>
-                        <option value="icici">ICICI Bank</option>
-                        <option value="axis">Axis Bank</option>
-                      </select>
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={!paymentMethod}
-                    className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 disabled:bg-gray-400"
-                  >
-                    Pay ₹25,000
-                  </button>
-                </form>
+                <MockCheckout
+                  amount={BOOKING_DEPOSIT}
+                  description={`Booking deposit — ${vendor.name}`}
+                  submitLabel={`Simulate payment of ₹${BOOKING_DEPOSIT.toLocaleString('en-IN')}`}
+                  onConfirm={handlePayment}
+                />
               </div>
             </div>
           </div>
