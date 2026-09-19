@@ -44,5 +44,29 @@
     "vite": "^5.4.2",
     "vitest": "^2.1.9"
   },
-  "description": "Ocasio — an event vendor marketplace."
+  "description": "An event vendor marketplace \u2014 discover vendors, request bookings, pay, and review the work. React + Supabase/Postgres with database-enforced authorization.",
+  "keywords": [
+    "marketplace",
+    "supabase",
+    "postgres",
+    "react",
+    "typescript",
+    "rls",
+    "row-level-security",
+    "booking-system",
+    "tailwindcss",
+    "playwright"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tanmaytyagii/Ocasio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tanmaytyagii/Ocasio/issues"
+  },
+  "homepage": "https://github.com/tanmaytyagii/Ocasio#readme",
+  "engines": {
+    "node": ">=18"
+  }
 }
