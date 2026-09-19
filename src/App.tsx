@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { FavoritesProvider } from './contexts/FavoritesContext';
 import { RequireAuth, RequireVendor } from './components/RouteGuards';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -42,8 +43,9 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="flex min-h-screen flex-col bg-white">
-          <Routes>
+        <FavoritesProvider>
+          <div className="flex min-h-screen flex-col bg-white">
+            <Routes>
             {/* Standalone: no site chrome. */}
             <Route path="/auth" element={<Auth />} />
 
@@ -99,8 +101,9 @@ function App() {
                 </SiteChrome>
               }
             />
-          </Routes>
-        </div>
+            </Routes>
+          </div>
+        </FavoritesProvider>
       </Router>
     </AuthProvider>
   );
