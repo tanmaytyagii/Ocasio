@@ -78,7 +78,7 @@ const VendorDiscovery = ({
     : `${result?.totalCount ?? 0} vendor${result?.totalCount === 1 ? '' : 's'} found`;
 
   return (
-    <div className="bg-gray-50 pt-16">
+    <div className="bg-canvas">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <h1 className="mb-2 text-4xl font-bold text-gray-900">{title}</h1>
         {subtitle && <p className="mb-6 text-gray-600">{subtitle}</p>}

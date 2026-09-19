@@ -42,7 +42,7 @@ const Favorites = () => {
   const visible = vendors?.filter((v) => favoriteIds.has(v.id)) ?? [];
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16">
+    <div className="min-h-screen bg-canvas">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <h1 className="mb-2 flex items-center gap-2 text-4xl font-bold text-gray-900">
           <Heart className="h-8 w-8 text-purple-600" aria-hidden="true" />

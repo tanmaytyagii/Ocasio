@@ -15,7 +15,7 @@ const Hero = () => {
   };
 
   return (
-    <div className="relative pt-16">
+    <div className="relative">
       <div className="absolute inset-0">
         <img
           className="w-full h-[600px] object-cover"

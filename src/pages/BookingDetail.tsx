@@ -97,7 +97,7 @@ const BookingDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-16">
+      <div className="min-h-screen bg-canvas">
         <div className="mx-auto max-w-3xl px-4 py-12">
           <div className="rounded-lg bg-white p-8 shadow-sm">
             <div className="mb-4 h-7 w-1/3 animate-pulse rounded bg-gray-200" />
@@ -111,7 +111,7 @@ const BookingDetail = () => {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-3xl px-4 pt-24">
+      <div className="mx-auto max-w-3xl px-4 py-12">
         <ErrorState message={error} onRetry={load} />
       </div>
     );
@@ -128,7 +128,7 @@ const BookingDetail = () => {
   const showCancel = isCustomer && canCustomerCancel(booking.status);
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16">
+    <div className="min-h-screen bg-canvas">
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <Link
           to={isCustomer ? '/bookings' : '/vendor/dashboard'}

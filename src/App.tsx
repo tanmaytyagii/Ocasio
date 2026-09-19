@@ -4,7 +4,6 @@ import { FavoritesProvider } from './contexts/FavoritesContext';
 import { RequireAuth, RequireVendor } from './components/RouteGuards';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Chatbot from './components/Chatbot';
 import Home from './pages/Home';
 import CategoryPage from './pages/CategoryPage';
 import VendorPage from './pages/VendorPage';
@@ -34,9 +33,14 @@ import NotFound from './pages/NotFound';
  */
 const SiteChrome = ({ children }: { children: React.ReactNode }) => (
   <>
+    {/* First tab stop on every page; visible only when focused. */}
+    <a href="#main" className="skip-link">
+      Skip to main content
+    </a>
     <Navbar />
-    <main className="flex-grow">{children}</main>
-    <Chatbot />
+    <main id="main" className="flex-grow pt-16">
+      {children}
+    </main>
     <Footer />
   </>
 );
@@ -50,16 +54,6 @@ function App() {
             <Routes>
             {/* Standalone: no site chrome. */}
             <Route path="/auth" element={<Auth />} />
-
-            {/* Vendor workspace: requires the database-backed vendor role. */}
-            <Route
-              path="/vendor/dashboard/*"
-              element={
-                <RequireVendor>
-                  <VendorDashboard />
-                </RequireVendor>
-              }
-            />
 
             <Route
               path="/*"
@@ -76,6 +70,18 @@ function App() {
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/become-vendor" element={<BecomeVendor />} />
                     <Route path="/blog" element={<Blog />} />
+
+                    {/* Vendor workspace: same shell as the rest of the product,
+                        gated on the database-backed vendor role. Declared
+                        before /vendor/:slug so the static segment wins. */}
+                    <Route
+                      path="/vendor/dashboard/*"
+                      element={
+                        <RequireVendor>
+                          <VendorDashboard />
+                        </RequireVendor>
+                      }
+                    />
 
                     {/* Pre-Phase-1 links used /vendor/:id; keep them working. */}
                     <Route path="/vendor/:slug" element={<Navigate to="/vendors" replace />} />

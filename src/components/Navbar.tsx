@@ -1,7 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { Search, Menu, X, Heart, User, Settings, LogOut, LayoutDashboard, CalendarDays } from 'lucide-react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import {
+  Search,
+  Menu,
+  X,
+  Heart,
+  User,
+  Settings,
+  LogOut,
+  LayoutDashboard,
+  CalendarDays,
+} from 'lucide-react';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { Button, ButtonLink } from './ui';
 
 const CATEGORIES = [
   { label: 'Venues', to: '/category/venues' },
@@ -9,6 +20,29 @@ const CATEGORIES = [
   { label: 'Photography', to: '/category/photography' },
   { label: 'Decoration', to: '/category/decoration' },
 ];
+
+/**
+ * Application header.
+ *
+ * One header for the whole product, including the vendor dashboard — which
+ * previously rendered outside the site chrome with no navigation and no way to
+ * sign out. A vendor is still an Ocasio user; they should not land somewhere
+ * that looks like a different application.
+ *
+ * Active route state comes from NavLink rather than manual pathname
+ * comparison, so it cannot drift from the router.
+ */
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `relative py-1 text-sm font-medium transition-colors ${
+    isActive
+      ? 'text-brand-700 after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:rounded-full after:bg-brand-600'
+      : 'text-ink-soft hover:text-brand-700'
+  }`;
+
+const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `block rounded-control px-3 py-2.5 text-sm font-medium transition-colors ${
+    isActive ? 'bg-brand-50 text-brand-700' : 'text-ink-soft hover:bg-canvas'
+  }`;
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,7 +67,7 @@ const Navbar = () => {
     navigate('/');
   };
 
-  // Close the mobile menu after navigating.
+  // Close overlays after navigating.
   useEffect(() => {
     setMobileOpen(false);
     setShowDropdown(false);
@@ -64,10 +98,10 @@ const Navbar = () => {
   }, [mobileOpen]);
 
   return (
-    <nav className="fixed z-50 w-full bg-white shadow-sm">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between">
-          <div className="flex items-center">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
+      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main">
+        <div className="flex h-16 items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
             <button
               ref={mobileButtonRef}
               type="button"
@@ -75,42 +109,50 @@ const Navbar = () => {
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-              className="rounded p-1 focus:outline-none focus:ring-2 focus:ring-purple-600 md:hidden"
+              className="-ml-1 rounded-control p-2 text-ink-soft hover:bg-canvas md:hidden"
             >
               {mobileOpen ? (
-                <X className="h-6 w-6" aria-hidden="true" />
+                <X className="h-5 w-5" aria-hidden="true" />
               ) : (
-                <Menu className="h-6 w-6" aria-hidden="true" />
+                <Menu className="h-5 w-5" aria-hidden="true" />
               )}
             </button>
-            <Link to="/" className="ml-2 text-2xl font-bold text-purple-600 md:ml-0">
+
+            <Link
+              to="/"
+              className="text-xl font-semibold tracking-tight text-brand-700"
+              aria-label="Ocasio home"
+            >
               Ocasio
             </Link>
+
+            <div className="hidden items-center gap-6 md:flex">
+              <NavLink to="/vendors" className={navLinkClass}>
+                Explore
+              </NavLink>
+              {CATEGORIES.map((c) => (
+                <NavLink key={c.to} to={c.to} className={navLinkClass}>
+                  {c.label}
+                </NavLink>
+              ))}
+            </div>
           </div>
 
-          <div className="hidden items-center space-x-8 md:flex">
-            {CATEGORIES.map((c) => (
-              <Link key={c.to} to={c.to} className="text-gray-700 hover:text-purple-600">
-                {c.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <form onSubmit={handleSearch} className="relative hidden sm:block" role="search">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <form onSubmit={handleSearch} className="relative hidden lg:block" role="search">
               <label htmlFor="navbar-search" className="sr-only">
                 Search vendors
               </label>
               <input
                 id="navbar-search"
                 type="search"
-                placeholder="Search vendors..."
+                placeholder="Search vendors…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="rounded-full border py-1 pl-8 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="h-9 w-56 rounded-full border border-line-strong bg-canvas pl-9 pr-3 text-sm text-ink placeholder:text-muted focus:border-brand-500 focus:bg-surface"
               />
               <Search
-                className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
                 aria-hidden="true"
               />
             </form>
@@ -120,9 +162,9 @@ const Navbar = () => {
                 <Link
                   to="/favorites"
                   aria-label="Saved vendors"
-                  className="rounded p-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  className="rounded-control p-2 text-ink-soft transition-colors hover:bg-canvas hover:text-brand-700"
                 >
-                  <Heart className="h-5 w-5 text-gray-600 hover:text-purple-600" aria-hidden="true" />
+                  <Heart className="h-5 w-5" aria-hidden="true" />
                 </Link>
 
                 <div className="relative" ref={dropdownRef}>
@@ -131,60 +173,54 @@ const Navbar = () => {
                     aria-expanded={showDropdown}
                     aria-haspopup="menu"
                     aria-label="Account menu"
-                    className="rounded p-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-brand-700 transition-colors hover:bg-brand-100"
                   >
-                    <User className="h-5 w-5 text-gray-600 hover:text-purple-600" aria-hidden="true" />
+                    <User className="h-4 w-4" aria-hidden="true" />
                   </button>
 
                   {showDropdown && (
                     <div
                       role="menu"
-                      className="absolute right-0 mt-2 w-56 rounded-lg bg-white py-1 shadow-lg ring-1 ring-black/5"
+                      className="absolute right-0 mt-2 w-60 animate-rise-in overflow-hidden rounded-card border border-line bg-surface py-1 shadow-overlay"
                     >
-                      <div className="border-b px-4 py-2">
-                        <p className="truncate text-sm font-medium text-gray-900">{user.email}</p>
-                        {role && <p className="mt-0.5 text-xs capitalize text-gray-500">{role}</p>}
+                      <div className="border-b border-line px-4 py-3">
+                        <p className="truncate text-sm font-medium text-ink">{user.email}</p>
+                        {role && (
+                          <p className="mt-0.5 text-xs capitalize text-muted">{role} account</p>
+                        )}
                       </div>
-                      <Link
-                        to="/profile"
-                        role="menuitem"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        <User className="mr-2 h-4 w-4" aria-hidden="true" />
-                        Profile
-                      </Link>
-                      <Link
-                        to="/bookings"
-                        role="menuitem"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        <CalendarDays className="mr-2 h-4 w-4" aria-hidden="true" />
-                        My bookings
-                      </Link>
-                      <Link
-                        to="/profile?tab=settings"
-                        role="menuitem"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        <Settings className="mr-2 h-4 w-4" aria-hidden="true" />
-                        Settings
-                      </Link>
+                      {[
+                        { to: '/profile', icon: User, label: 'Dashboard' },
+                        { to: '/bookings', icon: CalendarDays, label: 'My bookings' },
+                        { to: '/favorites', icon: Heart, label: 'Saved vendors' },
+                        { to: '/profile?tab=settings', icon: Settings, label: 'Settings' },
+                      ].map(({ to, icon: Icon, label }) => (
+                        <Link
+                          key={label}
+                          to={to}
+                          role="menuitem"
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-ink-soft hover:bg-canvas"
+                        >
+                          <Icon className="h-4 w-4 text-muted" aria-hidden="true" />
+                          {label}
+                        </Link>
+                      ))}
                       {role === 'vendor' && (
                         <Link
                           to="/vendor/dashboard"
                           role="menuitem"
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-ink-soft hover:bg-canvas"
                         >
-                          <LayoutDashboard className="mr-2 h-4 w-4" aria-hidden="true" />
+                          <LayoutDashboard className="h-4 w-4 text-muted" aria-hidden="true" />
                           Vendor dashboard
                         </Link>
                       )}
                       <button
                         onClick={handleSignOut}
                         role="menuitem"
-                        className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex w-full items-center gap-2.5 border-t border-line px-4 py-2 text-left text-sm text-ink-soft hover:bg-canvas"
                       >
-                        <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
+                        <LogOut className="h-4 w-4 text-muted" aria-hidden="true" />
                         Sign out
                       </button>
                     </div>
@@ -192,81 +228,85 @@ const Navbar = () => {
                 </div>
               </>
             ) : (
-              <Link
-                to="/auth"
-                className="rounded-lg bg-purple-600 px-4 py-1.5 text-sm text-white transition-colors hover:bg-purple-700"
-              >
-                Sign in
-              </Link>
+              <>
+                <ButtonLink to="/become-vendor" variant="ghost" size="sm" className="hidden sm:inline-flex">
+                  List your business
+                </ButtonLink>
+                <ButtonLink to="/auth" size="sm">
+                  Sign in
+                </ButtonLink>
+              </>
             )}
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile menu. Before Phase 1 the hamburger had no handler at all, so
-          category navigation was unreachable on phones (audit BUG-9). */}
       {mobileOpen && (
-        <div id="mobile-menu" className="border-t bg-white md:hidden">
-          <div className="space-y-1 px-4 py-3">
-            <form onSubmit={handleSearch} className="relative mb-3 sm:hidden" role="search">
+        <div id="mobile-menu" className="animate-fade-in border-t border-line bg-surface md:hidden">
+          <div className="space-y-1 px-4 py-4">
+            <form onSubmit={handleSearch} className="relative mb-3" role="search">
               <label htmlFor="mobile-search" className="sr-only">
                 Search vendors
               </label>
               <input
                 id="mobile-search"
                 type="search"
-                placeholder="Search vendors..."
+                placeholder="Search vendors…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-full border py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="h-11 w-full rounded-control border border-line-strong bg-canvas pl-10 pr-3 text-sm text-ink placeholder:text-muted focus:border-brand-500 focus:bg-surface"
               />
               <Search
-                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
                 aria-hidden="true"
               />
             </form>
 
+            <NavLink to="/vendors" className={mobileLinkClass}>
+              Explore all vendors
+            </NavLink>
             {CATEGORIES.map((c) => (
-              <Link
-                key={c.to}
-                to={c.to}
-                className="block rounded px-2 py-2 text-gray-700 hover:bg-gray-50 hover:text-purple-600"
-              >
+              <NavLink key={c.to} to={c.to} className={mobileLinkClass}>
                 {c.label}
-              </Link>
+              </NavLink>
             ))}
-            <Link
-              to="/vendors"
-              className="block rounded px-2 py-2 text-gray-700 hover:bg-gray-50 hover:text-purple-600"
-            >
-              All vendors
-            </Link>
-            <Link
-              to="/become-vendor"
-              className="block rounded px-2 py-2 text-gray-700 hover:bg-gray-50 hover:text-purple-600"
-            >
-              Become a vendor
-            </Link>
-            {user && (
+
+            <div className="my-2 border-t border-line" />
+
+            {user ? (
               <>
-                <Link
-                  to="/favorites"
-                  className="block rounded px-2 py-2 text-gray-700 hover:bg-gray-50 hover:text-purple-600"
-                >
-                  Saved vendors
-                </Link>
-                <Link
-                  to="/bookings"
-                  className="block rounded px-2 py-2 text-gray-700 hover:bg-gray-50 hover:text-purple-600"
-                >
+                <NavLink to="/profile" className={mobileLinkClass}>
+                  Dashboard
+                </NavLink>
+                <NavLink to="/bookings" className={mobileLinkClass}>
                   My bookings
-                </Link>
+                </NavLink>
+                <NavLink to="/favorites" className={mobileLinkClass}>
+                  Saved vendors
+                </NavLink>
+                {role === 'vendor' && (
+                  <NavLink to="/vendor/dashboard" className={mobileLinkClass}>
+                    Vendor dashboard
+                  </NavLink>
+                )}
+                <Button variant="ghost" fullWidth onClick={handleSignOut} className="mt-1 justify-start">
+                  Sign out
+                </Button>
               </>
+            ) : (
+              <div className="space-y-2 pt-1">
+                <ButtonLink to="/auth" fullWidth>
+                  Sign in
+                </ButtonLink>
+                <ButtonLink to="/become-vendor" variant="secondary" fullWidth>
+                  List your business
+                </ButtonLink>
+              </div>
             )}
           </div>
         </div>
       )}
-    </nav>
+    </header>
   );
 };
 

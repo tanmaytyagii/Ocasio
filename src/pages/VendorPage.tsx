@@ -45,7 +45,7 @@ const VendorPage = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-50 pt-16">
+      <div className="bg-canvas">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="overflow-hidden rounded-lg bg-white shadow-lg">
             <div className="h-96 animate-pulse bg-gray-200" />
@@ -62,7 +62,7 @@ const VendorPage = () => {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-3xl px-4 pt-24">
+      <div className="mx-auto max-w-3xl px-4 py-12">
         <ErrorState message={error} onRetry={retry} />
       </div>
     );
@@ -83,7 +83,7 @@ const VendorPage = () => {
 
   if (submittedBookingId) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-16">
+      <div className="min-h-screen bg-canvas">
         <div className="mx-auto max-w-3xl px-4 py-16">
           <div className="rounded-lg bg-white p-8 text-center shadow-lg">
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -116,7 +116,7 @@ const VendorPage = () => {
   }
 
   return (
-    <div className="bg-gray-50 pt-16">
+    <div className="bg-canvas">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="overflow-hidden rounded-lg bg-white shadow-lg">
           <div className="relative h-96">

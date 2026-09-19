@@ -63,7 +63,7 @@ const Profile = () => {
   ];
 
   return (
-    <div className="pt-16 bg-gray-50 min-h-screen">
+    <div className="min-h-screen bg-canvas">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-6 flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4" role="note">
           <Info className="h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />
