@@ -1,342 +1,304 @@
-import { useState } from 'react';
-import { Calendar } from 'react-big-calendar';
-import { format } from 'date-fns';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { CalendarDays, Heart, User as UserIcon, MapPin } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Settings, Bell, Heart, Calendar as CalendarIcon, MessageSquare, Clock , Info} from 'lucide-react';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { dateFnsLocalizer } from 'react-big-calendar';
-import { parse, startOfWeek, getDay } from 'date-fns';
-import { enUS } from 'date-fns/locale/en-US';
+import { useFavorites } from '../contexts/FavoritesContext';
+import { getCustomerBookings } from '../services/bookings';
+import { updateMyProfile } from '../services/profiles';
+import { usePageMeta } from '../hooks/usePageMeta';
+import BookingStatusBadge from '../components/BookingStatusBadge';
+import {
+  Button,
+  ButtonLink,
+  Card,
+  EmptyState,
+  ErrorState,
+  ListSkeleton,
+  Panel,
+  TextField,
+} from '../components/ui';
+import type { BookingWithDetails } from '../types/database';
 
-const locales = {
-  'en-US': enUS,
+/**
+ * Customer dashboard.
+ *
+ * Every figure here is counted from rows the signed-in user actually owns.
+ * This page previously showed invented numbers — "3 pending confirmations,
+ * 8 vendors contacted, 2 upcoming meetings" — alongside a hardcoded calendar
+ * and an activity feed naming vendors the user had never dealt with. Real
+ * bookings and favourites have existed since Phase 3, so those numbers were
+ * simply wrong.
+ *
+ * Removed rather than restyled: the calendar (there is no availability or
+ * scheduling system) and the notifications tab (nothing sends notifications).
+ * Settings stays because updating your display name is real, RLS-protected
+ * functionality.
+ */
+const TABS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'settings', label: 'Settings' },
+] as const;
+
+type TabId = (typeof TABS)[number]['id'];
+
+const formatDate = (iso: string) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
+const Stat = ({ label, value, to }: { label: string; value: string | number; to?: string }) => {
+  const body = (
+    <Card className="p-5">
+      <p className="text-sm text-muted">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-ink">{value}</p>
+    </Card>
+  );
+  return to ? (
+    <Link to={to} className="block rounded-card transition-shadow hover:shadow-card-hover">
+      {body}
+    </Link>
+  ) : (
+    body
+  );
 };
 
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales,
-});
-
-const events = [
-  {
-    title: 'Meeting with Royal Caterers',
-    start: new Date(2025, 2, 20, 10, 0),
-    end: new Date(2025, 2, 20, 11, 0),
-  },
-  {
-    title: 'Venue Visit - Taj Palace',
-    start: new Date(2025, 2, 22, 14, 0),
-    end: new Date(2025, 2, 22, 16, 0),
-  },
-];
-
 const Profile = () => {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  usePageMeta('Your dashboard — Ocasio');
 
-  const stats = {
-    pendingConfirmations: 3,
-    vendorsContacted: 8,
-    upcomingMeetings: 2,
-    savedVendors: 5
+  const { user, profile, role, refreshProfile } = useAuth();
+  const { favoriteIds } = useFavorites();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const requested = searchParams.get('tab');
+  const activeTab: TabId = requested === 'settings' ? 'settings' : 'overview';
+
+  const [bookings, setBookings] = useState<BookingWithDetails[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [fullName, setFullName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFullName(profile?.full_name ?? '');
+  }, [profile?.full_name]);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setBookings(await getCustomerBookings());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not load your bookings.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (saving) return;
+    setSaveError(null);
+    setSaved(false);
+    setSaving(true);
+    try {
+      await updateMyProfile({ full_name: fullName.trim() || null });
+      await refreshProfile();
+      setSaved(true);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Could not save your profile.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const recentActivity = [
-    {
-      type: 'message',
-      vendor: 'Royal Caterers',
-      time: '2 hours ago'
-    },
-    {
-      type: 'booking',
-      vendor: 'Dream Decorators',
-      time: '1 day ago'
-    },
-    {
-      type: 'meeting',
-      vendor: 'Taj Palace',
-      time: 'Tomorrow at 2 PM'
-    }
-  ];
+  // Counted from real rows, not stored anywhere.
+  const active = (bookings ?? []).filter((b) => b.status === 'pending' || b.status === 'accepted');
+  const completed = (bookings ?? []).filter((b) => b.status === 'completed');
+  const recent = (bookings ?? []).slice(0, 4);
 
   return (
     <div className="min-h-screen bg-canvas">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-6 flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4" role="note">
-          <Info className="h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />
-          <div className="text-sm text-amber-900">
-            <p className="font-semibold">Demonstration data</p>
-            <p className="mt-1">
-              The figures, bookings and messages on this page are placeholders, not your real
-              business data. Vendor and customer workspaces move to live data when the booking
-              and messaging systems are built.
-            </p>
-          </div>
-        </div>
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+        <header className="mb-8">
+          <h1 className="text-display-sm text-ink">
+            {profile?.full_name ? `Welcome back, ${profile.full_name}` : 'Your dashboard'}
+          </h1>
+          <p className="mt-2 text-muted">
+            {user?.email}
+            {role && <span className="capitalize"> · {role} account</span>}
+          </p>
+        </header>
 
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="md:flex">
-            {/* Sidebar */}
-            <div className="md:w-64 bg-canvas p-6 border-r">
-              <div className="text-center mb-8">
-                <div className="w-24 h-24 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="w-12 h-12 text-brand-700" />
-                </div>
-                <h2 className="text-xl font-semibold">{user?.email}</h2>
+        <nav className="mb-8 flex gap-1 border-b border-line" aria-label="Dashboard sections">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              aria-current={activeTab === tab.id ? 'page' : undefined}
+              onClick={() => setSearchParams(tab.id === 'overview' ? {} : { tab: tab.id })}
+              className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                activeTab === tab.id
+                  ? 'border-brand-600 text-brand-700'
+                  : 'border-transparent text-muted hover:text-ink-soft'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        {activeTab === 'overview' && (
+          <div className="space-y-8">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <Stat label="Active bookings" value={loading ? '—' : active.length} to="/bookings" />
+              <Stat label="Completed" value={loading ? '—' : completed.length} to="/bookings" />
+              <Stat
+                label="All requests"
+                value={loading ? '—' : (bookings?.length ?? 0)}
+                to="/bookings"
+              />
+              <Stat label="Saved vendors" value={favoriteIds.size} to="/favorites" />
+            </div>
+
+            <Panel
+              title="Recent bookings"
+              action={
+                bookings && bookings.length > 0 ? (
+                  <Link to="/bookings" className="text-sm font-medium text-brand-700 hover:underline">
+                    View all
+                  </Link>
+                ) : undefined
+              }
+            >
+              {loading && <ListSkeleton count={2} />}
+              {error && !loading && <ErrorState message={error} onRetry={load} />}
+
+              {!loading && !error && recent.length === 0 && (
+                <EmptyState
+                  title="No bookings yet"
+                  description="Find a vendor and send a booking request. It will show up here so you can track it."
+                  icon={CalendarDays}
+                  action={<ButtonLink to="/vendors">Browse vendors</ButtonLink>}
+                />
+              )}
+
+              {!loading && !error && recent.length > 0 && (
+                <ul className="divide-y divide-line">
+                  {recent.map((booking) => (
+                    <li key={booking.id}>
+                      <Link
+                        to={`/bookings/${booking.id}`}
+                        className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-ink">
+                            {booking.vendors?.business_name ?? 'Vendor'}
+                          </p>
+                          <p className="mt-0.5 flex items-center gap-2 text-sm text-muted">
+                            <span className="truncate">{booking.vendor_services?.name}</span>
+                            <span aria-hidden="true">·</span>
+                            <span className="whitespace-nowrap">
+                              {formatDate(booking.event_date)}
+                            </span>
+                          </p>
+                        </div>
+                        <BookingStatusBadge status={booking.status} />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Panel>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <Card className="p-6">
+                <Heart className="h-5 w-5 text-brand-700" aria-hidden="true" />
+                <h2 className="mt-3 font-semibold text-ink">Saved vendors</h2>
+                <p className="mt-1 text-sm text-muted">
+                  Shortlist vendors while browsing and compare them later.
+                </p>
+                <ButtonLink to="/favorites" variant="secondary" size="sm" className="mt-4">
+                  Open saved vendors
+                </ButtonLink>
+              </Card>
+
+              <Card className="p-6">
+                <MapPin className="h-5 w-5 text-brand-700" aria-hidden="true" />
+                <h2 className="mt-3 font-semibold text-ink">Find someone new</h2>
+                <p className="mt-1 text-sm text-muted">
+                  Search venues, catering, photography and decoration across India.
+                </p>
+                <ButtonLink to="/vendors" variant="secondary" size="sm" className="mt-4">
+                  Explore vendors
+                </ButtonLink>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <Panel title="Account">
+            <form onSubmit={handleSave} className="max-w-md space-y-5">
+              <TextField
+                label="Display name"
+                value={fullName}
+                maxLength={120}
+                onChange={(e) => setFullName(e.target.value)}
+                hint="Shown to you only. Reviews you leave are published without a name."
+              />
+
+              <div>
+                <p className="mb-1.5 block text-sm font-medium text-ink-soft">Email</p>
+                <p className="flex h-11 items-center rounded-control border border-line bg-canvas px-3 text-sm text-muted">
+                  {user?.email}
+                </p>
+                <p className="mt-1.5 text-xs text-muted">
+                  Changing your email address is not supported yet.
+                </p>
               </div>
-              
-              <nav className="space-y-2">
-                <button
-                  onClick={() => setActiveTab('dashboard')}
-                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'dashboard' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
-                  }`}
-                >
-                  <CalendarIcon className="w-5 h-5 mr-3" />
-                  Dashboard
-                </button>
-                <button
-                  onClick={() => setActiveTab('profile')}
-                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'profile' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
-                  }`}
-                >
-                  <User className="w-5 h-5 mr-3" />
-                  Profile
-                </button>
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'settings' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
-                  }`}
-                >
-                  <Settings className="w-5 h-5 mr-3" />
-                  Settings
-                </button>
-                <button
-                  onClick={() => setActiveTab('notifications')}
-                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'notifications' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
-                  }`}
-                >
-                  <Bell className="w-5 h-5 mr-3" />
-                  Notifications
-                </button>
-                <button
-                  onClick={() => setActiveTab('favorites')}
-                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                    activeTab === 'favorites' ? 'bg-brand-100 text-brand-700' : 'text-muted hover:bg-canvas'
-                  }`}
-                >
-                  <Heart className="w-5 h-5 mr-3" />
-                  Favorites
-                </button>
-              </nav>
-            </div>
 
-            {/* Main Content */}
-            <div className="flex-1 p-8">
-              {activeTab === 'dashboard' && (
-                <div>
-                  <h3 className="text-2xl font-bold mb-6">Dashboard</h3>
-                  
-                  {/* Quick Stats */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-white p-6 rounded-lg shadow border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted">Pending Confirmations</p>
-                          <p className="text-2xl font-bold text-ink">{stats.pendingConfirmations}</p>
-                        </div>
-                        <Clock className="h-8 w-8 text-brand-700" />
-                      </div>
-                    </div>
-                    <div className="bg-white p-6 rounded-lg shadow border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted">Vendors Contacted</p>
-                          <p className="text-2xl font-bold text-ink">{stats.vendorsContacted}</p>
-                        </div>
-                        <MessageSquare className="h-8 w-8 text-brand-700" />
-                      </div>
-                    </div>
-                    <div className="bg-white p-6 rounded-lg shadow border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted">Upcoming Meetings</p>
-                          <p className="text-2xl font-bold text-ink">{stats.upcomingMeetings}</p>
-                        </div>
-                        <CalendarIcon className="h-8 w-8 text-brand-700" />
-                      </div>
-                    </div>
-                    <div className="bg-white p-6 rounded-lg shadow border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted">Saved Vendors</p>
-                          <p className="text-2xl font-bold text-ink">{stats.savedVendors}</p>
-                        </div>
-                        <Heart className="h-8 w-8 text-brand-700" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Calendar */}
-                  <div className="mb-8">
-                    <h4 className="text-lg font-semibold mb-4">Booking Calendar</h4>
-                    <div className="bg-white p-4 rounded-lg shadow border">
-                      <Calendar
-                        localizer={localizer}
-                        events={events}
-                        startAccessor="start"
-                        endAccessor="end"
-                        style={{ height: 500 }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Recent Activity */}
-                  <div>
-                    <h4 className="text-lg font-semibold mb-4">Recent Activity</h4>
-                    <div className="bg-white rounded-lg shadow border">
-                      {recentActivity.map((activity, index) => (
-                        <div
-                          key={index}
-                          className={`p-4 flex items-center justify-between ${
-                            index !== recentActivity.length - 1 ? 'border-b' : ''
-                          }`}
-                        >
-                          <div className="flex items-center">
-                            {activity.type === 'message' && <MessageSquare className="h-5 w-5 text-blue-500 mr-3" />}
-                            {activity.type === 'booking' && <CalendarIcon className="h-5 w-5 text-green-500 mr-3" />}
-                            {activity.type === 'meeting' && <Clock className="h-5 w-5 text-purple-500 mr-3" />}
-                            <div>
-                              <p className="font-medium">{activity.vendor}</p>
-                              <p className="text-sm text-muted">{activity.time}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+              {saveError && (
+                <p className="text-sm text-red-700" role="alert">
+                  {saveError}
+                </p>
+              )}
+              {saved && !saveError && (
+                <p className="text-sm text-green-700" role="status">
+                  Profile saved.
+                </p>
               )}
 
-              {activeTab === 'profile' && (
-                <div>
-                  <h3 className="text-2xl font-bold mb-6">Profile Information</h3>
-                  <form className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-medium text-ink-soft mb-2">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border rounded-lg"
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-ink-soft mb-2">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        value={user?.email || ''}
-                        disabled
-                        className="w-full p-2 border rounded-lg bg-canvas"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-ink-soft mb-2">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        className="w-full p-2 border rounded-lg"
-                        placeholder="Enter your phone number"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      className="bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700"
-                    >
-                      Save Changes
-                    </button>
-                  </form>
-                </div>
-              )}
+              <Button type="submit" loading={saving}>
+                {saving ? 'Saving…' : 'Save changes'}
+              </Button>
+            </form>
 
-              {activeTab === 'settings' && (
-                <div>
-                  <h3 className="text-2xl font-bold mb-6">Account Settings</h3>
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-lg font-semibold mb-4">Notifications</h4>
-                      <div className="space-y-4">
-                        <label className="flex items-center">
-                          <input type="checkbox" className="mr-2" />
-                          Email notifications for new messages
-                        </label>
-                        <label className="flex items-center">
-                          <input type="checkbox" className="mr-2" />
-                          Email notifications for vendor updates
-                        </label>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-semibold mb-4">Privacy</h4>
-                      <div className="space-y-4">
-                        <label className="flex items-center">
-                          <input type="checkbox" className="mr-2" />
-                          Show my profile to vendors
-                        </label>
-                        <label className="flex items-center">
-                          <input type="checkbox" className="mr-2" />
-                          Allow vendors to contact me
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'notifications' && (
-                <div>
-                  <h3 className="text-2xl font-bold mb-6">Notifications</h3>
-                  <div className="space-y-4">
-                    <div className="p-4 bg-canvas rounded-lg">
-                      <p className="font-semibold">New message from Royal Caterers</p>
-                      <p className="text-muted">2 hours ago</p>
-                    </div>
-                    <div className="p-4 bg-canvas rounded-lg">
-                      <p className="font-semibold">Booking confirmed with Dream Decorators</p>
-                      <p className="text-muted">1 day ago</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'favorites' && (
-                <div>
-                  <h3 className="text-2xl font-bold mb-6">Favorite Vendors</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border rounded-lg">
-                      <h4 className="font-semibold">Royal Caterers</h4>
-                      <p className="text-muted">Mumbai</p>
-                    </div>
-                    <div className="p-4 border rounded-lg">
-                      <h4 className="font-semibold">Dream Decorators</h4>
-                      <p className="text-muted">Delhi</p>
-                    </div>
-                  </div>
-                </div>
+            <div className="mt-8 border-t border-line pt-6">
+              <h3 className="flex items-center gap-2 font-medium text-ink">
+                <UserIcon className="h-4 w-4 text-muted" aria-hidden="true" />
+                Account type
+              </h3>
+              <p className="mt-1 text-sm capitalize text-muted">{role ?? 'customer'}</p>
+              {role !== 'vendor' && (
+                <p className="mt-2 text-sm text-muted">
+                  Run an events business?{' '}
+                  <Link to="/become-vendor" className="font-medium text-brand-700 hover:underline">
+                    Apply to list it
+                  </Link>
+                  .
+                </p>
               )}
             </div>
-          </div>
-        </div>
+          </Panel>
+        )}
       </div>
     </div>
   );
