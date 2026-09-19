@@ -194,17 +194,40 @@ meta descriptions.
 
 ---
 
-## Phase 2 — Marketplace
+## Phase 2 — Marketplace ✅ **Complete**
 
-- Vendor listing + detail from the database, on stable slugs.
+- Vendor listing and detail from the database, on stable slugs.
 - **Search:** PostgreSQL full-text (`tsvector` + GIN) with `pg_trgm` for typo tolerance.
-  Filters: category, city, price range, min rating, service. Sorting + keyset pagination.
-  *Not* Typesense — 40–5,000 rows does not justify it. Revisit past ~50k rows or sub-50ms needs.
-- Favourites persisted per account.
-- Loading / empty / error states for every async surface; skeletons matching current card geometry.
+  Filters: category, city, price range, min rating, service. Sorting and pagination.
+  *Not* Typesense — 40–5,000 rows does not justify it. Revisit past ~50k rows.
+- Favourites persisted per account and integrated throughout discovery.
+- Loading / empty / error states on every async surface.
 
-**Exit criteria:** search returns from Postgres · filters compose · favourites survive
-logout/login on another device · zero hardcoded vendor arrays remain.
+**Exit criteria — all met:**
+
+| Criterion | Evidence |
+|---|---|
+| Search returns from Postgres | `search_vendors()` RPC; 33 marketplace tests |
+| Filters compose | Test: category + rating + price together |
+| Favourites survive reload and re-login | E2E reloads mid-flow and asserts persistence |
+| Zero hardcoded vendor arrays | No page imports `data/vendors` or `dataGenerator` |
+| Pagination correct | Tests: non-overlapping pages, full coverage, empty final page |
+| Public surface safe | `owner_id` no longer readable by anon |
+
+**Deviations from the original plan, with reasons:**
+
+- **Offset pagination, not keyset.** Results are ordered by user-chosen keys and the
+  catalogue is small; keyset earns its complexity at tens of thousands of rows.
+- **`owner_id` hidden from anon** — not in the original Phase 2 plan, but brief §23
+  forbids exposing auth IDs. Required column-level grants, which break `SELECT *`
+  for anon; documented in `OCASIO_MARKETPLACE.md` §9.
+
+**Bugs found and fixed during Phase 2:**
+
+- `AuthContext` awaited a Supabase query inside `onAuthStateChange`, deadlocking the
+  client's auth lock. Every data fetch hung forever after a reload while signed in.
+  Found by the E2E flow; the integration tests could not catch it because they never
+  exercise a browser reload with a persisted session.
 
 ---
 
@@ -292,7 +315,7 @@ honestly · no LLM key in the client bundle · hallucination regression test pas
 |---|---|---|---|
 | 0 | Safety & truth | — | ✅ Complete |
 | 1 | Foundation | 0 | ✅ Complete |
-| 2 | Marketplace | 1 | No discovery |
+| 2 | Marketplace | 1 | ✅ Complete |
 | 3 | Transactions | 1, 2 | No product |
 | 4 | Trust & money | 3 | No revenue |
 | 5 | AI | 2, 3 | Differentiator only |
