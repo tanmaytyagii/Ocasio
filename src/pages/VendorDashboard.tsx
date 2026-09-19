@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar } from 'react-big-calendar';
 import { format } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
+import VendorBookingRequests from '../components/VendorBookingRequests';
+import { getVendorBookingStats, type VendorBookingStats } from '../services/bookings';
 import { 
   User, Settings, MessageSquare, Package, Calendar as CalendarIcon,
-  DollarSign, Users, Clock, Send, Edit2, Trash2
+  DollarSign, Users, Clock, Send
 , Info} from 'lucide-react';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { dateFnsLocalizer } from 'react-big-calendar';
@@ -44,15 +46,6 @@ interface Message {
   unread: boolean;
 }
 
-interface Booking {
-  id: number;
-  clientName: string;
-  eventType: string;
-  date: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-  amount: string;
-}
-
 const initialMessages: Message[] = [
   {
     id: 1,
@@ -70,38 +63,10 @@ const initialMessages: Message[] = [
   },
 ];
 
-const initialBookings: Booking[] = [
-  {
-    id: 1,
-    clientName: 'Rahul Sharma',
-    eventType: 'Wedding Reception',
-    date: '2025-04-15',
-    status: 'pending',
-    amount: '₹2,50,000'
-  },
-  {
-    id: 2,
-    clientName: 'Priya Patel',
-    eventType: 'Corporate Event',
-    date: '2025-04-20',
-    status: 'confirmed',
-    amount: '₹1,75,000'
-  },
-  {
-    id: 3,
-    clientName: 'Amit Kumar',
-    eventType: 'Birthday Party',
-    date: '2025-04-25',
-    status: 'pending',
-    amount: '₹85,000'
-  },
-];
-
 const VendorDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [businessHours, setBusinessHours] = useState({
@@ -114,12 +79,26 @@ const VendorDashboard = () => {
     sunday: 'Closed'
   });
 
-  const stats = {
-    totalBookings: 45,
-    pendingRequests: 12,
-    totalRevenue: '₹2,50,000',
-    activeClients: 8
-  };
+  // Real counts from the database. There is no revenue tile: no payment has
+  // ever been taken, so a rupee total would be fabricated. Quoted prices are
+  // indicative figures, not income.
+  const [stats, setStats] = useState<VendorBookingStats | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getVendorBookingStats()
+      .then((s) => {
+        if (active) setStats(s);
+      })
+      .catch(() => {
+        if (active) setStats(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const statTile = (value: number | undefined) => (value === undefined ? '—' : String(value));
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,14 +114,6 @@ const VendorDashboard = () => {
 
     setMessages(prev => [...prev, response]);
     setNewMessage('');
-  };
-
-  const updateBookingStatus = (bookingId: number, status: Booking['status']) => {
-    setBookings(prev =>
-      prev.map(booking =>
-        booking.id === bookingId ? { ...booking, status } : booking
-      )
-    );
   };
 
   return (
@@ -223,8 +194,8 @@ const VendorDashboard = () => {
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Total Bookings</p>
-                          <p className="text-2xl font-bold text-gray-900">{stats.totalBookings}</p>
+                          <p className="text-sm text-gray-500">Total bookings</p>
+                          <p className="text-2xl font-bold text-gray-900">{statTile(stats?.total)}</p>
                         </div>
                         <CalendarIcon className="h-8 w-8 text-purple-600" />
                       </div>
@@ -232,8 +203,8 @@ const VendorDashboard = () => {
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Pending Requests</p>
-                          <p className="text-2xl font-bold text-gray-900">{stats.pendingRequests}</p>
+                          <p className="text-sm text-gray-500">Pending requests</p>
+                          <p className="text-2xl font-bold text-gray-900">{statTile(stats?.pending)}</p>
                         </div>
                         <Clock className="h-8 w-8 text-purple-600" />
                       </div>
@@ -241,8 +212,8 @@ const VendorDashboard = () => {
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Total Revenue</p>
-                          <p className="text-2xl font-bold text-gray-900">{stats.totalRevenue}</p>
+                          <p className="text-sm text-gray-500">Accepted</p>
+                          <p className="text-2xl font-bold text-gray-900">{statTile(stats?.accepted)}</p>
                         </div>
                         <DollarSign className="h-8 w-8 text-purple-600" />
                       </div>
@@ -250,8 +221,8 @@ const VendorDashboard = () => {
                     <div className="bg-white p-6 rounded-lg shadow border">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">Active Clients</p>
-                          <p className="text-2xl font-bold text-gray-900">{stats.activeClients}</p>
+                          <p className="text-sm text-gray-500">Completed</p>
+                          <p className="text-2xl font-bold text-gray-900">{statTile(stats?.completed)}</p>
                         </div>
                         <Users className="h-8 w-8 text-purple-600" />
                       </div>
@@ -272,126 +243,29 @@ const VendorDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Recent Requests */}
+                  {/* Recent requests live on the Booking requests tab, which
+                      reads them from the database. Duplicating them here would
+                      mean two views that can disagree. */}
                   <div>
-                    <h4 className="text-lg font-semibold mb-4">Recent Requests</h4>
-                    <div className="bg-white rounded-lg shadow border overflow-hidden">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Client
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Event
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Date
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Status
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {bookings.map((booking) => (
-                            <tr key={booking.id}>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-gray-900">{booking.clientName}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-500">{booking.eventType}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-500">{booking.date}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  booking.status === 'confirmed'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-yellow-100 text-yellow-800'
-                                }`}>
-                                  {booking.status}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <h4 className="text-lg font-semibold mb-4">Booking requests</h4>
+                    <div className="bg-white rounded-lg shadow border p-6">
+                      <p className="text-gray-600">
+                        Accept, decline and complete requests from the{' '}
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('bookings')}
+                          className="font-medium text-purple-600 hover:underline"
+                        >
+                          Booking requests
+                        </button>{' '}
+                        tab.
+                      </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {activeTab === 'bookings' && (
-                <div>
-                  <h3 className="text-2xl font-bold mb-6">Manage Bookings</h3>
-                  <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Client
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Event Type
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Amount
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {bookings.map((booking) => (
-                          <tr key={booking.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">{booking.clientName}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500">{booking.eventType}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500">{booking.date}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{booking.amount}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <select
-                                value={booking.status}
-                                onChange={(e) => updateBookingStatus(booking.id, e.target.value as Booking['status'])}
-                                className="text-sm rounded-lg border-gray-300 focus:ring-purple-500  focus:border-purple-500"
-                              >
-                                <option value="pending">Pending</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                              </select>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              <button className="text-blue-600 hover:text-blue-800 mr-3">
-                                <Edit2 className="h-4 w-4" />
-                              </button>
-                              <button className="text-red-600 hover:text-red-800">
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+              {activeTab === 'bookings' && <VendorBookingRequests />}
 
               {activeTab === 'messages' && (
                 <div className="h-[calc(100vh-12rem)]">

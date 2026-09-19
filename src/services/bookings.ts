@@ -143,6 +143,32 @@ export async function transitionBookingStatus(
   return data as Booking;
 }
 
+export interface VendorBookingStats {
+  total: number;
+  pending: number;
+  accepted: number;
+  completed: number;
+}
+
+/**
+ * Counts for the vendor dashboard, computed from real rows.
+ *
+ * There is deliberately no revenue figure: no payment has ever been taken, so
+ * any rupee total would be invented. Quoted prices are indicative, not income.
+ */
+export async function getVendorBookingStats(): Promise<VendorBookingStats> {
+  const { data, error } = await supabase.from('bookings').select('status');
+  if (error) throw new Error(toUserMessage(error, 'Could not load your booking stats.'));
+
+  const rows = (data ?? []) as { status: BookingStatus }[];
+  return {
+    total: rows.length,
+    pending: rows.filter((r) => r.status === 'pending').length,
+    accepted: rows.filter((r) => r.status === 'accepted').length,
+    completed: rows.filter((r) => r.status === 'completed').length,
+  };
+}
+
 /** Convenience wrapper for the customer's only transition. */
 export function cancelBooking(bookingId: string, note?: string): Promise<Booking> {
   return transitionBookingStatus(bookingId, 'cancelled', note);
