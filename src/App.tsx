@@ -10,6 +10,7 @@ import VendorPage from './pages/VendorPage';
 import VendorsIndex from './pages/VendorsIndex';
 import SearchResults from './pages/SearchResults';
 import AboutUs from './pages/AboutUs';
+import Contact from './pages/Contact';
 import BecomeVendor from './pages/BecomeVendor';
 import Blog from './pages/Blog';
 import Profile from './pages/Profile';
@@ -68,6 +69,7 @@ function App() {
                     <Route path="/category/:categoryName" element={<CategoryPage />} />
                     <Route path="/search" element={<SearchResults />} />
                     <Route path="/about" element={<AboutUs />} />
+                    <Route path="/contact" element={<Contact />} />
                     <Route path="/become-vendor" element={<BecomeVendor />} />
                     <Route path="/blog" element={<Blog />} />
 
