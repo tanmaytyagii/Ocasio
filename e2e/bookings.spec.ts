@@ -82,8 +82,8 @@ async function signIn(page: Page, email: string) {
 }
 
 async function signOut(page: Page) {
-  // /vendor/dashboard renders outside the site chrome and has no navbar, so
-  // the account menu is not reachable from there. Move to a page that has one.
+  // Always sign out from a known page so the helper does not depend on which
+  // route the test happens to be on.
   await page.goto('/');
   await page.getByRole('button', { name: 'Account menu' }).click();
   await page.getByRole('menuitem', { name: 'Sign out' }).click();
