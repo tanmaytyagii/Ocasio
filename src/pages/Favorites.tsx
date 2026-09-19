@@ -5,7 +5,7 @@ import { listMyFavoriteVendors } from '../services/favorites';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { usePageMeta } from '../hooks/usePageMeta';
 import VendorCard from '../components/VendorCard';
-import { VendorGridSkeleton, ErrorState, EmptyState } from '../components/AsyncStates';
+import { VendorGridSkeleton, ErrorState, EmptyState } from '../components/ui';
 import type { PublicVendor } from '../types/database';
 
 /**

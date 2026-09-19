@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { listFeaturedVendors } from '../services/vendors';
 import { useAsync } from '../hooks/useAsync';
 import VendorCard from '../components/VendorCard';
-import { VendorGridSkeleton, ErrorState } from '../components/AsyncStates';
+import { VendorGridSkeleton, ErrorState } from '../components/ui';
 
 /**
  * Highest-rated active vendors, read from the database.

@@ -4,7 +4,7 @@ import { CalendarDays, MapPin } from 'lucide-react';
 import { getCustomerBookings } from '../services/bookings';
 import { usePageMeta } from '../hooks/usePageMeta';
 import BookingStatusBadge from '../components/BookingStatusBadge';
-import { ErrorState, EmptyState } from '../components/AsyncStates';
+import { ErrorState, EmptyState } from '../components/ui';
 import type { BookingWithDetails } from '../types/database';
 
 /**

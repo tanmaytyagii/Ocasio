@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { listVendorReviews } from '../services/reviews';
 import StarRating from './StarRating';
-import { ErrorState } from './AsyncStates';
+import { ErrorState } from './ui';
 import type { Review } from '../types/database';
 
 /**

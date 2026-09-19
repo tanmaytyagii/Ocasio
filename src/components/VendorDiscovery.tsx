@@ -7,7 +7,7 @@ import { useMarketplaceParams, SORT_LABELS } from '../hooks/useMarketplaceParams
 import VendorCard from './VendorCard';
 import MarketplaceFilters from './MarketplaceFilters';
 import Pagination from './Pagination';
-import { VendorGridSkeleton, ErrorState, EmptyState } from './AsyncStates';
+import { VendorGridSkeleton, ErrorState, EmptyState } from './ui';
 
 /**
  * The marketplace discovery surface, shared by /vendors, /search and

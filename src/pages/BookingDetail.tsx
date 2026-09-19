@@ -12,7 +12,7 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import PaymentPanel from '../components/PaymentPanel';
 import BookingReviewPanel from '../components/BookingReviewPanel';
-import { ErrorState } from '../components/AsyncStates';
+import { ErrorState } from '../components/ui';
 import NotFound from './NotFound';
 import type { BookingStatusHistoryEntry, BookingWithDetails } from '../types/database';
 

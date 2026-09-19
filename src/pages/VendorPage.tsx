@@ -6,7 +6,7 @@ import { useAsync } from '../hooks/useAsync';
 import { usePageMeta } from '../hooks/usePageMeta';
 import FavoriteButton from '../components/FavoriteButton';
 import BookingRequestForm from '../components/BookingRequestForm';
-import { ErrorState } from '../components/AsyncStates';
+import { ErrorState } from '../components/ui';
 import VendorReviews from '../components/VendorReviews';
 import NotFound from './NotFound';
 

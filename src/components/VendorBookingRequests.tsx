@@ -7,7 +7,7 @@ import {
   vendorActionsFor,
 } from '../services/bookings';
 import BookingStatusBadge from './BookingStatusBadge';
-import { ErrorState, EmptyState } from './AsyncStates';
+import { ErrorState, EmptyState } from './ui';
 import type { BookingStatus, BookingWithDetails } from '../types/database';
 
 /**

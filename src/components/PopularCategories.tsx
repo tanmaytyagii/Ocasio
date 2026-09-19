@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getCategoryCounts } from '../services/vendors';
-import { ErrorState } from './AsyncStates';
+import { ErrorState } from './ui';
 import type { CategoryCount } from '../types/database';
 
 /**

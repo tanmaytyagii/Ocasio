@@ -1,3 +1,52 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /*
+   * Focus is visible by default and consistent everywhere. Tailwind's reset
+   * removes the UA outline, and before this nothing put one back except on a
+   * handful of controls that remembered to add focus:ring.
+   */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-600 ring-offset-2 ring-offset-canvas;
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
+  }
+
+  body {
+    @apply bg-canvas text-ink;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Headings share one scale; pages set size, never weight or tracking. */
+  h1, h2, h3, h4 {
+    @apply font-semibold text-ink;
+    text-wrap: balance;
+  }
+
+  /*
+   * Motion is opt-out, not opt-in. Every transition and animation in the
+   * product collapses for anyone who asks their OS to reduce motion.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Skip link: first tab stop on every page, visible only when focused. */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]
+           focus:rounded-control focus:bg-surface focus:px-4 focus:py-2 focus:shadow-overlay;
+  }
+}
