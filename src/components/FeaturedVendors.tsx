@@ -1,36 +1,21 @@
 import React from 'react';
 import { Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { vendorData } from '../data/vendors';
+import type { Vendor } from '../utils/dataGenerator';
 
-const vendors = [
-  {
-    id: 'catering-1',
-    name: 'Royal Caterers',
-    category: 'Catering',
-    rating: 4.8,
-    reviews: 156,
-    image: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    location: 'Mumbai',
-  },
-  {
-    id: 'decoration-1',
-    name: 'Dream Decorators',
-    category: 'Decoration',
-    rating: 4.9,
-    reviews: 203,
-    image: 'https://images.unsplash.com/photo-1478146896981-b80fe463b330?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    location: 'Delhi',
-  },
-  {
-    id: 'photography-1',
-    name: 'Capture Moments',
-    category: 'Photography',
-    rating: 4.7,
-    reviews: 178,
-    image: 'https://images.unsplash.com/photo-1605774337664-7a846e9cdf17?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    location: 'Bangalore',
-  },
-];
+/**
+ * Featured vendors are selected from the shared catalogue rather than being
+ * hardcoded here. The previous local array declared its own rating, review
+ * count and city for the same businesses, so the homepage contradicted the
+ * vendor detail pages — and it linked to catering-1 / decoration-1 /
+ * photography-1, which did not exist under the old global ID counter.
+ */
+const FEATURED_IDS = ['catering-1', 'decoration-1', 'photography-1'];
+
+const vendors = FEATURED_IDS.map((id) => vendorData.find((vendor) => vendor.id === id)).filter(
+  (vendor): vendor is Vendor => vendor !== undefined,
+);
 
 const FeaturedVendors = () => {
   return (

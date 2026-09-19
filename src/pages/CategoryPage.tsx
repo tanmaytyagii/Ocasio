@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { vendorData } from '../data/vendors';
 import { Star } from 'lucide-react';
 
@@ -36,12 +36,12 @@ const CategoryPage = () => {
                   <span className="text-gray-600">{vendor.reviews} reviews</span>
                 </div>
                 <p className="mt-2 text-gray-600 line-clamp-2">{vendor.description}</p>
-                <a
-                  href={`/vendor/${vendor.id}`}
+                <Link
+                  to={`/vendor/${vendor.id}`}
                   className="mt-4 block w-full bg-purple-600 text-white text-center py-2 rounded hover:bg-purple-700 transition duration-300"
                 >
                   View Details
-                </a>
+                </Link>
               </div>
             </div>
           ))}

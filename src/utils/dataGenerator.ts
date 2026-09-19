@@ -1,4 +1,4 @@
-interface Vendor {
+export interface Vendor {
   id: string;
   name: string;
   category: string;
@@ -112,27 +112,68 @@ const cities = [
   'Kolkata', 'Pune', 'Jaipur', 'Ahmedabad', 'Goa',
 ];
 
-function generateRandomNumber(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+/**
+ * Deterministic pseudo-random generator (mulberry32).
+ *
+ * The catalogue was previously built with Math.random() at module scope, so a
+ * vendor's rating, review count, city, price and phone number changed on every
+ * page load — and because CategoryPage/SearchResults navigated with <a href>,
+ * a full reload meant the vendor you landed on was not the one you clicked.
+ *
+ * Seeding per vendor makes the catalogue stable across reloads, machines and
+ * CI runs, which is a precondition for testing anything.
+ *
+ * This is demo data. Phase 1 moves it to supabase/seed.sql with fixed UUIDs.
+ */
+function createRng(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Stable 32-bit hash of a string, so each vendor's seed derives from its id. */
+function hashString(value: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function randomInt(rng: () => number, min: number, max: number): number {
+  return Math.floor(rng() * (max - min + 1)) + min;
 }
 
 export function generateVendorData(): Vendor[] {
   const vendors: Vendor[] = [];
-  let id = 1;
 
   Object.entries(categories).forEach(([category, data]) => {
     data.names.forEach((name, index) => {
-      const rating = (Math.floor(Math.random() * 11) + 40) / 10;
-      const reviews = generateRandomNumber(50, 500);
-      const cityIndex = generateRandomNumber(0, cities.length - 1);
+      // Numbered within the category, not across all of them. The previous
+      // counter ran 1..40 globally, so catering started at 11 and the homepage's
+      // links to catering-1 / decoration-1 / photography-1 all 404'd.
+      const id = `${category}-${index + 1}`;
+      const rng = createRng(hashString(id));
+
+      const rating = Math.round((rng() * 1.0 + 4.0) * 10) / 10;
+      const reviews = randomInt(rng, 50, 500);
+      const cityIndex = randomInt(rng, 0, cities.length - 1);
 
       const eventTypes = ['Wedding'];
-      if (Math.random() > 0.5) eventTypes.push('Corporate');
-      if (Math.random() > 0.5) eventTypes.push('Birthday');
-      if (Math.random() > 0.5) eventTypes.push('Religious');
+      if (rng() > 0.5) eventTypes.push('Corporate');
+      if (rng() > 0.5) eventTypes.push('Birthday');
+      if (rng() > 0.5) eventTypes.push('Religious');
+
+      const slug = name.toLowerCase().replace(/\s+/g, '');
 
       vendors.push({
-        id: `${category}-${id}`,
+        id,
         name,
         category: category.charAt(0).toUpperCase() + category.slice(1),
         rating,
@@ -140,15 +181,14 @@ export function generateVendorData(): Vendor[] {
         image: `${data.images[index]}?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80`,
         location: cities[cityIndex],
         description: `Premier ${category} service provider specializing in ${eventTypes.join(', ')} events. Known for exceptional service and attention to detail.`,
-        phone: `+91 ${generateRandomNumber(70000, 99999)} ${generateRandomNumber(10000, 99999)}`,
-        email: `contact@${name.toLowerCase().replace(/\s+/g, '')}.com`,
-        website: `www.${name.toLowerCase().replace(/\s+/g, '')}.com`,
+        phone: `+91 ${randomInt(rng, 70000, 99999)} ${randomInt(rng, 10000, 99999)}`,
+        email: `contact@${slug}.com`,
+        website: `www.${slug}.com`,
         businessHours: '10:00 AM - 8:00 PM',
         services: data.services,
-        pricing: `Starting from ₹${generateRandomNumber(25000, 500000)} onwards`,
+        pricing: `Starting from ₹${randomInt(rng, 25000, 500000).toLocaleString('en-IN')} onwards`,
         eventTypes,
       });
-      id++;
     });
   });
 

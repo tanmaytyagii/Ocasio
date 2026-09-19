@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { vendorData } from '../data/vendors';
 
@@ -57,12 +57,12 @@ const SearchResults = () => {
                   <span className="text-gray-600">{vendor.reviews} reviews</span>
                 </div>
                 <p className="mt-2 text-gray-600">{vendor.location}</p>
-                <a
-                  href={`/vendor/${vendor.id}`}
+                <Link
+                  to={`/vendor/${vendor.id}`}
                   className="mt-4 block w-full bg-purple-600 text-white text-center py-2 rounded hover:bg-purple-700 transition duration-300"
                 >
                   View Details
-                </a>
+                </Link>
               </div>
             </div>
           ))}
