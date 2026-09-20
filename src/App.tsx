@@ -1,8 +1,9 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
-import { RequireAuth, RequireVendor } from './components/RouteGuards';
+import { RequireAuth, RequireVendor, RequireAdmin } from './components/RouteGuards';
+import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -21,6 +22,9 @@ const BookingDetail = lazy(() => import('./pages/BookingDetail'));
 const VendorDashboard = lazy(() => import('./pages/VendorDashboard'));
 const Auth = lazy(() => import('./pages/Auth'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+// Admin is lazy like every other non-home route, so the console never ships in
+// the shared chunk to the customers who will never open it.
+const AdminVendors = lazy(() => import('./pages/AdminVendors'));
 
 /**
  * Route table.
@@ -54,7 +58,13 @@ const SiteChrome = ({ children }: { children: React.ReactNode }) => (
     </a>
     <Navbar />
     <main id="main" className="flex-grow pt-16 lg:pt-20">
-      {children}
+      {/*
+        Inside the chrome, not around it: a render error in one page leaves the
+        header and footer intact, so the user can navigate away instead of
+        facing a blank document. Keyed on the path so moving to another route
+        clears a stale error.
+      */}
+      <ErrorBoundary resetKey={useLocation().pathname}>{children}</ErrorBoundary>
     </main>
     <Footer />
   </>
@@ -135,6 +145,17 @@ function App() {
                         <RequireAuth>
                           <BookingDetail />
                         </RequireAuth>
+                      }
+                    />
+
+                    {/* Staff only. Not linked from any navigation; the
+                        database decides what it can actually show or change. */}
+                    <Route
+                      path="/admin/vendors"
+                      element={
+                        <RequireAdmin>
+                          <AdminVendors />
+                        </RequireAdmin>
                       }
                     />
 

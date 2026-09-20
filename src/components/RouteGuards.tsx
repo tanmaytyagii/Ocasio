@@ -78,3 +78,41 @@ export const RequireVendor = ({ children }: { children: ReactNode }) => {
 
   return <>{children}</>;
 };
+
+/**
+ * Requires the database-backed admin role.
+ *
+ * As with RequireVendor this is UX, not security: admin_list_vendors() returns
+ * an empty set and moderate_vendor() raises 42501 for anyone whose
+ * public.profiles row does not say 'admin'. A user who bypassed this guard
+ * would reach a console that shows them nothing and lets them change nothing.
+ */
+export const RequireAdmin = ({ children }: { children: ReactNode }) => {
+  const { user, role, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return <AuthLoading />;
+  if (!user) return <Navigate to="/auth" state={{ from: location }} replace />;
+
+  if (role !== 'admin') {
+    return (
+      <Centered>
+        <div className="max-w-md rounded-card border border-line bg-surface p-8 text-center shadow-card">
+          <h1 className="mb-2 text-xl font-semibold text-ink">Not available</h1>
+          <p className="mb-6 text-muted">
+            This area is for Ocasio staff. If you reached it by mistake, everything you need is on
+            the marketplace.
+          </p>
+          <Link
+            to="/vendors"
+            className="inline-flex h-11 items-center rounded-control bg-brand-600 px-5 text-sm font-medium text-white transition-colors hover:bg-brand-700"
+          >
+            Browse vendors
+          </Link>
+        </div>
+      </Centered>
+    );
+  }
+
+  return <>{children}</>;
+};

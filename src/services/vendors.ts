@@ -148,3 +148,72 @@ export async function getFilterOptions(): Promise<FilterOptions> {
   if (error) fail('Unable to load filters', error);
   return data as FilterOptions;
 }
+
+export interface VendorOnboardingInput {
+  businessName: string;
+  category: string;
+  location: string;
+  description?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+}
+
+/**
+ * Submits a vendor application.
+ *
+ * request_vendor_onboarding() has existed since migration 2 and was never
+ * called from anywhere. It derives owner_id from auth.uid(), generates a unique
+ * slug, and forces status to 'pending' — the client cannot choose any of the
+ * three, which is why the application form does not collect them.
+ *
+ * The errors below are translated deliberately. vendors_one_per_owner is a
+ * unique constraint, and Postgres reports it as raw constraint text; the
+ * applicant needs to know their application already exists, not what the index
+ * is called.
+ */
+export async function requestVendorOnboarding(
+  input: VendorOnboardingInput,
+): Promise<PublicVendor> {
+  const { data, error } = await supabase.rpc('request_vendor_onboarding', {
+    p_business_name: input.businessName.trim(),
+    p_category: input.category,
+    p_location: input.location.trim(),
+    p_description: input.description?.trim() || null,
+    p_phone: input.phone?.trim() || null,
+    p_email: input.email?.trim() || null,
+    p_website: input.website?.trim() || null,
+  });
+
+  if (error) {
+    console.error('[ocasio] request_vendor_onboarding:', error.message);
+
+    if (/vendors_one_per_owner|duplicate key/i.test(error.message)) {
+      throw new Error('ALREADY_APPLIED');
+    }
+    if (/Authentication required/i.test(error.message)) {
+      throw new Error('NOT_SIGNED_IN');
+    }
+    if (/Business name is required/i.test(error.message)) {
+      throw new Error('Please enter your business name.');
+    }
+    throw new Error("We couldn't submit your application. Please try again.");
+  }
+
+  return data as PublicVendor;
+}
+
+/** The caller's own vendor record, whatever its status. Null if they have none. */
+export async function getMyVendor(): Promise<PublicVendor | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return null;
+
+  const { data, error } = await supabase
+    .from('vendors')
+    .select(PUBLIC_VENDOR_COLUMNS)
+    .eq('owner_id', auth.user.id)
+    .maybeSingle();
+
+  if (error) fail('Unable to load your vendor profile', error);
+  return (data as PublicVendor | null) ?? null;
+}
