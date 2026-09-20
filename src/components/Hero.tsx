@@ -1,60 +1,65 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BadgeCheck, CalendarCheck, MessageSquare, Search } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { getFilterOptions } from '../services/vendors';
 import { Button } from './ui';
 import type { FilterOptions } from '../types/database';
 
 /**
- * Homepage hero — a full-screen cinematic composition.
+ * Homepage hero — one art-directed composition, not a stack of UI on an image.
  *
- * Runs edge to edge *and* under the header: `-mt-16 pt-16` cancels the shell's
- * fixed-header offset and pads the content back down, so the photograph reaches
- * the top of the viewport instead of starting below an opaque bar. The header
- * turns to glass over this section (see Navbar) so nothing interrupts it.
+ * Runs edge to edge *and* under the header: the negative top margin cancels the
+ * shell's fixed-header offset and the padding restores it, so the photograph
+ * reaches the top of the viewport. The header is transparent over this section
+ * (see Navbar) so nothing interrupts it.
  *
- * Height is `100svh` — the *small* viewport unit — via .hero-viewport. With
- * `100vh`, mobile browsers measure against the viewport with chrome retracted,
- * so the composition is taller than the screen ever shows and the search panel
- * sits below the fold on first paint.
+ * Height is `100svh` — the *small* viewport unit — via .hero-viewport. `100vh`
+ * measures against the viewport with mobile browser chrome retracted, which puts
+ * the search slab below the fold on first paint.
  *
- * Depth is built from stacked CSS layers. No Three.js, no WebGL, no canvas:
- *   1. the photograph, slightly over-scaled so its edges never show
- *   2. a directional navy scrim — dense behind the text, open over the subject
- *   3. two blurred violet light sources, the brand colour used as lighting
- *      rather than as another gradient
- *   4. a vignette that closes the corners
- *   5. a barely-there grid, for texture at large sizes
- *   6. a top scrim keeping the glass header legible
- *   7. the closing arc, which the next section emerges from underneath
+ * ── Art direction ────────────────────────────────────────────────────────────
  *
- * Deliberately no scroll-linked parallax: it costs a listener and a repaint on
- * the most-visited route, and would need unwinding for reduced motion anyway.
- * The dimensionality here is static — perspective, layering and light.
+ * The composition is asymmetric and deliberately wide. Content runs to 96rem
+ * rather than the 80rem used elsewhere in the product, because a centred
+ * container is what made this read as a landing page: the photograph became
+ * background behind a column instead of the subject of the frame.
+ *
+ * The scrim is directional, not global. It is near-opaque at the left edge
+ * where every word sits and falls to 10% at the right, so the hands, the ring
+ * and the flowers stay legible as photography. An even overlay dark enough for
+ * text is always too dark for the picture.
+ *
+ * Depth is four planes, and they are meant to be *seen*:
+ *     photograph → atmospheric light → search slab → lifecycle glass
+ * The slab carries the largest shadow and sits nearest the viewer; the
+ * lifecycle panel is rotated away and sits further back, smaller and fainter,
+ * so it reads as depth rather than as a second focal point.
+ *
+ * There is no decorative grid, no icon set and no row of feature pills. Each
+ * was removed rather than restyled — they were the things making a photograph
+ * look like a dashboard.
+ *
+ * No scroll-linked parallax: it costs a listener and a repaint on the
+ * most-visited route, and would need unwinding for reduced motion anyway.
  *
  * The category and city lists come from filter_options(), so the form cannot
  * offer a city with no vendors behind it. If that lookup fails the form still
  * works and falls back to a free-text search. Search behaviour is unchanged.
  */
 
-/**
- * Qualitative statements about how the product actually works — vendor listings
- * are moderated before they go live, bookings move through a real state
- * machine, and vendor contact details are real. No counts, no ratings, no
- * invented statistics.
- */
-const VALUE_POINTS = [
-  { icon: BadgeCheck, title: 'Verified vendors', detail: 'Reviewed before they go live' },
-  { icon: CalendarCheck, title: 'Tracked bookings', detail: 'Request through to completion' },
-  { icon: MessageSquare, title: 'Real people', detail: 'Deal with the business directly' },
+/** The real booking lifecycle, shown as an annotation rather than sample data. */
+const LIFECYCLE = [
+  { n: '01', step: 'You send a request' },
+  { n: '02', step: 'The vendor responds' },
+  { n: '03', step: 'The work is completed' },
 ] as const;
 
-/** The real booking lifecycle, shown as a diagram rather than as sample data. */
-const LIFECYCLE = [
-  { step: 'You send a request', meta: 'Pick a service and a date' },
-  { step: 'The vendor responds', meta: 'Accept or decline' },
-  { step: 'The work is completed', meta: 'Then you review it' },
-] as const;
+/**
+ * Qualitative, and each one is true of the product: listings are moderated
+ * before they go live, bookings move through a real state machine, and vendor
+ * contact details are real. No counts, ratings or invented statistics.
+ */
+const TRUST = ['Verified vendors', 'Tracked to completion', 'Direct contact'] as const;
 
 const Hero = () => {
   const [category, setCategory] = useState('');
@@ -84,233 +89,228 @@ const Hero = () => {
     navigate(`/search?${params.toString()}`);
   };
 
+  const fieldLabel = 'block text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-muted';
+
   const selectClass =
-    'h-12 w-full appearance-none rounded-control border border-line bg-surface px-3.5 pr-9 text-sm ' +
-    'font-medium text-ink transition-colors hover:border-line-strong focus:border-brand-500 sm:h-[3.25rem]';
+    'mt-1 h-10 w-full appearance-none sm:mt-1.5 sm:h-11 rounded-control border-0 bg-transparent px-0 pr-8 text-[0.95rem] ' +
+    'font-medium text-ink focus:ring-0 sm:text-base';
 
   const caret =
     "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E\")] " +
-    'bg-[length:1.1rem] bg-[right_0.75rem_center] bg-no-repeat';
+    'bg-[length:1.1rem] bg-[right_0.25rem_center] bg-no-repeat';
 
   return (
     <section
-      className="hero-viewport relative isolate -mt-16 flex flex-col overflow-hidden bg-ink-deep pt-16"
+      className="hero-viewport relative isolate -mt-16 flex flex-col overflow-hidden bg-ink-deep pt-16 lg:-mt-20 lg:pt-20"
       aria-labelledby="hero-heading"
     >
-      {/* 1 — photograph */}
+      {/* ── plane 1 · photograph ───────────────────────────────────────────── */}
       <img
         src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?ixlib=rb-1.2.1&auto=format&fit=crop&w=2400&q=80"
         alt=""
         aria-hidden="true"
         fetchPriority="high"
-        className="absolute inset-0 -z-50 h-full w-full scale-[1.04] object-cover object-center"
+        className="absolute inset-0 -z-50 h-full w-full scale-[1.04] object-cover object-[62%_center] lg:object-center"
       />
 
-      {/* 2 — directional scrim. Dense on the left where every word sits, open
-             on the right so the photograph still reads as a photograph. */}
+      {/* Directional scrim. Near-opaque under the words, almost clear over the
+          subject — the difference between a photograph and a dark rectangle. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-40 bg-[linear-gradient(105deg,rgb(8_11_22_/_0.94)_0%,rgb(8_11_22_/_0.86)_34%,rgb(8_11_22_/_0.58)_62%,rgb(18_26_48_/_0.42)_100%)]"
+        className="absolute inset-0 -z-40 bg-[linear-gradient(100deg,rgb(6_9_18_/_0.95)_0%,rgb(6_9_18_/_0.88)_22%,rgb(6_9_18_/_0.66)_42%,rgb(6_9_18_/_0.34)_64%,rgb(10_16_32_/_0.14)_84%,rgb(12_20_40_/_0.08)_100%)]"
+      />
+      {/* A floor under the text column only, so the copy holds contrast without
+          darkening the right half of the frame. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-40 bg-[linear-gradient(to_top,rgb(6_9_18_/_0.72)_0%,rgb(6_9_18_/_0.22)_34%,transparent_62%)]"
       />
 
-      {/* 3 — brand light. Two soft violet sources rather than a gradient wash:
-             one low-left behind the headline, one high-right as rim light. */}
+      {/* ── plane 2 · atmospheric light ────────────────────────────────────── */}
       <div
         aria-hidden="true"
-        className="absolute -left-40 bottom-[-20%] -z-30 h-[46rem] w-[46rem] rounded-full bg-[radial-gradient(circle,rgb(147_51_234_/_0.42)_0%,rgb(147_51_234_/_0.14)_42%,transparent_70%)] blur-3xl"
+        className="absolute -left-56 bottom-[-28%] -z-30 h-[52rem] w-[52rem] rounded-full bg-[radial-gradient(circle,rgb(147_51_234_/_0.38)_0%,rgb(147_51_234_/_0.12)_44%,transparent_70%)] blur-3xl"
       />
       <div
         aria-hidden="true"
-        className="absolute -right-32 -top-40 -z-30 h-[40rem] w-[40rem] rounded-full bg-[radial-gradient(circle,rgb(168_85_247_/_0.30)_0%,rgb(88_28_135_/_0.16)_45%,transparent_72%)] blur-3xl"
+        className="absolute -right-40 top-[-18%] -z-30 h-[44rem] w-[44rem] rounded-full bg-[radial-gradient(circle,rgb(196_181_253_/_0.22)_0%,rgb(126_34_206_/_0.12)_46%,transparent_72%)] blur-3xl"
       />
-
-      {/* 4 — vignette, closing the corners so the frame feels shot rather than
-             cropped. */}
+      {/* Vignette, lighter than before so it shapes the frame without flattening
+          the photograph. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-20 bg-[radial-gradient(120%_85%_at_50%_45%,transparent_40%,rgb(8_11_22_/_0.45)_100%)]"
+        className="absolute inset-0 -z-20 bg-[radial-gradient(130%_95%_at_46%_44%,transparent_46%,rgb(6_9_18_/_0.38)_100%)]"
       />
-
-      {/* 5 — texture. A 64px grid at 3% white; invisible as a pattern, but it
-             stops the large dark areas from banding. Hidden on small screens
-             where it would only cost paint. */}
+      {/* Just enough darkness at the very top for white nav text. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-20 hidden opacity-[0.035] lg:block [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] [background-size:64px_64px]"
-      />
-
-      {/* 6 — top scrim so the glass header keeps its contrast. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 -z-10 h-40 bg-[linear-gradient(to_bottom,rgb(8_11_22_/_0.75),transparent)]"
+        className="absolute inset-x-0 top-0 -z-10 h-36 bg-[linear-gradient(to_bottom,rgb(6_9_18_/_0.62),transparent)]"
       />
 
       <div className="relative flex flex-1 items-center">
-        <div className="mx-auto w-full max-w-7xl px-5 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-12">
-          <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-8">
-            {/* ---------- copy ---------- */}
-            <div className="lg:col-span-7">
-              <p className="flex items-center gap-2.5 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-brand-200 sm:text-xs">
-                <span className="h-px w-8 bg-brand-300/70" aria-hidden="true" />
+        <div className="mx-auto w-full max-w-[96rem] px-6 pb-[clamp(60px,8vw,150px)] pt-8 sm:px-8 sm:pt-10 lg:px-12 lg:pt-10 xl:px-16">
+          <div className="grid gap-y-12 lg:grid-cols-12 lg:gap-x-10">
+            {/* ── copy + search: ~58% of the composition ──────────────────── */}
+            <div className="lg:col-span-7 xl:col-span-7">
+              <p className="flex items-center gap-3 text-[0.62rem] font-semibold uppercase tracking-[0.3em] text-white/70">
+                <span className="h-px w-7 bg-white/30" aria-hidden="true" />
                 Event vendor marketplace
               </p>
 
               <h1
                 id="hero-heading"
-                className="mt-4 max-w-[46rem] text-[2.05rem] font-semibold leading-[1.04] tracking-[-0.03em] text-white [text-wrap:balance] min-[380px]:text-[2.35rem] sm:mt-5 sm:text-[3.5rem] lg:text-[4.25rem] xl:text-display-xl"
+                className="mt-5 max-w-[15ch] sm:mt-6 text-[clamp(2rem,6.1vw,5.25rem)] font-semibold leading-[0.99] tracking-[-0.035em] text-white [text-wrap:balance]"
               >
                 Book the people who make your event work
               </h1>
 
-              <p className="mt-4 max-w-xl text-[0.9rem] leading-relaxed text-white/75 min-[380px]:text-[0.95rem] sm:mt-6 sm:text-lg">
+              <p className="mt-4 max-w-[34rem] text-[0.875rem] leading-[1.6] text-white/65 sm:mt-7 sm:text-[1.05rem] sm:leading-relaxed">
                 Compare venues, caterers, photographers and decorators across India. Send a booking
                 request, track it from request to completion, and review the work afterwards.
               </p>
+
+              {/* ── plane 3 · the search slab ─────────────────────────────────
+                  Ocasio's primary interaction, treated as one object: a single
+                  glass surface with the fields sitting *inside* it, divided by
+                  hairlines rather than boxed into separate controls. The
+                  previous version was a form in a container — three bordered
+                  inputs read as a form no matter what surrounds them.
+
+                  `perspective` on the wrapper with translateZ on the slab puts
+                  it genuinely nearer the viewer than the photograph, which is
+                  what the shadow is describing. */}
+              <div className="mt-8 max-w-[44rem] [perspective:1600px] sm:mt-10">
+                <div className="relative [transform:translateZ(60px)] [transform-style:preserve-3d]">
+                  {/* Violet light pooling under the slab — the reflection an
+                      object this close to the surface would actually cast. */}
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-x-8 -bottom-6 -z-10 h-24 rounded-full bg-brand-600/40 blur-3xl"
+                  />
+
+                  <form
+                    onSubmit={handleSearch}
+                    className="glass-sheen rounded-[1.75rem] border border-white/20 bg-white/[0.10] p-1.5 shadow-[0_2px_8px_-2px_rgb(6_9_18_/_0.4),0_40px_90px_-24px_rgb(6_9_18_/_0.85)] backdrop-blur-2xl"
+                    role="search"
+                    aria-label="Find vendors"
+                  >
+                    {/* Inner highlight: a hairline of light along the top edge,
+                        which is what makes glass read as glass. */}
+                    <div className="relative rounded-[1.4rem] bg-surface/95 shadow-[inset_0_1px_0_0_rgb(255_255_255_/_0.9)]">
+                      <div className="flex flex-col divide-y divide-line sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0">
+                        <div className="flex-1 px-5 py-3 sm:py-4">
+                          <label htmlFor="hero-category" className={fieldLabel}>
+                            Service
+                          </label>
+                          <select
+                            id="hero-category"
+                            className={`${selectClass} ${caret}`}
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                          >
+                            <option value="">All services</option>
+                            {options?.categories.map((c) => (
+                              <option key={c} value={c}>
+                                {c}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="flex-1 px-5 py-3 sm:py-4">
+                          <label htmlFor="hero-city" className={fieldLabel}>
+                            City
+                          </label>
+                          <select
+                            id="hero-city"
+                            className={`${selectClass} ${caret}`}
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                          >
+                            <option value="">All cities</option>
+                            {options?.locations.map((l) => (
+                              <option key={l} value={l}>
+                                {l}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="flex items-center p-2.5 sm:p-2">
+                          <Button
+                            type="submit"
+                            size="lg"
+                            className="h-12 w-full rounded-[1.1rem] shadow-[0_8px_24px_-8px_rgb(147_51_234_/_0.85)] sm:h-full sm:w-auto sm:px-7"
+                          >
+                            Search vendors
+                            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              {/* One quiet line, no cards. Replaces three bordered feature pills
+                  that made the composition read as a template. */}
+              <p className="mt-6 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[0.7rem] text-white/55 sm:mt-6 sm:gap-x-3 sm:text-[0.8rem]">
+                {TRUST.map((item, i) => (
+                  <span key={item} className="flex items-center gap-3">
+                    {i > 0 && (
+                      <span className="h-1 w-1 rounded-full bg-white/35" aria-hidden="true" />
+                    )}
+                    {item}
+                  </span>
+                ))}
+              </p>
             </div>
 
-            {/* ---------- atmospheric element, desktop only ----------
-                The real booking lifecycle as a diagram. Tilted a few degrees in
-                perspective so it sits in the same space as the photograph
-                rather than on top of it. Decorative: the same information is
-                available as text in "How Ocasio works" below. */}
+            {/* ── plane 4 · lifecycle glass ─────────────────────────────────
+                Set low and right, well clear of the headline, rotated away from
+                the viewer and sitting further back than the slab. Small, faint
+                and secondary by design: it is depth in the frame, not a second
+                thing to read.
+
+                The float animation and the rotation are on separate elements on
+                purpose. On one element the animation's `transform` replaces the
+                static one outright, which silently flattened the rotation — the
+                panel was rendering face-on the whole time. */}
             <div
               aria-hidden="true"
-              className="hidden lg:col-span-5 lg:block [perspective:1400px]"
+              className="hidden lg:col-span-5 lg:flex lg:items-end lg:justify-end lg:pb-4 [perspective:1600px]"
             >
-              <div className="animate-float [transform:rotateY(-9deg)_rotateX(3deg)] [transform-style:preserve-3d]">
-                <div className="ml-auto max-w-sm rounded-glass border border-white/15 bg-white/[0.07] p-6 shadow-glass backdrop-blur-xl">
-                  <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-brand-200">
-                    How a booking moves
-                  </p>
+              <div className="animate-float">
+                <div className="w-[17.5rem] [transform:rotateY(-14deg)_rotateX(5deg)] [transform-style:preserve-3d]">
+                  <div className="rounded-[1.6rem] border border-white/15 bg-ink-deep/70 px-6 py-6 shadow-[0_30px_80px_-28px_rgb(6_9_18_/_0.9)] backdrop-blur-2xl">
+                    <p className="text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-white/60">
+                      How a booking moves
+                    </p>
 
-                  <ol className="mt-5 space-y-4">
-                    {LIFECYCLE.map(({ step, meta }, i) => (
-                      <li key={step} className="flex gap-3.5">
-                        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-xs font-semibold text-white">
-                          {i + 1}
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block text-sm font-medium text-white">{step}</span>
-                          <span className="mt-0.5 block text-xs text-white/60">{meta}</span>
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-
-                  <div className="mt-6 flex items-center gap-2 border-t border-white/10 pt-4 text-xs text-white/60">
-                    <BadgeCheck className="h-3.5 w-3.5 text-brand-300" />
-                    Every vendor is reviewed before listing
+                    <ol className="mt-5 space-y-0">
+                      {LIFECYCLE.map(({ n, step }, i) => (
+                        <li key={n} className="relative flex gap-4 pb-5 last:pb-0">
+                          {/* Hairline connecting the markers into one object. */}
+                          {i < LIFECYCLE.length - 1 && (
+                            <span className="absolute left-[0.6rem] top-5 h-full w-px bg-gradient-to-b from-white/20 to-white/5" />
+                          )}
+                          <span className="relative z-10 font-mono text-[0.7rem] leading-5 tracking-widest text-brand-300/90">
+                            {n}
+                          </span>
+                          <span className="text-[0.82rem] leading-5 text-white/85">{step}</span>
+                        </li>
+                      ))}
+                    </ol>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* ---------- floating search panel ----------
-              Reads as an object above the image, not a form painted onto it: a
-              lit top edge, a translucent blurred surface, and a two-part shadow
-              that grows very slightly on hover. */}
-          <form
-            onSubmit={handleSearch}
-            className="group/panel mt-8 max-w-4xl rounded-glass border border-white/20 bg-white/[0.14] p-2 shadow-glass backdrop-blur-2xl transition-shadow duration-300 hover:shadow-glass-hover sm:mt-10 sm:p-2.5"
-            role="search"
-            aria-label="Find vendors"
-          >
-            <div className="rounded-[1.15rem] bg-surface/95 p-3 sm:p-4">
-              <div className="flex flex-col gap-3 md:flex-row md:items-end md:gap-4">
-                <div className="flex-1">
-                  <label
-                    htmlFor="hero-category"
-                    className="mb-1.5 block px-0.5 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-muted"
-                  >
-                    Service
-                  </label>
-                  <select
-                    id="hero-category"
-                    className={`${selectClass} ${caret}`}
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                  >
-                    <option value="">All services</option>
-                    {options?.categories.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="hidden w-px self-stretch bg-line md:mb-1 md:block" aria-hidden="true" />
-
-                <div className="flex-1">
-                  <label
-                    htmlFor="hero-city"
-                    className="mb-1.5 block px-0.5 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-muted"
-                  >
-                    City
-                  </label>
-                  <select
-                    id="hero-city"
-                    className={`${selectClass} ${caret}`}
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                  >
-                    <option value="">All cities</option>
-                    {options?.locations.map((l) => (
-                      <option key={l} value={l}>
-                        {l}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="h-12 shadow-[0_10px_24px_-8px_rgb(147_51_234_/_0.7)] sm:h-[3.25rem] md:w-auto md:px-8"
-                >
-                  <Search className="h-4 w-4" aria-hidden="true" />
-                  Search vendors
-                </Button>
-              </div>
-            </div>
-          </form>
-
-          {/* ---------- value points ---------- */}
-          {/* Compact pills on small screens, where three stacked cards would
-              push the search panel below the fold; full cards from sm up. */}
-          <ul className="mt-6 flex max-w-4xl flex-wrap gap-2 sm:mt-8 sm:grid sm:grid-cols-3 sm:gap-3">
-            {VALUE_POINTS.map(({ icon: Icon, title, detail }) => (
-              <li
-                key={title}
-                className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.07] px-2.5 py-1.5 backdrop-blur-md sm:gap-3 sm:rounded-panel sm:px-4 sm:py-3"
-              >
-                <Icon
-                  className="h-3.5 w-3.5 shrink-0 text-brand-300 sm:h-4 sm:w-4"
-                  aria-hidden="true"
-                />
-                <span className="min-w-0">
-                  <span className="block text-[0.72rem] font-medium text-white min-[380px]:text-[0.8rem] sm:text-sm">
-                    {title}
-                  </span>
-                  <span className="mt-0.5 hidden text-xs text-white/60 sm:block">{detail}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
 
-      {/*
-        No scroll cue. The composition is budgeted to land at exactly one
-        viewport at every tested size, and a cue needs ~144px of its own —
-        enough to push the value points off the first screen on a 1280x800
-        laptop. The arc already implies continuation, which is the job a cue
-        would have done.
-      */}
-
-      {/* 7 — closing arc. The next section is the same colour, so this reads as
-             that section rising up underneath the hero. */}
+      {/* The light half of the page rising underneath, carrying violet ambient
+          light up into the dark. */}
       <div aria-hidden="true" className="hero-curve z-10 bg-canvas" />
     </section>
   );

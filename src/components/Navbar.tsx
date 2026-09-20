@@ -123,16 +123,16 @@ const Navbar = () => {
   const overHero = location.pathname === '/' && atTop && !mobileOpen;
 
   /*
-   * Over the hero the header is glass rather than fully transparent: a thin lit
-   * border and a light blur give it just enough edge to read as chrome, without
-   * becoming a bar sitting on top of the photograph. Past the fold it returns to
-   * the solid surface, because translucent chrome over arbitrary page content is
-   * a readability problem rather than a style. Both states share the same
-   * transition, so the change is a fade, not a swap.
+   * Over the hero the header carries no background and no rule — only a trace
+   * of blur, so it belongs to the photograph rather than sitting on it. The
+   * hero's own top scrim is what keeps the white text legible, which means the
+   * chrome itself does not have to darken anything. Past the fold it becomes a
+   * proper glass surface, because translucent chrome over arbitrary page
+   * content is a readability problem rather than a style.
    */
   const headerClass = overHero
-    ? 'border-white/10 bg-ink-deep/20 backdrop-blur-md supports-[backdrop-filter]:bg-ink-deep/10'
-    : 'border-line bg-surface/95 backdrop-blur-xl supports-[backdrop-filter]:bg-surface/80';
+    ? 'border-transparent bg-transparent backdrop-blur-[2px]'
+    : 'border-line bg-surface/90 backdrop-blur-xl supports-[backdrop-filter]:bg-surface/75';
 
   const wordmarkClass = overHero ? 'text-white' : 'text-brand-700';
   const iconButtonClass = overHero
@@ -143,9 +143,9 @@ const Navbar = () => {
     <header
       className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300 ${headerClass}`}
     >
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main">
-        <div className="flex h-16 items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
+      <nav className="mx-auto max-w-[96rem] px-4 sm:px-8 lg:px-12 xl:px-16" aria-label="Main">
+        <div className="flex h-16 items-center justify-between gap-4 lg:h-20">
+          <div className="flex items-center gap-7 xl:gap-9">
             <button
               ref={mobileButtonRef}
               type="button"
@@ -164,13 +164,13 @@ const Navbar = () => {
 
             <Link
               to="/"
-              className={`text-xl font-semibold tracking-tight transition-colors ${wordmarkClass}`}
+              className={`text-[1.35rem] font-semibold tracking-[-0.03em] transition-colors ${wordmarkClass}`}
               aria-label="Ocasio home"
             >
               Ocasio
             </Link>
 
-            <div className="hidden items-center gap-6 md:flex">
+            <div className="hidden items-center gap-7 md:flex xl:gap-8">
               <NavLink to="/vendors" className={navLinkClass(overHero)}>
                 Explore
               </NavLink>

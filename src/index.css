@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Top level: @keyframes cannot live inside @layer. Used by .glass-sheen. */
+@keyframes glass-sheen {
+  0% {
+    transform: translateX(-130%);
+  }
+  /* The sweep itself is ~2s of the 9s cycle; the rest is deliberately still. A
+     continuous shimmer reads as a loading state, not as glass. */
+  22%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+
 @layer base {
   /*
    * Focus is visible by default and consistent everywhere. Tailwind's reset
@@ -58,26 +71,66 @@
   }
 
   /*
-   * The arc the hero ends on. An over-wide ellipse clipped by the hero's
-   * overflow, so only its shallow top curve shows — no SVG, no extra request,
-   * and it scales with the viewport instead of distorting like a fixed-width
-   * wave asset would.
+   * The light half of the page rising underneath the hero, rather than a line
+   * ruled between two sections.
+   *
+   * An over-wide ellipse clipped by the hero's overflow, so only its shallow
+   * top curve shows: no SVG, no extra request, and it scales with the viewport
+   * instead of distorting the way a fixed-width wave asset does. Width and
+   * height are tuned together — at 180% the ellipse was so much wider than the
+   * viewport that the visible slice read as a straight line.
+   *
+   * The shadow points *upward*, out of the light surface into the dark one, so
+   * the edge reads as a lit surface emerging rather than a shape pasted on. It
+   * carries the violet ambient light down out of the hero.
    */
   .hero-curve {
     position: absolute;
     left: 50%;
     bottom: -1px;
     transform: translateX(-50%);
-    /*
-     * Width and height are tuned together. At 180% the ellipse was so much
-     * wider than the viewport that the visible slice of its top edge was
-     * effectively a straight line — a hard horizontal join, which is exactly
-     * what this replaces. 128% keeps the arc shallow and editorial while
-     * staying unmistakably curved.
-     */
-    width: 128%;
-    height: clamp(52px, 8.5vw, 132px);
+    width: 122%;
+    height: clamp(60px, 8vw, 150px);
     border-radius: 50% 50% 0 0;
+    box-shadow:
+      0 -2px 1px -1px rgb(255 255 255 / 0.10),
+      0 -30px 70px -24px rgb(147 51 234 / 0.45),
+      0 -60px 120px -40px rgb(168 85 247 / 0.25);
+  }
+
+  /*
+   * The one signature detail: a slow specular sweep across the search slab, so
+   * it reads as a physical piece of glass catching light rather than a
+   * translucent rectangle. Compositor-only — transform and opacity, nothing
+   * that triggers layout or paint.
+   *
+   * Under prefers-reduced-motion the global rule collapses the duration and the
+   * sweep rests off-screen, clipped by the slab's own overflow.
+   */
+  .glass-sheen {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-sheen::after {
+    content: '';
+    position: absolute;
+    inset: -40% -10%;
+    pointer-events: none;
+    /* Deliberately faint. At the strength this started on it washed the whole
+       slab — the field labels dropped below readable contrast every time the
+       sweep crossed them. A specular highlight on glass is a suggestion of
+       light, not a light source. */
+    background: linear-gradient(
+      100deg,
+      transparent 42%,
+      rgb(255 255 255 / 0.05) 47%,
+      rgb(233 213 255 / 0.09) 50%,
+      rgb(255 255 255 / 0.05) 53%,
+      transparent 58%
+    );
+    transform: translateX(-130%);
+    animation: glass-sheen 9s cubic-bezier(0.45, 0, 0.2, 1) infinite;
   }
 
   /* Skip link: first tab stop on every page, visible only when focused. */

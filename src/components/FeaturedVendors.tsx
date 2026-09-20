@@ -15,7 +15,7 @@ const FeaturedVendors = () => {
 
   return (
     <section className="bg-canvas py-16 sm:py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[96rem] px-6 sm:px-8 lg:px-12 xl:px-16">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="text-display-sm text-ink">Top-rated vendors</h2>

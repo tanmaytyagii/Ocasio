@@ -94,17 +94,11 @@ export default {
           '0%, 100%': { transform: 'translate3d(0, 0, 0)' },
           '50%': { transform: 'translate3d(0, -10px, 0)' },
         },
-        'scroll-cue': {
-          '0%': { transform: 'translateY(0)', opacity: '0' },
-          '35%': { opacity: '1' },
-          '100%': { transform: 'translateY(14px)', opacity: '0' },
-        },
       },
       animation: {
         'fade-in': 'fade-in 180ms ease-out',
         'rise-in': 'rise-in 200ms ease-out',
         float: 'float 7s ease-in-out infinite',
-        'scroll-cue': 'scroll-cue 2.2s ease-in-out infinite',
       },
     },
   },

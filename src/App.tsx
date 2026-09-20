@@ -53,7 +53,7 @@ const SiteChrome = ({ children }: { children: React.ReactNode }) => (
       Skip to main content
     </a>
     <Navbar />
-    <main id="main" className="flex-grow pt-16">
+    <main id="main" className="flex-grow pt-16 lg:pt-20">
       {children}
     </main>
     <Footer />
