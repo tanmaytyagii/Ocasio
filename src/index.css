@@ -5,38 +5,51 @@
 /*
  * ── Responsive composition tokens ───────────────────────────────────────────
  *
- * The homepage has one design scale, not one per screen. A viewport can get
- * larger; the composition should not. Everything below exists so that growth
- * past a certain width turns into whitespace around the content rather than
- * bigger content.
+ * The homepage recomposes; it does not scale. A wider window feeds negative
+ * space inside the composition, never the elements themselves.
  *
- * Three deliberate modes, all of the same design language:
+ * Four modes of one visual language:
  *
- *   A  < 768px     phone. Its own vertical composition, viewport-relative type.
- *   B  768–~1470   the canvas is still narrower than its cap, so the content is
- *                  fluid and scales with the *canvas*, not the window.
- *   C  ~1470+      the canvas has hit --shell-max and every container-relative
- *                  value is now constant. Larger monitors get more photograph
- *                  around the composition and an identical composition inside
- *                  it. There is no breakpoint here — mode C is simply where the
- *                  clamps and the shell cap both bind, which is why 1920, 2560
- *                  and 3440 render the same layout at the same size.
+ *   A  < 768      phone. Its own vertical composition: the photograph owns the
+ *                 top of the frame, the copy and the search block are anchored
+ *                 to the bottom, and the annotation is dropped entirely.
+ *   B  768–1279   tablet and small laptop. Single column — at 1024 the copy
+ *                 measure, a gap and the annotation cannot all fit.
+ *   C  1280–1599  desktop. The two-field composition appears: copy column,
+ *                 flexible gap, annotation.
+ *   D  1600+      large desktop and ultrawide. The canvas ramps 1440 → 1720 and
+ *                 then stops. Every element ceiling has already bound, so the
+ *                 whole of that extra width lands in the flexible column — the
+ *                 gap between the copy and the annotation roughly doubles
+ *                 between 1440 and 1920 while the type, the slab and the card
+ *                 stay put.
  *
- * `cqw` rather than `vw` is the whole trick: 1cqw is 1% of the *shell*, and the
- * shell stops growing at --shell-max, so every value built on it stops too. vw
- * would keep growing forever and is what made the old hero balloon on a large
- * display.
+ * `cqw` rather than `vw` throughout: 1cqw is 1% of the shell, so each ceiling
+ * binds against the composition's own width rather than the window's.
  */
 :root {
-  --shell-max: 1440px;
+  /* Desktop canvas. Widens at 1600+ (below) — the extra width becomes negative
+     space inside the composition, never larger elements. */
+  --shell-max: 1400px;
   --hero-gutter: clamp(1.25rem, 3.5vw, 4rem);
 
-  /* Mode A — phone. Viewport-relative, because at this size the shell and the
-     viewport are nearly the same thing. */
+  /* Mode A — phone. Viewport-relative, because here the shell and the viewport
+     are nearly the same thing. */
   --hero-title: clamp(2rem, 9.2vw, 2.5rem);
+  --hero-measure: 100%;
   --hero-search-max: 100%;
   --hero-card: 0px;
-  --hero-image-pos: 68% 34%;
+  --hero-thread: 0px;
+  --hero-label: 0.7rem;
+  /*
+   * The photograph is 3:2 and its sharp subject is a narrow horizontal band. In
+   * a tall portrait box, object-cover overflows horizontally only, which makes
+   * object-position's y component inert — every x showed the same blurred upper
+   * band. The mobile zoom creates the vertical overflow that lets the crop
+   * reach the hand and the watch instead.
+   */
+  --hero-image-scale: 1.3;
+  --hero-image-pos: 64% 100%;
   /* The phone composition is bottom-anchored, so the type sits over the lower
      half of the photograph — including the bright watch face. The floor has to
      carry further up here than it does on desktop, where the copy sits over the
@@ -54,11 +67,26 @@
 
 @media (min-width: 768px) {
   :root {
-    /* Mode B/C — every value is a share of the shell, so each one stops on its
-       own once the shell caps. The ceilings are what mode C is made of. */
-    --hero-title: clamp(2.5rem, 6.3cqw, 5.4rem);
-    --hero-search-max: clamp(43rem, 58cqw, 55rem);
-    --hero-card: clamp(15.5rem, 22cqw, 20rem);
+    /*
+     * Modes B and C. Every element has a ceiling of its own, deliberately well
+     * below what the canvas can offer:
+     *
+     *   title    72px at 1440, 76px from 1600 up
+     *   measure  the copy column and the search slab share one width, so the
+     *            block has a single left and right edge
+     *   card     280–320px, an annotation rather than a panel
+     *
+     * Because each ceiling binds before the canvas does, a wider window feeds
+     * the flexible grid column between the copy and the annotation. The gap
+     * grows; nothing else does.
+     */
+    --hero-title: clamp(2.75rem, 5.4cqw, 4.75rem);
+    --hero-measure: clamp(43rem, 52cqw, 46rem);
+    --hero-search-max: var(--hero-measure);
+    --hero-card: clamp(17.5rem, 18cqw, 20rem);
+    --hero-thread: clamp(8rem, 30cqw, 30rem);
+    --hero-label: 0.6rem;
+    --hero-image-scale: 1.04;
     --hero-image-pos: 58% center;
     --hero-floor: linear-gradient(
       to top,
@@ -66,6 +94,18 @@
       rgb(6 9 18 / 0.16) 28%,
       transparent 52%
     );
+  }
+}
+
+@media (min-width: 1600px) {
+  :root {
+    /*
+     * Mode D — large desktop and ultrawide. The canvas is the only thing that
+     * grows. It ramps 1440 → 1720 between 1600 and ~1850 and then stops, so a
+     * 2560 or 3440 display reads as the same composition with photography on
+     * either side rather than a wider one.
+     */
+    --shell-max: min(93vw, 1720px);
   }
 }
 
@@ -171,8 +211,8 @@
 
   @media (min-width: 768px) {
     .hero-viewport {
-      min-height: clamp(680px, 88vh, 900px);
-      min-height: clamp(680px, 88svh, 900px);
+      min-height: clamp(680px, 86vh, 1080px);
+      min-height: clamp(680px, 86svh, 1080px);
     }
   }
 

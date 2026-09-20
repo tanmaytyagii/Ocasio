@@ -84,7 +84,8 @@ const Hero = () => {
     navigate(`/search?${params.toString()}`);
   };
 
-  const fieldLabel = 'block text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-muted';
+  const fieldLabel =
+    'block text-[length:var(--hero-label)] font-semibold uppercase tracking-[0.2em] text-muted';
 
   // No control chrome of its own: the cell it sits in is the control.
   const selectClass =
@@ -106,7 +107,7 @@ const Hero = () => {
         alt=""
         aria-hidden="true"
         fetchPriority="high"
-        className="absolute inset-0 -z-50 h-full w-full scale-[1.04] object-cover [object-position:var(--hero-image-pos)]"
+        className="absolute inset-0 -z-50 h-full w-full object-cover [object-position:var(--hero-image-pos)] [transform:scale(var(--hero-image-scale))]"
       />
 
       {/* Falloff, not an overlay: opaque canvas on the left, gone by the right. */}
@@ -140,9 +141,9 @@ const Hero = () => {
 
       <div className="relative flex flex-1 items-end lg:items-center">
         <div className="shell shell-query pb-[clamp(72px,8vw,132px)] pt-24 lg:pt-10">
-          <div className="grid gap-y-10 lg:[grid-template-columns:minmax(0,1fr)_var(--hero-card)] lg:items-center lg:gap-x-[clamp(2rem,4cqw,4rem)]">
+          <div className="grid gap-y-10 xl:items-center xl:[grid-template-columns:minmax(0,var(--hero-measure))_minmax(2rem,1fr)_var(--hero-card)]">
             {/* ── midground · copy ─────────────────────────────────────────── */}
-            <div>
+            <div className="max-w-[var(--hero-measure)]">
               <p className="flex items-center gap-3 text-[0.6rem] font-medium uppercase tracking-[0.34em] text-white/80">
                 <span className="h-px w-6 bg-white/35" aria-hidden="true" />
                 Event vendor marketplace
@@ -168,7 +169,7 @@ const Hero = () => {
                 against the bright half of the photograph. */}
             <div
               aria-hidden="true"
-              className="pointer-events-none hidden [perspective:1400px] lg:block lg:translate-y-[clamp(1rem,2.5cqw,2.75rem)]"
+              className="pointer-events-none hidden [perspective:1400px] xl:col-start-3 xl:block xl:translate-y-[clamp(1rem,2.5cqw,2.75rem)]"
             >
               <div className="animate-float ml-auto w-full max-w-[var(--hero-card)]">
                 <div className="relative [transform:translateZ(90px)_rotateY(-13deg)_rotateX(3deg)] [transform-style:preserve-3d]">
@@ -176,7 +177,7 @@ const Hero = () => {
                       A thread of violet light running back toward the search
                       object. Inside the rotated element, so the perspective
                       carries it and it reads as passing through the scene. */}
-                  <span className="absolute right-full top-[70%] h-px w-[min(16vw,13.5rem)] origin-right -rotate-[32deg] bg-[linear-gradient(to_left,rgb(233_213_255_/_0.95),rgb(216_180_254_/_0.42)_46%,transparent_95%)] shadow-[0_0_8px_0_rgb(216_180_254_/_0.55)]">
+                  <span className="absolute right-full top-[70%] h-px w-[var(--hero-thread)] origin-right -rotate-[32deg] bg-[linear-gradient(to_left,rgb(233_213_255_/_0.95),rgb(216_180_254_/_0.42)_46%,transparent_95%)] shadow-[0_0_8px_0_rgb(216_180_254_/_0.55)]">
                     <span className="absolute -left-px top-1/2 h-[4px] w-[4px] -translate-y-1/2 rounded-full bg-white shadow-[0_0_14px_4px_rgb(216_180_254_/_0.7)]" />
                   </span>
 
