@@ -106,7 +106,7 @@ const Hero = () => {
         alt=""
         aria-hidden="true"
         fetchPriority="high"
-        className="absolute inset-0 -z-50 h-full w-full scale-[1.04] object-cover object-[64%_center] lg:object-[58%_center]"
+        className="absolute inset-0 -z-50 h-full w-full scale-[1.04] object-cover [object-position:var(--hero-image-pos)]"
       />
 
       {/* Falloff, not an overlay: opaque canvas on the left, gone by the right. */}
@@ -117,7 +117,7 @@ const Hero = () => {
       {/* A short floor, so the copy keeps contrast without darkening the frame. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-40 bg-[linear-gradient(to_top,rgb(6_9_18_/_0.60)_0%,rgb(6_9_18_/_0.16)_28%,transparent_52%)]"
+        className="absolute inset-0 -z-40 [background-image:var(--hero-floor)]"
       />
 
       {/* Studio light, not gradients: two soft sources at ambient strength. */}
@@ -138,19 +138,19 @@ const Hero = () => {
         className="absolute inset-x-0 top-0 -z-10 h-36 bg-[linear-gradient(to_bottom,rgb(6_9_18_/_0.55),transparent)]"
       />
 
-      <div className="relative flex flex-1 items-center">
-        <div className="mx-auto w-full max-w-[96rem] px-6 pb-[clamp(56px,6.5vw,120px)] pt-8 sm:px-8 sm:pt-10 lg:px-12 lg:pt-10 xl:px-16">
-          <div className="grid lg:grid-cols-12 lg:items-center">
+      <div className="relative flex flex-1 items-end lg:items-center">
+        <div className="shell shell-query pb-[clamp(72px,8vw,132px)] pt-24 lg:pt-10">
+          <div className="grid gap-y-10 lg:[grid-template-columns:minmax(0,1fr)_var(--hero-card)] lg:items-center lg:gap-x-[clamp(2rem,4cqw,4rem)]">
             {/* ── midground · copy ─────────────────────────────────────────── */}
-            <div className="lg:col-span-7">
-              <p className="flex items-center gap-3 text-[0.6rem] font-medium uppercase tracking-[0.34em] text-white/60">
-                <span className="h-px w-6 bg-white/25" aria-hidden="true" />
+            <div>
+              <p className="flex items-center gap-3 text-[0.6rem] font-medium uppercase tracking-[0.34em] text-white/80">
+                <span className="h-px w-6 bg-white/35" aria-hidden="true" />
                 Event vendor marketplace
               </p>
 
               <h1
                 id="hero-heading"
-                className="mt-6 max-w-[19ch] text-[clamp(2rem,5.6vw,5.5rem)] font-semibold leading-[0.95] tracking-[-0.042em] text-white [text-wrap:balance]"
+                className="mt-6 max-w-[19ch] text-[length:var(--hero-title)] font-semibold leading-[0.95] tracking-[-0.042em] text-white [text-wrap:balance]"
               >
                 Book the people who make your event work
               </h1>
@@ -168,9 +168,9 @@ const Hero = () => {
                 against the bright half of the photograph. */}
             <div
               aria-hidden="true"
-              className="pointer-events-none hidden [perspective:1400px] lg:col-span-5 lg:block lg:translate-x-6 lg:translate-y-10 xl:translate-x-12"
+              className="pointer-events-none hidden [perspective:1400px] lg:block lg:translate-y-[clamp(1rem,2.5cqw,2.75rem)]"
             >
-              <div className="animate-float ml-auto w-[16.5rem]">
+              <div className="animate-float ml-auto w-full max-w-[var(--hero-card)]">
                 <div className="relative [transform:translateZ(90px)_rotateY(-13deg)_rotateX(3deg)] [transform-style:preserve-3d]">
                   {/* ── the signature ──────────────────────────────────────
                       A thread of violet light running back toward the search
@@ -215,7 +215,7 @@ const Hero = () => {
               border of its own, the cells are divided by hairlines, and the
               whole thing is lifted 50px off the background plane with a shallow
               rotateX so its top edge catches light. */}
-          <div className="mt-10 [perspective:1800px] sm:mt-12 lg:mt-14 lg:w-[calc(100%+9rem)] lg:max-w-[57rem]">
+          <div className="mt-10 w-full max-w-[var(--hero-search-max)] [perspective:1800px] sm:mt-12 lg:mt-14">
             <div className="relative [transform:translateZ(50px)_rotateX(1.2deg)] [transform-style:preserve-3d]">
               {/* The light this object pools on the surface beneath it. */}
               <div

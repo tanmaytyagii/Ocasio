@@ -72,7 +72,7 @@ const PopularCategories = () => {
         className="pointer-events-none absolute -top-24 left-1/2 h-[30rem] w-[62rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgb(147_51_234_/_0.10)_0%,rgb(147_51_234_/_0.04)_45%,transparent_70%)] blur-2xl"
       />
 
-      <div className="relative mx-auto max-w-[96rem] px-6 sm:px-8 lg:px-12 xl:px-16">
+      <div className="shell relative">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4 sm:mb-12">
           <div className="max-w-xl">
             <h2 className="text-display-sm text-ink">Browse by service</h2>

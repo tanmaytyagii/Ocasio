@@ -2,6 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * ── Responsive composition tokens ───────────────────────────────────────────
+ *
+ * The homepage has one design scale, not one per screen. A viewport can get
+ * larger; the composition should not. Everything below exists so that growth
+ * past a certain width turns into whitespace around the content rather than
+ * bigger content.
+ *
+ * Three deliberate modes, all of the same design language:
+ *
+ *   A  < 768px     phone. Its own vertical composition, viewport-relative type.
+ *   B  768–~1470   the canvas is still narrower than its cap, so the content is
+ *                  fluid and scales with the *canvas*, not the window.
+ *   C  ~1470+      the canvas has hit --shell-max and every container-relative
+ *                  value is now constant. Larger monitors get more photograph
+ *                  around the composition and an identical composition inside
+ *                  it. There is no breakpoint here — mode C is simply where the
+ *                  clamps and the shell cap both bind, which is why 1920, 2560
+ *                  and 3440 render the same layout at the same size.
+ *
+ * `cqw` rather than `vw` is the whole trick: 1cqw is 1% of the *shell*, and the
+ * shell stops growing at --shell-max, so every value built on it stops too. vw
+ * would keep growing forever and is what made the old hero balloon on a large
+ * display.
+ */
+:root {
+  --shell-max: 1440px;
+  --hero-gutter: clamp(1.25rem, 3.5vw, 4rem);
+
+  /* Mode A — phone. Viewport-relative, because at this size the shell and the
+     viewport are nearly the same thing. */
+  --hero-title: clamp(2rem, 9.2vw, 2.5rem);
+  --hero-search-max: 100%;
+  --hero-card: 0px;
+  --hero-image-pos: 68% 34%;
+  /* The phone composition is bottom-anchored, so the type sits over the lower
+     half of the photograph — including the bright watch face. The floor has to
+     carry further up here than it does on desktop, where the copy sits over the
+     dark left edge instead. */
+  --hero-floor: linear-gradient(
+    to top,
+    rgb(6 9 18 / 0.96) 0%,
+    rgb(6 9 18 / 0.92) 30%,
+    rgb(6 9 18 / 0.8) 46%,
+    rgb(6 9 18 / 0.45) 62%,
+    rgb(6 9 18 / 0.12) 78%,
+    transparent 92%
+  );
+}
+
+@media (min-width: 768px) {
+  :root {
+    /* Mode B/C — every value is a share of the shell, so each one stops on its
+       own once the shell caps. The ceilings are what mode C is made of. */
+    --hero-title: clamp(2.5rem, 6.3cqw, 5.4rem);
+    --hero-search-max: clamp(43rem, 58cqw, 55rem);
+    --hero-card: clamp(15.5rem, 22cqw, 20rem);
+    --hero-image-pos: 58% center;
+    --hero-floor: linear-gradient(
+      to top,
+      rgb(6 9 18 / 0.6) 0%,
+      rgb(6 9 18 / 0.16) 28%,
+      transparent 52%
+    );
+  }
+}
+
 /* Top level: @keyframes cannot live inside @layer. Used by .glass-sheen. */
 @keyframes glass-sheen {
   0% {
@@ -65,22 +132,47 @@
    * line entirely and keeps the `vh` fallback. A single `100svh` would leave
    * those browsers with no minimum height at all.
    */
+  /*
+   * The bounded canvas every homepage section and the header share, so the
+   * wordmark, the H1 and every section heading sit on one line at any width.
+   * Full-bleed backgrounds stay outside it.
+   */
+  .shell {
+    width: min(100% - 2 * var(--hero-gutter), var(--shell-max));
+    margin-inline: auto;
+  }
+
+  /*
+   * Makes the shell the reference for every `cqw` above. Only the hero needs
+   * it, so only the hero pays for the containment.
+   */
+  .shell-query {
+    container-type: inline-size;
+  }
+
+  /*
+   * Phones get the whole screen. From md up the hero stops short of it, so the
+   * arc and the first inches of the next section fall inside the fold — a
+   * composition ending exactly at the viewport edge reads as the whole page.
+   *
+   * The 900px ceiling is the important half: 88svh of a 1440px-tall monitor is
+   * a 1267px hero, which is not a composition, it is a wall. Past that height
+   * the extra space belongs to the page, not to the hero.
+   *
+   * Written as paired declarations rather than a custom property on purpose. A
+   * var() carrying an unsupported unit is invalid at computed-value time and
+   * falls back to `auto`, losing the fallback entirely; two plain declarations
+   * are dropped at parse time and correctly keep the vh version.
+   */
   .hero-viewport {
     min-height: 100vh;
     min-height: 100svh;
   }
 
-  /*
-   * On desktop the hero stops a little short of the full screen so the arc and
-   * the first inches of the next section sit inside the fold. A composition
-   * that ends exactly at the viewport edge reads as the whole page; letting the
-   * next surface break the line is what tells you there is more underneath.
-   * Phones keep the full screen — there is no room there to give away.
-   */
-  @media (min-width: 1024px) {
+  @media (min-width: 768px) {
     .hero-viewport {
-      min-height: 88vh;
-      min-height: 88svh;
+      min-height: clamp(680px, 88vh, 900px);
+      min-height: clamp(680px, 88svh, 900px);
     }
   }
 
@@ -104,7 +196,7 @@
     bottom: -1px;
     transform: translateX(-50%);
     width: 122%;
-    height: clamp(52px, 6.5vw, 120px);
+    height: clamp(52px, 6.5vw, 116px);
     border-radius: 50% 50% 0 0;
     /* Ambient, not decorative. At roughly a third of its previous strength the
        violet is felt as light spilling off a lit surface rather than seen as a

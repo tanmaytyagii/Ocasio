@@ -9,7 +9,7 @@ import { ButtonLink } from './ui';
  */
 const VendorCta = () => (
   <section className="bg-ink py-16 sm:py-20">
-    <div className="mx-auto max-w-[96rem] px-6 sm:px-8 lg:px-12 xl:px-16">
+    <div className="shell">
       <div className="flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
           <h2 className="text-display-sm text-white">Run an events business?</h2>

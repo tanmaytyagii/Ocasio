@@ -143,7 +143,7 @@ const Navbar = () => {
     <header
       className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300 ${headerClass}`}
     >
-      <nav className="mx-auto max-w-[96rem] px-4 sm:px-8 lg:px-12 xl:px-16" aria-label="Main">
+      <nav className="shell" aria-label="Main">
         <div className="flex h-16 items-center justify-between gap-4 lg:h-20">
           <div className="flex items-center gap-8 xl:gap-12">
             <button
@@ -153,7 +153,7 @@ const Navbar = () => {
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-              className={`-ml-1 rounded-control p-2 transition-colors md:hidden ${iconButtonClass}`}
+              className={`-ml-1 rounded-control p-2 transition-colors lg:hidden ${iconButtonClass}`}
             >
               {mobileOpen ? (
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -170,7 +170,7 @@ const Navbar = () => {
               Ocasio
             </Link>
 
-            <div className="hidden items-center gap-8 md:flex xl:gap-9">
+            <div className="hidden items-center gap-8 lg:flex xl:gap-9">
               <NavLink to="/vendors" className={navLinkClass(overHero)}>
                 Explore
               </NavLink>
@@ -183,7 +183,7 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <form onSubmit={handleSearch} className="relative hidden lg:block" role="search">
+            <form onSubmit={handleSearch} className="relative hidden xl:block" role="search">
               <label htmlFor="navbar-search" className="sr-only">
                 Search vendors
               </label>
@@ -287,7 +287,7 @@ const Navbar = () => {
                   to="/become-vendor"
                   variant="ghost"
                   size="sm"
-                  className={`hidden sm:inline-flex ${
+                  className={`hidden lg:inline-flex ${
                     overHero ? 'text-white/90 hover:bg-white/10 hover:text-white' : ''
                   }`}
                 >
@@ -303,7 +303,7 @@ const Navbar = () => {
       </nav>
 
       {mobileOpen && (
-        <div id="mobile-menu" className="animate-fade-in border-t border-line bg-surface md:hidden">
+        <div id="mobile-menu" className="animate-fade-in border-t border-line bg-surface lg:hidden">
           <div className="space-y-1 px-4 py-4">
             <form onSubmit={handleSearch} className="relative mb-3" role="search">
               <label htmlFor="mobile-search" className="sr-only">
