@@ -11,8 +11,8 @@ import type { CategoryCount } from '../types/database';
  * vendors behind it.
  */
 const CATEGORY_IMAGES: Record<string, string> = {
-  // photo-1604016552404-22e1e27441ce now 404s upstream, which rendered this
-  // tile as a broken image. Replaced with a banquet-hall photo that resolves.
+  // This banquet-hall photo replaces one that started 404ing upstream and
+  // rendered the tile as a broken image.
   Venues:
     'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   Catering:
