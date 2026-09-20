@@ -10,7 +10,7 @@ const teamMembers = [
     name: 'Tanmay Tyagi',
     role: 'Technical Lead',
     skills: ['AI Developer', 'Backend Developer'],
-    image: 'https://images.unsplash.com/photo-1556157382-97eda2f9e2bf?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   },
 ];
 

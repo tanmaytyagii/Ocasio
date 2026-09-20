@@ -29,7 +29,7 @@ const categories = {
     images: [
       'https://images.unsplash.com/photo-1519167758481-83f550bb49b3',
       'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af',
-      'https://images.unsplash.com/photo-1562653439-49c2c40441ec',
+      'https://images.unsplash.com/photo-1527529482837-4698179dc6ce',
       'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3',
       'https://images.unsplash.com/photo-1519167758481-83f550bb49b3',
       'https://images.unsplash.com/photo-1519741497674-611481863552',
