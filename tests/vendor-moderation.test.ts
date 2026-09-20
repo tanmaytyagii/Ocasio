@@ -299,3 +299,101 @@ describe('moderate_vendor changes status and nothing else', () => {
     expect(error).not.toBeNull();
   });
 });
+
+describe('approval grants the vendor role', () => {
+  maybe('the applicant holds the vendor role once approved', async () => {
+    const { data } = await serviceClient()
+      .from('profiles')
+      .select('role')
+      .eq('id', applicant.id)
+      .single();
+
+    // The fixture above was approved, then suspended, then reinstated.
+    expect(data!.role).toBe('vendor');
+  });
+
+  maybe('the grant is recorded on the approval audit entry', async () => {
+    const { data } = await serviceClient()
+      .from('audit_log')
+      .select('metadata')
+      .eq('entity_id', applicantVendorId)
+      .eq('action', 'vendor.approved')
+      .order('created_at', { ascending: true })
+      .limit(1);
+
+    expect((data![0] as { metadata: Record<string, unknown> }).metadata.role_granted).toBe(true);
+  });
+
+  maybe('suspending does not take the role away', async () => {
+    await admin.client.rpc('moderate_vendor', {
+      p_vendor_id: applicantVendorId,
+      p_action: 'suspend',
+    });
+
+    const { data } = await serviceClient()
+      .from('profiles')
+      .select('role')
+      .eq('id', applicant.id)
+      .single();
+    expect(data!.role).toBe('vendor');
+
+    await admin.client.rpc('moderate_vendor', {
+      p_vendor_id: applicantVendorId,
+      p_action: 'reinstate',
+    });
+  });
+
+  maybe('a user still cannot grant themselves the vendor role', async () => {
+    const { error } = await bystander.client
+      .from('profiles')
+      .update({ role: 'vendor' })
+      .eq('id', bystander.id);
+
+    expect(error).not.toBeNull();
+
+    const { data } = await serviceClient()
+      .from('profiles')
+      .select('role')
+      .eq('id', bystander.id)
+      .single();
+    expect(data!.role).toBe('customer');
+  });
+
+  maybe('the role escape hatch does not leak past the function', async () => {
+    // Immediately after a moderation call on the same connection, an ordinary
+    // role change must still be refused.
+    const { error } = await applicant.client
+      .from('profiles')
+      .update({ role: 'admin' })
+      .eq('id', applicant.id);
+
+    expect(error).not.toBeNull();
+
+    const { data } = await serviceClient()
+      .from('profiles')
+      .select('role')
+      .eq('id', applicant.id)
+      .single();
+    expect(data!.role).toBe('vendor');
+  });
+
+  maybe('an admin approving their own listing keeps the admin role', async () => {
+    const { data: own } = await admin.client.rpc('request_vendor_onboarding', {
+      p_business_name: `Admin Owned ${Date.now()}`,
+      p_category: 'Venues',
+      p_location: 'Delhi',
+    });
+    const ownId = (own as { id: string }).id;
+
+    await admin.client.rpc('moderate_vendor', { p_vendor_id: ownId, p_action: 'approve' });
+
+    const { data } = await serviceClient()
+      .from('profiles')
+      .select('role')
+      .eq('id', admin.id)
+      .single();
+    expect(data!.role).toBe('admin');
+
+    await serviceClient().from('vendors').delete().eq('id', ownId);
+  });
+});

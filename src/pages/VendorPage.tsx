@@ -70,6 +70,8 @@ const VendorPage = () => {
 
   if (!vendor) return <NotFound />;
 
+  const bookableServices = vendor.vendor_services.filter((s) => s.is_active).length;
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
@@ -119,12 +121,23 @@ const VendorPage = () => {
     <div className="bg-canvas">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
-          <div className="relative h-96">
-            <img
-              src={vendor.hero_image_url ?? ''}
-              alt={vendor.business_name}
-              className="h-full w-full object-cover"
-            />
+          <div className="relative h-96 bg-canvas">
+            {/* An empty src issues a request for the page itself and renders the
+                broken-image glyph, so a vendor with no hero yet gets a plain
+                surface instead. */}
+            {vendor.hero_image_url ? (
+              <img
+                src={vendor.hero_image_url}
+                alt={`${vendor.business_name} cover image`}
+                fetchPriority="high"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center" aria-hidden="true">
+                <span className="text-sm text-muted">No cover image yet</span>
+              </div>
+            )}
             <FavoriteButton
               vendorId={vendor.id}
               vendorName={vendor.business_name}
@@ -139,13 +152,26 @@ const VendorPage = () => {
                 <p className="mt-2 text-muted">{vendor.category}</p>
               </div>
               <div className="text-right">
-                <div className="flex items-center">
-                  <Star className="h-6 w-6 fill-current text-amber-400" aria-hidden="true" />
-                  <span className="ml-2 text-2xl font-bold text-ink">
-                    {vendor.rating.toFixed(1)}
-                  </span>
-                </div>
-                <p className="text-muted">{vendor.review_count} reviews</p>
+                {vendor.review_count > 0 || !vendor.rating_is_demo ? (
+                  <>
+                    <div className="flex items-center justify-end">
+                      <Star className="h-6 w-6 fill-current text-amber-400" aria-hidden="true" />
+                      <span className="ml-2 text-2xl font-bold text-ink">
+                        {vendor.rating.toFixed(1)}
+                      </span>
+                    </div>
+                    <p className="text-muted">
+                      {vendor.review_count} review{vendor.review_count === 1 ? '' : 's'}
+                    </p>
+                  </>
+                ) : (
+                  /* A seeded rating with no reviews behind it. Saying so is the
+                     whole point of rating_is_demo; showing the number large and
+                     unqualified is what made it look earned. */
+                  <p className="max-w-[12rem] text-sm text-muted">
+                    Sample rating — no customer reviews yet
+                  </p>
+                )}
               </div>
             </div>
 
@@ -159,22 +185,42 @@ const VendorPage = () => {
                     <MapPin className="h-5 w-5 text-muted" aria-hidden="true" />
                     <span className="ml-2 text-muted">{vendor.location}</span>
                   </div>
+                  {/* These were inert spans. Messaging is not built, so the
+                      phone number and the email address are the only real ways
+                      to reach this vendor — they should be one tap. */}
                   {vendor.phone && (
                     <div className="flex items-center">
-                      <Phone className="h-5 w-5 text-muted" aria-hidden="true" />
-                      <span className="ml-2 text-muted">{vendor.phone}</span>
+                      <Phone className="h-5 w-5 shrink-0 text-muted" aria-hidden="true" />
+                      <a
+                        href={`tel:${vendor.phone.replace(/[^+\d]/g, '')}`}
+                        className="ml-2 text-ink-soft underline-offset-4 hover:text-brand-700 hover:underline"
+                      >
+                        {vendor.phone}
+                      </a>
                     </div>
                   )}
                   {vendor.email && (
                     <div className="flex items-center">
-                      <Mail className="h-5 w-5 text-muted" aria-hidden="true" />
-                      <span className="ml-2 text-muted">{vendor.email}</span>
+                      <Mail className="h-5 w-5 shrink-0 text-muted" aria-hidden="true" />
+                      <a
+                        href={`mailto:${vendor.email}`}
+                        className="ml-2 truncate text-ink-soft underline-offset-4 hover:text-brand-700 hover:underline"
+                      >
+                        {vendor.email}
+                      </a>
                     </div>
                   )}
                   {vendor.website && (
                     <div className="flex items-center">
-                      <Globe className="h-5 w-5 text-muted" aria-hidden="true" />
-                      <span className="ml-2 text-muted">{vendor.website}</span>
+                      <Globe className="h-5 w-5 shrink-0 text-muted" aria-hidden="true" />
+                      <a
+                        href={/^https?:\/\//i.test(vendor.website) ? vendor.website : `https://${vendor.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        className="ml-2 truncate text-ink-soft underline-offset-4 hover:text-brand-700 hover:underline"
+                      >
+                        {vendor.website}
+                      </a>
                     </div>
                   )}
                   {vendor.business_hours && (
@@ -189,7 +235,10 @@ const VendorPage = () => {
               <div>
                 <h2 className="mb-4 text-xl font-semibold">Services</h2>
                 {vendor.vendor_services.length === 0 ? (
-                  <p className="text-muted">This vendor has not listed services yet.</p>
+                  <p className="text-muted">
+                    This vendor has not listed any services yet, so there is nothing to book
+                    against. You can still contact them directly.
+                  </p>
                 ) : (
                   <ul className="divide-y rounded-lg border">
                     {vendor.vendor_services.map((service) => (
@@ -219,19 +268,28 @@ const VendorPage = () => {
                   </div>
                 )}
 
-                <div className="mt-8 space-y-4">
-                  <button
-                    onClick={() => setShowContact(true)}
-                    className="flex h-12 w-full items-center justify-center rounded-control bg-brand-600 text-sm font-medium text-white shadow-card transition-colors hover:bg-brand-700"
-                  >
-                    Contact vendor
-                  </button>
+                {/* Requesting a booking is the real action and is now the
+                    primary control. The message panel below it does not persist
+                    anything yet, and it had the purple button. */}
+                <div className="mt-8 space-y-3">
                   <button
                     onClick={() => setShowBooking(true)}
-                    className="flex h-12 w-full items-center justify-center rounded-control border border-line-strong bg-surface text-sm font-medium text-ink-soft transition-colors hover:bg-canvas"
+                    className="flex h-12 w-full items-center justify-center rounded-control bg-brand-600 text-sm font-medium text-white shadow-card transition-colors hover:bg-brand-700"
                   >
                     Request a booking
                   </button>
+                  <button
+                    onClick={() => setShowContact(true)}
+                    className="flex h-12 w-full items-center justify-center rounded-control border border-line-strong bg-surface text-sm font-medium text-ink-soft transition-colors hover:bg-canvas"
+                  >
+                    Send a message
+                  </button>
+                  {bookableServices === 0 && (
+                    <p className="text-sm text-muted">
+                      This vendor has not listed a bookable service yet. Their phone number and
+                      email are above.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -246,9 +304,14 @@ const VendorPage = () => {
             {vendor.vendor_media.length > 0 && (
               <div className="mt-10 border-t pt-8">
                 <h2 className="mb-2 text-xl font-semibold">Portfolio</h2>
-                <p className="mb-4 text-sm text-muted">
-                  Sample imagery supplied with this demo listing, not verified client work.
-                </p>
+                {/* Seeded listings carry stock imagery; a real vendor uploads
+                    their own. rating_is_demo is what distinguishes them, so the
+                    caption follows it instead of labelling everything a demo. */}
+                {vendor.rating_is_demo && (
+                  <p className="mb-4 text-sm text-muted">
+                    Sample imagery supplied with this demo listing, not verified client work.
+                  </p>
+                )}
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                   {vendor.vendor_media.map((media) => (
                     <img
@@ -256,6 +319,9 @@ const VendorPage = () => {
                       src={media.url}
                       alt={media.alt_text ?? `${vendor.business_name} portfolio image`}
                       loading="lazy"
+                      decoding="async"
+                      width={320}
+                      height={160}
                       className="h-40 w-full rounded-lg object-cover"
                     />
                   ))}

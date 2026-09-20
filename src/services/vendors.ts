@@ -101,6 +101,13 @@ export async function getVendorBySlug(slug: string): Promise<VendorWithDetails |
     )
     .eq('slug', slug)
     .eq('status', 'active')
+    // Inactive services stay on the vendor's own dashboard and out of the
+    // public page. The RLS policy on vendor_services gates on the *vendor*
+    // being active, not the service, so without this filter a service the
+    // vendor had deliberately switched off still appeared to customers — who
+    // could read it and then find no way to book it, since
+    // BookingRequestForm has always filtered on is_active.
+    .eq('vendor_services.is_active', true)
     .maybeSingle();
 
   if (error) fail('Unable to load this vendor', error);
