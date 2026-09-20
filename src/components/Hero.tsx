@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { getFilterOptions } from '../services/vendors';
+import { heroPhotoUrl } from '../lib/media';
 import type { FilterOptions } from '../types/database';
 
 /**
@@ -103,7 +104,7 @@ const Hero = () => {
     >
       {/* ── background ─────────────────────────────────────────────────────── */}
       <img
-        src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?ixlib=rb-1.2.1&auto=format&fit=crop&w=2400&q=80"
+        src={heroPhotoUrl(2400)}
         alt=""
         aria-hidden="true"
         fetchPriority="high"
