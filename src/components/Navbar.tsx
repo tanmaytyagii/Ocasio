@@ -122,9 +122,17 @@ const Navbar = () => {
   // mobile menu is open — that panel needs an opaque backdrop to be readable.
   const overHero = location.pathname === '/' && atTop && !mobileOpen;
 
+  /*
+   * Over the hero the header is glass rather than fully transparent: a thin lit
+   * border and a light blur give it just enough edge to read as chrome, without
+   * becoming a bar sitting on top of the photograph. Past the fold it returns to
+   * the solid surface, because translucent chrome over arbitrary page content is
+   * a readability problem rather than a style. Both states share the same
+   * transition, so the change is a fade, not a swap.
+   */
   const headerClass = overHero
-    ? 'border-transparent bg-transparent'
-    : 'border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80';
+    ? 'border-white/10 bg-ink-deep/20 backdrop-blur-md supports-[backdrop-filter]:bg-ink-deep/10'
+    : 'border-line bg-surface/95 backdrop-blur-xl supports-[backdrop-filter]:bg-surface/80';
 
   const wordmarkClass = overHero ? 'text-white' : 'text-brand-700';
   const iconButtonClass = overHero

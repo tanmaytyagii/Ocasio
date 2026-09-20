@@ -44,6 +44,42 @@
 }
 
 @layer components {
+  /*
+   * Full first screen, measured against the *small* viewport so mobile browser
+   * chrome cannot push the composition taller than the screen and clip it.
+   *
+   * Two declarations on purpose: a browser without `svh` support drops that
+   * line entirely and keeps the `vh` fallback. A single `100svh` would leave
+   * those browsers with no minimum height at all.
+   */
+  .hero-viewport {
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+
+  /*
+   * The arc the hero ends on. An over-wide ellipse clipped by the hero's
+   * overflow, so only its shallow top curve shows — no SVG, no extra request,
+   * and it scales with the viewport instead of distorting like a fixed-width
+   * wave asset would.
+   */
+  .hero-curve {
+    position: absolute;
+    left: 50%;
+    bottom: -1px;
+    transform: translateX(-50%);
+    /*
+     * Width and height are tuned together. At 180% the ellipse was so much
+     * wider than the viewport that the visible slice of its top edge was
+     * effectively a straight line — a hard horizontal join, which is exactly
+     * what this replaces. 128% keeps the arc shallow and editorial while
+     * staying unmistakably curved.
+     */
+    width: 128%;
+    height: clamp(52px, 8.5vw, 132px);
+    border-radius: 50% 50% 0 0;
+  }
+
   /* Skip link: first tab stop on every page, visible only when focused. */
   .skip-link {
     @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Building2, Camera, Sparkles, UtensilsCrossed } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getCategoryCounts } from '../services/vendors';
 import { ErrorState } from './ui';
@@ -21,6 +22,13 @@ const CATEGORY_IMAGES: Record<string, string> = {
     'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   Decoration:
     'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+};
+
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  Venues: Building2,
+  Catering: UtensilsCrossed,
+  Photography: Camera,
+  Decoration: Sparkles,
 };
 
 const FALLBACK_IMAGE = CATEGORY_IMAGES.Venues;
@@ -59,12 +67,20 @@ const PopularCategories = () => {
 
   return (
     /*
-     * -mt-8 pulls the grid up into the hero's bottom fade, so the two sections
-     * overlap slightly instead of meeting on a hard edge. pt-24 restores the
-     * breathing room above the heading.
+     * The hero closes on an arc drawn in this section's colour, so this section
+     * reads as rising up underneath it. No negative margin is needed any more —
+     * the curve is the join.
      */
-    <section className="relative z-10 -mt-8 bg-canvas pb-16 pt-14 sm:pb-20 sm:pt-20">
-      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+    <section className="relative z-10 overflow-hidden bg-canvas pb-20 pt-8 sm:pb-24 sm:pt-10">
+      {/* Ambient lavender light bleeding down out of the hero, so the dark
+          section above and the light one below share an atmosphere instead of
+          meeting as two flat blocks. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-24 left-1/2 h-[30rem] w-[62rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgb(147_51_234_/_0.10)_0%,rgb(147_51_234_/_0.04)_45%,transparent_70%)] blur-2xl"
+      />
+
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4 sm:mb-12">
           <div className="max-w-xl">
             <h2 className="text-display-sm text-ink">Browse by service</h2>
@@ -74,70 +90,98 @@ const PopularCategories = () => {
           </div>
           <Link
             to="/vendors"
-            className="text-sm font-medium text-brand-700 transition-colors hover:text-brand-800"
+            className="group inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 transition-colors hover:text-brand-800"
           >
-            See all vendors →
+            See all vendors
+            <ArrowRight
+              className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
           </Link>
         </div>
 
-        {error && !loading && (
-          <ErrorState message={error} onRetry={() => setNonce((n) => n + 1)} />
-        )}
+        {error && !loading && <ErrorState message={error} onRetry={() => setNonce((n) => n + 1)} />}
 
         {/*
-          `perspective` on the grid lets each card lift toward the viewer rather
-          than simply scaling. The movement is deliberately small — 4px and a
-          deeper shadow — so it reads as material rather than as an animation.
-          The global prefers-reduced-motion rule collapses both transitions.
+          `perspective` on the grid lets each card lift *toward* the viewer via
+          translateZ rather than simply scaling — the difference between an
+          object moving in space and a picture getting bigger. The movement is
+          deliberately small so it reads as material, not as an animation, and
+          the global prefers-reduced-motion rule collapses every transition here.
         */}
-        <div className="grid grid-cols-1 gap-6 [perspective:1200px] sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-5 [perspective:1600px] sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="aspect-[4/5] w-full animate-pulse rounded-card bg-line" />
+                <div key={i} className="aspect-[4/5] w-full animate-pulse rounded-glass bg-line" />
               ))
-            : !error && categories.map((category) => (
-                <Link
-                  to={`/category/${category.category.toLowerCase()}`}
-                  key={category.category}
-                  className="group relative block rounded-card shadow-card transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_-12px_rgb(17_24_39_/_0.35)] focus-visible:-translate-y-1"
-                >
-                  <div className="relative aspect-[4/5] w-full overflow-hidden rounded-card bg-ink">
-                    <img
-                      src={CATEGORY_IMAGES[category.category] ?? FALLBACK_IMAGE}
-                      alt=""
-                      aria-hidden="true"
-                      loading="lazy"
-                      // A dead upstream URL should degrade to the dark card and
-                      // its label, not to the browser's broken-image glyph.
-                      onError={(e) => {
-                        e.currentTarget.style.visibility = 'hidden';
-                      }}
-                      className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.07]"
-                    />
-                    {/* Two stacked gradients: a floor for the label, and a
-                        whole-card wash that lifts slightly on hover. */}
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-0 bg-gradient-to-t from-ink via-ink/25 to-transparent opacity-90"
-                    />
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-0 bg-ink/10 transition-opacity duration-300 group-hover:opacity-0"
-                    />
+            : !error &&
+              categories.map((category) => {
+                const Icon = CATEGORY_ICONS[category.category] ?? Sparkles;
+                return (
+                  <Link
+                    to={`/category/${category.category.toLowerCase()}`}
+                    key={category.category}
+                    className="group relative block rounded-glass shadow-lift transition-[transform,box-shadow] duration-500 ease-out [transform-style:preserve-3d] hover:[transform:translate3d(0,-6px,40px)] hover:shadow-lift-hover focus-visible:[transform:translate3d(0,-6px,40px)] focus-visible:shadow-lift-hover"
+                  >
+                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-glass bg-ink-deep ring-1 ring-inset ring-white/10">
+                      <img
+                        src={CATEGORY_IMAGES[category.category] ?? FALLBACK_IMAGE}
+                        alt=""
+                        aria-hidden="true"
+                        loading="lazy"
+                        // A dead upstream URL should degrade to the dark card and
+                        // its label, not to the browser's broken-image glyph.
+                        onError={(e) => {
+                          e.currentTarget.style.visibility = 'hidden';
+                        }}
+                        className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.09]"
+                      />
 
-                    <div className="absolute inset-x-0 bottom-0 p-5">
-                      <h3 className="text-lg font-semibold text-white">{category.category}</h3>
-                      <p className="mt-0.5 text-sm text-white/70">
-                        {category.vendor_count} vendor{category.vendor_count === 1 ? '' : 's'}
-                      </p>
-                      <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
-                        Browse
-                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      {/* A deep floor for the label plus a whole-card wash that
+                          lifts on hover, so the image brightens as it rises.
+                          The floor is opaque at the base and still at 70% a
+                          third of the way up: the brightest tiles (catering,
+                          decoration) are near-white exactly where the label
+                          sits, and a lighter scrim left it barely legible. */}
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0 bg-[linear-gradient(to_top,rgb(8_11_22_/_0.97)_0%,rgb(8_11_22_/_0.86)_18%,rgb(8_11_22_/_0.52)_38%,rgb(8_11_22_/_0.14)_64%,transparent_100%)]"
+                      />
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0 bg-ink-deep/20 transition-opacity duration-500 group-hover:opacity-0"
+                      />
+
+                      {/* Glass icon chip, floating off the image. */}
+                      <span
+                        aria-hidden="true"
+                        className="absolute left-5 top-5 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition-colors duration-500 group-hover:bg-white/20"
+                      >
+                        <Icon className="h-[1.1rem] w-[1.1rem]" />
                       </span>
+
+                      <div className="absolute inset-x-0 bottom-0 p-5">
+                        <h3 className="text-[1.05rem] font-semibold text-white">
+                          {category.category}
+                        </h3>
+                        <p className="mt-0.5 text-sm text-white/65">
+                          {category.vendor_count} vendor{category.vendor_count === 1 ? '' : 's'}
+                        </p>
+
+                        {/* Reserved height, so the card does not reflow when the
+                            affordance appears. Keyboard focus gets it too. */}
+                        <span className="mt-3 flex h-5 items-center gap-1.5 text-sm font-medium text-white opacity-0 transition-all duration-500 group-hover:opacity-100 group-focus-visible:opacity-100">
+                          Browse
+                          <ArrowRight
+                            className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-1"
+                            aria-hidden="true"
+                          />
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
         </div>
       </div>
     </section>
