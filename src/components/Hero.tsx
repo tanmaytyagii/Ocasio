@@ -141,7 +141,7 @@ const Hero = () => {
 
       <div className="relative flex flex-1 items-end lg:items-center">
         <div className="shell shell-query pb-[clamp(72px,8vw,132px)] pt-24 lg:pt-10">
-          <div className="grid gap-y-10 xl:items-center xl:[grid-template-columns:minmax(0,var(--hero-measure))_minmax(2rem,1fr)_var(--hero-card)]">
+          <div className="grid gap-y-10 xl:items-center xl:[grid-template-columns:minmax(0,var(--hero-measure))_minmax(2rem,var(--hero-gap-max))_var(--hero-card)_minmax(0,1fr)]">
             {/* ── midground · copy ─────────────────────────────────────────── */}
             <div className="max-w-[var(--hero-measure)]">
               <p className="flex items-center gap-3 text-[0.6rem] font-medium uppercase tracking-[0.34em] text-white/80">

@@ -84,7 +84,18 @@
     --hero-measure: clamp(43rem, 52cqw, 46rem);
     --hero-search-max: var(--hero-measure);
     --hero-card: clamp(17.5rem, 18cqw, 20rem);
-    --hero-thread: clamp(8rem, 30cqw, 30rem);
+    /*
+     * The flexible column has a ceiling of its own. Without one it absorbed the
+     * whole of the extra canvas — 664px at 1920 — and the annotation stopped
+     * reading as part of the composition and started reading as a separate
+     * object parked at the far edge. Capped here, surplus width passes through
+     * to the trailing column instead, where it becomes photograph and outer
+     * breathing room.
+     */
+    --hero-gap-max: clamp(2rem, 26cqw, 25.5rem);
+    /* Shorter than the gap it crosses, so it reads as a thread reaching toward
+       the search slab rather than a rule drawn between two boxes. */
+    --hero-thread: clamp(7rem, 20cqw, 19rem);
     --hero-label: 0.6rem;
     --hero-image-scale: 1.04;
     --hero-image-pos: 58% center;
