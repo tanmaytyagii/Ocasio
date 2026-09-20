@@ -13,10 +13,14 @@ import { Link } from 'react-router-dom';
  * behind them in the catalogue.
  *
  * Composition notes:
- *  - The content is bounded to 76rem and anchored left inside the page shell,
- *    so its left edge stays on the same line as the header and every section
- *    above it while a very wide window turns into air on the right rather than
- *    into 600px gaps between link columns.
+ *  - The content is bounded to 84rem and centred inside the page shell. The cap
+ *    is chosen so the two things that matter agree rather than compete: the
+ *    shell is 1190px at 1280 and 1339px at 1440, both under the cap, so the
+ *    footer is simply the shell there and its left edge lands on the same line
+ *    as the header wordmark. From 1600 up the shell outgrows the cap, the
+ *    footer stops widening and centres — which, because the shell is itself
+ *    centred, puts it exactly in the middle of the viewport at 1920 and 2560
+ *    instead of leaving 500px of dead space on one side.
  *  - The brand column is given 1.3fr against the navigation's 1fr so it reads
  *    as the anchor rather than as a fourth column of the same weight.
  */
@@ -86,7 +90,7 @@ const BrandMark = () => (
 const Footer = () => (
   <footer className="border-t border-line bg-surface">
     <div className="shell pb-[clamp(1.75rem,2.5vw,2.5rem)] pt-[clamp(3rem,4.5vw,4.5rem)]">
-      <div className="max-w-[76rem]">
+      <div className="mx-auto max-w-[84rem]">
         <div className="grid gap-x-10 gap-y-12 sm:grid-cols-2 md:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))] lg:gap-x-12">
           {/* ── brand ─────────────────────────────────────────────────── */}
           <div className="sm:col-span-2 md:col-span-1">
