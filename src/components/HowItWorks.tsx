@@ -26,29 +26,55 @@ const STEPS = [
   },
 ];
 
+/**
+ * The light half of the lower page: white, airy, editorial. The dark vendor
+ * card that follows is the contrast beat, which is why this section stays
+ * deliberately plain — one surface, one grid, no cards.
+ */
 const HowItWorks = () => (
-  <section className="border-y border-line bg-surface py-16 sm:py-20">
+  <section className="border-t border-line bg-surface py-[clamp(4rem,7vw,7rem)]">
     <div className="shell">
-      <div className="max-w-2xl">
-        <h2 className="text-display-sm text-ink">How Ocasio works</h2>
-        <p className="mt-3 text-muted">
-          Three steps from browsing to a booking you can hold someone to.
+      <header className="max-w-2xl">
+        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-brand-700">
+          How it works
         </p>
-      </div>
+        <h2 className="mt-3 text-display-sm text-ink">Three simple steps</h2>
+        <p className="mt-3.5 text-[1.0625rem] leading-relaxed text-muted">
+          From search to celebration — get the people who make it happen.
+        </p>
+      </header>
 
-      <ol className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
+      <ol className="mt-[clamp(2.75rem,5vw,4.5rem)] grid grid-cols-1 gap-x-10 gap-y-12 md:grid-cols-3">
         {STEPS.map((step, index) => (
-          <li key={step.title} className="relative">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700">
-                <step.icon className="h-5 w-5" aria-hidden="true" />
+          <li key={step.title}>
+            <div className="flex items-center gap-4">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-100">
+                <step.icon className="h-[1.375rem] w-[1.375rem]" aria-hidden="true" />
               </span>
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted">
+              <span className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-muted">
                 Step {index + 1}
               </span>
+
+              {/*
+                The rule that ties the three steps into one sequence. A flex
+                sibling rather than an absolute overlay, so it always begins
+                after the label instead of running behind it, and the negative
+                margin carries it across the column gap. Never after the last
+                step, and never on mobile — where the steps stack, a horizontal
+                rule would point at nothing.
+              */}
+              {index < STEPS.length - 1 && (
+                <span
+                  aria-hidden="true"
+                  className="hidden h-px flex-1 bg-gradient-to-r from-line to-transparent md:-mr-10 md:block"
+                />
+              )}
             </div>
-            <h3 className="mt-4 text-lg font-semibold text-ink">{step.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted">{step.body}</p>
+
+            <h3 className="mt-6 text-[1.1875rem] font-semibold text-ink">{step.title}</h3>
+            <p className="mt-2.5 max-w-sm text-[0.9375rem] leading-relaxed text-muted">
+              {step.body}
+            </p>
           </li>
         ))}
       </ol>

@@ -68,7 +68,7 @@ test.describe('marketplace discovery', () => {
     // Top-rated vendors come from the database, so at least one card renders.
     await expect(page.getByRole('heading', { name: 'Top-rated vendors' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Browse by service' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'How Ocasio works' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Three simple steps' })).toBeVisible();
 
     // --- Search ----------------------------------------------------------
     await page.goto('/search?q=photography');
