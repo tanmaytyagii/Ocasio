@@ -8,10 +8,26 @@ import type { FilterOptions } from '../types/database';
 /**
  * Homepage hero.
  *
- * The city list is read from the database rather than hardcoded, so the search
- * cannot offer a city with no vendors behind it. The category list likewise.
- * If that lookup fails the form still works — it degrades to free-text search
- * instead of disappearing.
+ * Runs edge to edge *and* under the header: `-mt-16 pt-16` cancels the shell's
+ * fixed-header offset and pads the content back down. Previously the hero began
+ * below an opaque white bar, which is what made a full-width section read as a
+ * rectangle sitting inside the page. The header turns translucent over the
+ * homepage hero (see Navbar) so the image is genuinely uninterrupted.
+ *
+ * Depth comes from stacked CSS layers rather than a library:
+ *   1. the photograph, very slightly over-scaled so its edges never show
+ *   2. a directional scrim, dark where the text sits and clear where the
+ *      subject is
+ *   3. a top scrim so white header text stays legible
+ *   4. a bottom fade into the canvas colour, so the hero dissolves into the
+ *      next section instead of ending on a hard line
+ *
+ * No parallax: a scroll-linked transform would cost a listener and a repaint on
+ * the most-visited route, and would need unwinding for reduced-motion anyway.
+ *
+ * The category and city lists come from filter_options(), so the form cannot
+ * offer a city with no vendors behind it. If that lookup fails the form still
+ * works and falls back to a free-text search.
  */
 const Hero = () => {
   const [category, setCategory] = useState('');
@@ -26,7 +42,6 @@ const Hero = () => {
         if (active) setOptions(o);
       })
       .catch(() => {
-        // Non-fatal: the selects render empty and search still works.
         if (active) setOptions(null);
       });
     return () => {
@@ -43,51 +58,87 @@ const Hero = () => {
   };
 
   const selectClass =
-    'h-12 w-full rounded-control border border-line-strong bg-surface px-3 text-sm text-ink focus:border-brand-500';
+    'h-12 w-full appearance-none rounded-control border border-line-strong bg-surface px-3.5 pr-9 text-sm text-ink ' +
+    'transition-colors hover:border-line-strong focus:border-brand-500';
+
+  const caret =
+    "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E\")] " +
+    'bg-[length:1.1rem] bg-[right_0.75rem_center] bg-no-repeat';
 
   return (
-    <section className="relative isolate overflow-hidden">
+    <section
+      className="relative isolate -mt-16 flex min-h-[520px] items-center overflow-hidden pt-16 sm:min-h-[70vh] lg:min-h-[82vh] lg:max-h-[880px]"
+      aria-labelledby="hero-heading"
+    >
+      {/* 1 — photograph */}
       <img
-        src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80"
+        src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?ixlib=rb-1.2.1&auto=format&fit=crop&w=2400&q=80"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 -z-10 h-full w-full object-cover"
-      />
-      {/* Directional scrim rather than a flat 40% black: keeps the image
-          readable while guaranteeing contrast behind the text. */}
-      <div
-        className="absolute inset-0 -z-10 bg-gradient-to-r from-ink/85 via-ink/70 to-ink/40"
-        aria-hidden="true"
+        fetchPriority="high"
+        className="absolute inset-0 -z-30 h-full w-full scale-[1.03] object-cover object-center"
       />
 
-      <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
-        <div className="max-w-2xl">
-          <p className="text-sm font-medium uppercase tracking-widest text-brand-200">
+      {/* 2 — directional scrim: dense behind the text, open over the subject. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-20 bg-gradient-to-r from-ink/90 via-ink/65 to-ink/20"
+      />
+
+      {/* 3 — top scrim so the translucent header stays readable, and 4 — a
+          bottom fade that dissolves the hero into the section below.
+          Explicit stops rather than from/via/to: a three-stop Tailwind gradient
+          ramps across the whole height and washes the middle of the photograph
+          out. Confining each fade to its own band keeps the image clean where
+          the subject actually is. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,rgb(17_24_39_/_0.55)_0%,rgb(17_24_39_/_0.12)_18%,transparent_38%,transparent_78%,rgb(248_248_250_/_0.75)_94%,rgb(248_248_250)_100%)]"
+      />
+
+      <div className="mx-auto w-full max-w-7xl px-5 py-10 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+        <div className="max-w-[46rem]">
+          <p className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-brand-200 sm:text-sm">
+            <span className="h-px w-8 bg-brand-300/70" aria-hidden="true" />
             Event vendor marketplace
           </p>
-          <h1 className="mt-4 text-display-sm text-white sm:text-display lg:text-display-lg">
+
+          <h1
+            id="hero-heading"
+            className="mt-4 text-[2.15rem] font-semibold leading-[1.06] tracking-[-0.025em] text-white sm:mt-5 sm:text-[3.25rem] lg:text-[4.25rem]"
+          >
             Book the people who make your event work
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/85">
+
+          <p className="mt-4 max-w-xl text-[0.975rem] leading-relaxed text-white/80 sm:mt-6 sm:text-lg">
             Compare venues, caterers, photographers and decorators across India. Send a booking
             request, track it from request to completion, and review the work afterwards.
           </p>
         </div>
 
+        {/*
+          The discovery control reads as a panel lifted off the image rather
+          than a form pasted onto it: a light hairline above, a deep shadow
+          below, and a translucent surface that lets the photograph through at
+          the edges.
+        */}
         <form
           onSubmit={handleSearch}
-          className="mt-10 max-w-3xl rounded-panel bg-surface p-4 shadow-overlay"
+          className="mt-7 max-w-3xl rounded-panel border border-white/15 bg-surface/95 p-3 shadow-[0_24px_60px_-12px_rgb(17_24_39_/_0.55)] backdrop-blur-md sm:mt-12 sm:p-4"
           role="search"
           aria-label="Find vendors"
         >
-          <div className="flex flex-col gap-3 md:flex-row">
+          <div className="flex flex-col gap-2.5 md:flex-row md:items-end md:gap-3">
             <div className="flex-1">
-              <label htmlFor="hero-category" className="sr-only">
-                Service category
+              <label
+                htmlFor="hero-category"
+                className="mb-1 block px-0.5 text-xs font-medium uppercase tracking-wide text-muted sm:mb-1.5"
+              >
+                Service
               </label>
               <select
                 id="hero-category"
-                className={selectClass}
+                className={`${selectClass} ${caret}`}
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
@@ -100,13 +151,21 @@ const Hero = () => {
               </select>
             </div>
 
+            <div
+              className="hidden w-px self-stretch bg-line md:mb-1 md:block"
+              aria-hidden="true"
+            />
+
             <div className="flex-1">
-              <label htmlFor="hero-city" className="sr-only">
+              <label
+                htmlFor="hero-city"
+                className="mb-1 block px-0.5 text-xs font-medium uppercase tracking-wide text-muted sm:mb-1.5"
+              >
                 City
               </label>
               <select
                 id="hero-city"
-                className={selectClass}
+                className={`${selectClass} ${caret}`}
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
               >
@@ -119,7 +178,7 @@ const Hero = () => {
               </select>
             </div>
 
-            <Button type="submit" size="lg" className="md:w-auto">
+            <Button type="submit" size="lg" className="h-12 md:w-auto md:px-7">
               <Search className="h-4 w-4" aria-hidden="true" />
               Search vendors
             </Button>

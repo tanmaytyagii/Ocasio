@@ -32,12 +32,18 @@ const CATEGORIES = [
  * Active route state comes from NavLink rather than manual pathname
  * comparison, so it cannot drift from the router.
  */
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `relative py-1 text-sm font-medium transition-colors ${
-    isActive
-      ? 'text-brand-700 after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:rounded-full after:bg-brand-600'
-      : 'text-ink-soft hover:text-brand-700'
-  }`;
+const navLinkClass =
+  (overHero: boolean) =>
+  ({ isActive }: { isActive: boolean }) =>
+    `relative py-1 text-sm font-medium transition-colors ${
+      isActive
+        ? overHero
+          ? 'text-white after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:rounded-full after:bg-white'
+          : 'text-brand-700 after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:rounded-full after:bg-brand-600'
+        : overHero
+          ? 'text-white/80 hover:text-white'
+          : 'text-ink-soft hover:text-brand-700'
+    }`;
 
 const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
   `block rounded-control px-3 py-2.5 text-sm font-medium transition-colors ${
@@ -46,6 +52,7 @@ const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [atTop, setAtTop] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -66,6 +73,20 @@ const Navbar = () => {
     setShowDropdown(false);
     navigate('/');
   };
+
+  /*
+   * The header sits over the homepage hero while the page is at the top, so the
+   * image runs uninterrupted to the edge of the viewport. Once scrolled — or on
+   * any other route — it returns to the solid surface, because translucent
+   * chrome over arbitrary page content is a readability problem rather than a
+   * style.
+   */
+  useEffect(() => {
+    const onScroll = () => setAtTop(window.scrollY < 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Close overlays after navigating.
   useEffect(() => {
@@ -97,8 +118,23 @@ const Navbar = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [mobileOpen]);
 
+  // Transparent only on the homepage, only at the top, and never while the
+  // mobile menu is open — that panel needs an opaque backdrop to be readable.
+  const overHero = location.pathname === '/' && atTop && !mobileOpen;
+
+  const headerClass = overHero
+    ? 'border-transparent bg-transparent'
+    : 'border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80';
+
+  const wordmarkClass = overHero ? 'text-white' : 'text-brand-700';
+  const iconButtonClass = overHero
+    ? 'text-white/90 hover:bg-white/10 hover:text-white'
+    : 'text-ink-soft hover:bg-canvas hover:text-brand-700';
+
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
+    <header
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300 ${headerClass}`}
+    >
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main">
         <div className="flex h-16 items-center justify-between gap-4">
           <div className="flex items-center gap-6">
@@ -109,7 +145,7 @@ const Navbar = () => {
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-              className="-ml-1 rounded-control p-2 text-ink-soft hover:bg-canvas md:hidden"
+              className={`-ml-1 rounded-control p-2 transition-colors md:hidden ${iconButtonClass}`}
             >
               {mobileOpen ? (
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -120,18 +156,18 @@ const Navbar = () => {
 
             <Link
               to="/"
-              className="text-xl font-semibold tracking-tight text-brand-700"
+              className={`text-xl font-semibold tracking-tight transition-colors ${wordmarkClass}`}
               aria-label="Ocasio home"
             >
               Ocasio
             </Link>
 
             <div className="hidden items-center gap-6 md:flex">
-              <NavLink to="/vendors" className={navLinkClass}>
+              <NavLink to="/vendors" className={navLinkClass(overHero)}>
                 Explore
               </NavLink>
               {CATEGORIES.map((c) => (
-                <NavLink key={c.to} to={c.to} className={navLinkClass}>
+                <NavLink key={c.to} to={c.to} className={navLinkClass(overHero)}>
                   {c.label}
                 </NavLink>
               ))}
@@ -149,10 +185,16 @@ const Navbar = () => {
                 placeholder="Search vendors…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 w-56 rounded-full border border-line-strong bg-canvas pl-9 pr-3 text-sm text-ink placeholder:text-muted focus:border-brand-500 focus:bg-surface"
+                className={`h-9 w-56 rounded-full border pl-9 pr-3 text-sm transition-colors focus:border-brand-500 focus:bg-surface focus:text-ink ${
+                  overHero
+                    ? 'border-white/25 bg-white/10 text-white placeholder:text-white/60'
+                    : 'border-line-strong bg-canvas text-ink placeholder:text-muted'
+                }`}
               />
               <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+                className={`pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${
+                  overHero ? 'text-white/70' : 'text-muted'
+                }`}
                 aria-hidden="true"
               />
             </form>
@@ -162,7 +204,7 @@ const Navbar = () => {
                 <Link
                   to="/favorites"
                   aria-label="Saved vendors"
-                  className="rounded-control p-2 text-ink-soft transition-colors hover:bg-canvas hover:text-brand-700"
+                  className={`rounded-control p-2 transition-colors ${iconButtonClass}`}
                 >
                   <Heart className="h-5 w-5" aria-hidden="true" />
                 </Link>
@@ -173,7 +215,11 @@ const Navbar = () => {
                     aria-expanded={showDropdown}
                     aria-haspopup="menu"
                     aria-label="Account menu"
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-brand-700 transition-colors hover:bg-brand-100"
+                    className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+                      overHero
+                        ? 'bg-white/15 text-white hover:bg-white/25'
+                        : 'bg-brand-50 text-brand-700 hover:bg-brand-100'
+                    }`}
                   >
                     <User className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -229,7 +275,14 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <ButtonLink to="/become-vendor" variant="ghost" size="sm" className="hidden sm:inline-flex">
+                <ButtonLink
+                  to="/become-vendor"
+                  variant="ghost"
+                  size="sm"
+                  className={`hidden sm:inline-flex ${
+                    overHero ? 'text-white/90 hover:bg-white/10 hover:text-white' : ''
+                  }`}
+                >
                   List your business
                 </ButtonLink>
                 <ButtonLink to="/auth" size="sm">
@@ -257,7 +310,9 @@ const Navbar = () => {
                 className="h-11 w-full rounded-control border border-line-strong bg-canvas pl-10 pr-3 text-sm text-ink placeholder:text-muted focus:border-brand-500 focus:bg-surface"
               />
               <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+                className={`pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${
+                  overHero ? 'text-white/70' : 'text-muted'
+                }`}
                 aria-hidden="true"
               />
             </form>
