@@ -71,6 +71,20 @@
   }
 
   /*
+   * On desktop the hero stops a little short of the full screen so the arc and
+   * the first inches of the next section sit inside the fold. A composition
+   * that ends exactly at the viewport edge reads as the whole page; letting the
+   * next surface break the line is what tells you there is more underneath.
+   * Phones keep the full screen — there is no room there to give away.
+   */
+  @media (min-width: 1024px) {
+    .hero-viewport {
+      min-height: 88vh;
+      min-height: 88svh;
+    }
+  }
+
+  /*
    * The light half of the page rising underneath the hero, rather than a line
    * ruled between two sections.
    *
@@ -90,12 +104,15 @@
     bottom: -1px;
     transform: translateX(-50%);
     width: 122%;
-    height: clamp(60px, 8vw, 150px);
+    height: clamp(52px, 6.5vw, 120px);
     border-radius: 50% 50% 0 0;
+    /* Ambient, not decorative. At roughly a third of its previous strength the
+       violet is felt as light spilling off a lit surface rather than seen as a
+       purple band. */
     box-shadow:
-      0 -2px 1px -1px rgb(255 255 255 / 0.10),
-      0 -30px 70px -24px rgb(147 51 234 / 0.45),
-      0 -60px 120px -40px rgb(168 85 247 / 0.25);
+      0 -1px 1px -1px rgb(255 255 255 / 0.08),
+      0 -40px 90px -30px rgb(147 51 234 / 0.16),
+      0 -90px 160px -60px rgb(168 85 247 / 0.09);
   }
 
   /*

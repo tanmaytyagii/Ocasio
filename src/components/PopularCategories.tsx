@@ -63,7 +63,7 @@ const PopularCategories = () => {
      * reads as rising up underneath it. No negative margin is needed any more —
      * the curve is the join.
      */
-    <section className="relative z-10 overflow-hidden bg-canvas pb-20 pt-8 sm:pb-24 sm:pt-10">
+    <section className="relative z-10 overflow-hidden bg-canvas pb-20 pt-2 sm:pb-24 sm:pt-4">
       {/* Ambient lavender light bleeding down out of the hero, so the dark
           section above and the light one below share an atmosphere instead of
           meeting as two flat blocks. */}

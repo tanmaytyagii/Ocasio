@@ -145,7 +145,7 @@ const Navbar = () => {
     >
       <nav className="mx-auto max-w-[96rem] px-4 sm:px-8 lg:px-12 xl:px-16" aria-label="Main">
         <div className="flex h-16 items-center justify-between gap-4 lg:h-20">
-          <div className="flex items-center gap-7 xl:gap-9">
+          <div className="flex items-center gap-8 xl:gap-12">
             <button
               ref={mobileButtonRef}
               type="button"
@@ -164,13 +164,13 @@ const Navbar = () => {
 
             <Link
               to="/"
-              className={`text-[1.35rem] font-semibold tracking-[-0.03em] transition-colors ${wordmarkClass}`}
+              className={`text-[1.5rem] font-semibold tracking-[-0.045em] transition-colors ${wordmarkClass}`}
               aria-label="Ocasio home"
             >
               Ocasio
             </Link>
 
-            <div className="hidden items-center gap-7 md:flex xl:gap-8">
+            <div className="hidden items-center gap-8 md:flex xl:gap-9">
               <NavLink to="/vendors" className={navLinkClass(overHero)}>
                 Explore
               </NavLink>
