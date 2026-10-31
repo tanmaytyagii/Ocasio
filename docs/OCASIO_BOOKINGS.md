@@ -246,12 +246,15 @@ There is no "Book now", no "Payment complete", no "Confirmed".
 
 ## 8. Known limitations
 
-- **No availability or calendar.** Two customers can request the same vendor on
-  the same date and both requests will exist. A vendor can accept both. Nothing
-  checks for a clash, because vendor availability is not modelled. The
-  duplicate-request index prevents only the *same customer* double-submitting
-  the *same service and date*. This is deliberate: pretending to manage a
-  calendar without storing one would be worse than not having it.
+- **No calendar — but a daily limit.** *(Updated by migration
+  20261030000002.)* Each vendor has a `daily_capacity` (default 1, editable in
+  the vendor dashboard), and `transition_booking_status()` refuses an acceptance
+  that would exceed it, counting accepted and completed bookings for that vendor
+  and date under a lock on the vendor row — so two simultaneous acceptances
+  cannot both take the last slot. Declining or cancelling frees a slot; pending
+  requests use none. What is still missing is a calendar *customers* can see:
+  any number of requests can be sent for a full date, and the vendor declines
+  the ones it cannot take.
 - **No notifications.** A vendor is not told a request arrived, and a customer
   is not told it was answered. Both must check the site.
 - **No payments.** Phase 4.

@@ -210,14 +210,18 @@ retry still applies.
 
 ## 8. Webhook boundary
 
-`supabase/functions/payments-webhook/index.ts`:
+> **Superseded for Razorpay** — see §14. This section describes the generic
+> boundary that `process_payment_event()` was built for; the `test` provider is
+> still settled through it (by tests, with the service role).
+
+The webhook edge function:
 
 1. Verifies an **HMAC-SHA256 over the raw body** with a constant-time compare.
    Re-serialising the body would change the signature, so the raw text is used.
 2. **Fails closed** when no secret is configured — a misconfigured deployment
    rejects everything rather than waving it through.
 3. Extracts event id, type and provider payment reference.
-4. Calls `process_payment_event()` with the service-role key.
+4. Calls the processing function with the service-role key.
 
 It contains **no business logic**. Whether a late failure can unsettle a paid
 payment lives in SQL, where it is testable and cannot be bypassed.
@@ -240,18 +244,15 @@ forged events.
 
 ## 9. Where a real provider plugs in
 
-Two files, and nothing else:
+This section once said a provider needed two files: a browser adapter and the
+webhook's signature check. Razorpay showed that was not enough. Its orders must
+be created, and its refunds issued, with the key secret — on a server — so the
+integration added two edge functions, Razorpay-specific database functions that
+verify amounts and order ids, and an adapter interface where the server, not
+the browser, creates the order. §14 describes it.
 
-1. **`src/services/payments/provider.ts`** — implement `PaymentProvider` with the
-   provider's checkout SDK and register it. Set `VITE_PAYMENT_PROVIDER` to its
-   name.
-2. **`supabase/functions/payments-webhook/index.ts`** — replace `verifySignature`
-   and `parseEvent` with the provider's scheme. For Razorpay: HMAC-SHA256 of the
-   raw body keyed by the webhook secret, compared against `x-razorpay-signature`,
-   with `payment.captured` / `payment.failed` mapped to our event names.
-
-The payment domain, database functions, state machine, RLS and tests are
-unchanged by that swap.
+What did hold: the state machine, RLS, "only a verified webhook settles", and
+the test provider's flow are unchanged.
 
 ### The test provider is not a shortcut
 
@@ -324,20 +325,26 @@ test asserts no sensitive token appears in the recorded metadata.
 
 ## 12. Known limitations
 
-- **No real provider.** Money does not move. Everything else is real.
-- **The edge function is not covered by the automated suite.** It runs on Deno
-  and needs `supabase functions serve` plus a secret. Its signature verification
-  is unit-tested in `tests/webhook-signature.test.ts` against the same Web Crypto
-  API, and the database side it calls is fully covered — but the HTTP handler
-  itself has not been executed in CI.
+*Updated for the Razorpay integration (§14); this section first described the
+test provider alone.*
+
+- **Razorpay is integrated but not activated.** Money does not move until an
+  account is configured, and no request has yet reached Razorpay's servers (§14).
+- **Edge functions** are covered twice: their handlers run in Node against the
+  real database with Razorpay stubbed at the HTTP boundary
+  (`tests/razorpay-payments.test.ts`), and the Deno entry points run behind the
+  real gateway in `tests/edge/functions.test.ts` — signatures, per-function JWT
+  settings, CORS, the scheduler-only check and a Razorpay outage.
 - **No payouts.** Nothing moves money to vendors; there is no ledger, no
   settlement schedule and no commission.
 - **No disputes or chargebacks.**
 - **No automated refund policy** (§10).
-- **No admin UI.** The `admin` role can refund, but nothing grants it and there
-  is no interface. Approval and refunds are operator actions via `service_role`.
-- **No reconciliation job.** A payment stuck in `processing` because a webhook
-  never arrived stays there; nothing polls the provider.
+- **No admin UI for payments.** An admin (granted by an operator with the
+  service role) can refund through `payments-refund`, but the admin console
+  covers vendor moderation only.
+- **Reconciliation covers the test provider only.** The scheduled sweep
+  ([`OCASIO_OPERATIONS.md`](./OCASIO_OPERATIONS.md)) has no Razorpay adapter
+  (§14, Remaining risks).
 - **Currency is fixed to INR.** The column exists but nothing selects it.
 
 ---
@@ -346,11 +353,19 @@ test asserts no sensitive token appears in the recorded metadata.
 
 ```bash
 npx supabase start
-npm test             # 167 integration + unit tests, 55 of them payments
-npx playwright test  # 24 E2E, 4 of them payments (desktop + mobile)
+OCASIO_REQUIRE_SUPABASE=1 npm test   # the whole suite, payments included
+npm run test:edge                    # the Deno functions, live (docs/CI_CD.md §3)
+npx playwright test e2e/payments.spec.ts
 ```
 
-Mutation-verified. Four deliberate weakenings, and what caught them:
+The payment suites: `tests/payments-authorization.test.ts`,
+`tests/razorpay-payments.test.ts` (including two-transaction concurrency tests
+for refunds), `tests/webhook-signature.test.ts`, `tests/edge/functions.test.ts`
+and `e2e/payments.spec.ts`.
+
+Mutation-verified. The first round, when this section was written against the
+test provider — four deliberate weakenings, and what caught them (the current,
+longer list is in [`SECURITY_AUDIT.md`](./SECURITY_AUDIT.md#mutation-testing)):
 
 | Mutation | Result |
 |---|---|
@@ -363,3 +378,120 @@ The fourth initially passed because the settled-state guard masked it. A test wa
 added for the path where the replay guard is the *only* protection — a repeated
 `payment.failed` delivery, where without it the audit log gains a duplicate
 financial record. The mutation now fails that test.
+
+---
+
+## 14. Razorpay
+
+Migration `20261030000001_razorpay_payments.sql`, the edge functions
+`payments-create-order`, `payments-webhook` and `payments-refund` (shared code in
+`supabase/functions/_shared/`), and `src/services/payments/razorpayProvider.ts`.
+Configuration: [`OCASIO_DEPLOYMENT.md`](./OCASIO_DEPLOYMENT.md) §6.
+
+```
+customer ──► payments-create-order ─┬─► begin_razorpay_payment()   as the customer
+                                    ├─► Razorpay Orders API         amount from the row
+                                    └─► prepare_razorpay_checkout() service role
+customer ──► Razorpay Checkout (order id only)
+Razorpay ──► payments-webhook ──► process_razorpay_payment_event() ─┐ the only ways
+                              └─► process_razorpay_refund_event()  ─┘ money settles
+vendor   ──► payments-refund ─┬─► create_razorpay_refund()          reserves the amount
+                              ├─► Razorpay Refunds API (receipt = refund id)
+                              └─► record_razorpay_refund_submission()
+```
+
+### Invariants
+
+| Rule | Enforced by |
+|---|---|
+| The browser sends a booking id, never an amount | `begin_razorpay_payment()` derives it through `create_payment_for_booking()` |
+| One Razorpay payment — so one order — per booking | unique index `payments_one_razorpay_per_booking`; every retry reopens the same order |
+| Only the service role attaches an order | `prepare_razorpay_checkout()` is granted to `service_role` alone, and checks Razorpay's echoed amount and currency against the row |
+| The browser cannot start a Razorpay payment with its own reference | `start_payment()` refuses `provider = 'razorpay'` |
+| Only a verified webhook settles | `process_razorpay_*_event()` are `service_role` only, `SECURITY INVOKER`, and refuse `signature_verified = false` |
+| A capture must match the order | amount and currency are compared with the stored payment; a mismatch is recorded, audited and not applied |
+| Provider references never change once set | `protect_payment_fields()` |
+| Pending refunds reserve their amount | `create_refund_record()` sums pending and succeeded refunds, under the payment lock |
+| A refund is requested from Razorpay once | the submission claim, plus Razorpay's own idempotency on `receipt` |
+
+### Payment events
+
+| Event | From | To | Notes |
+|---|---|---|---|
+| `payment.captured` | processing, failed, pending | succeeded | the money moved |
+| `payment.captured` | cancelled | succeeded | still applied — money moved — and audited `payment.needs_review` |
+| `payment.captured` | succeeded | — | same Razorpay payment: no-op; a different one: `payment.duplicate_capture` |
+| `payment.failed` | processing | failed | one attempt failed; the order stays payable |
+| `payment.failed` | anything else | — | a late or duplicate report; settled payments are never unsettled |
+
+A redelivered event is a no-op through `payment_events` (unique per
+`x-razorpay-event-id`, applied once `processed_at` is set). That matters most
+for out-of-order delivery: attempt 1 fails, the customer reopens the order, and
+then attempt 1's failure is delivered again — the replay guard, not the state,
+is what keeps the new attempt open.
+
+### Webhook responses
+
+Razorpay retries any non-2xx for 24 hours and then **disables the webhook**, so a
+non-2xx is returned only when a retry can help.
+
+| Situation | Status |
+|---|---|
+| Applied, duplicate, or no state change | 200 |
+| Event type Ocasio does not use | 200, not recorded |
+| An order or payment Ocasio does not know | 200, recorded with `processing_error` |
+| Bad signature | 401 |
+| Signed but not the documented shape | 400 |
+| Webhook secret not configured | 503 |
+| A refund whose payment's capture is not recorded yet (out of order) | 503 — Razorpay resends |
+| Database error | 500 |
+
+### Refunds
+
+1. `create_razorpay_refund()` — vendor owner or admin (actor from the verified
+   JWT), settled payment, amount within the unreserved balance. Same key, same
+   refund.
+2. Claim, then `POST /payments/{id}/refund` with `receipt` = the refund's id.
+3. On any error, look the refund up by receipt first: a timed-out request may
+   have created it. Only a definitive refusal with no refund found marks it
+   failed; anything else releases the claim so it can be sent again.
+4. `record_razorpay_refund_submission()` stores Razorpay's refund id. The refund
+   stays **pending**: an accepted request is not a completed refund.
+5. `refund.processed` / `refund.failed` complete it through
+   `process_refund_event()`, so totals are computed one way. The webhook finds
+   the refund by its receipt even if it arrives before step 4. A processed
+   refund Ocasio did not request (issued from the Razorpay Dashboard) is
+   recorded, not dropped.
+
+### Request budgets
+
+`payments-create-order` and `payments-refund` spend from a per-user budget before doing any work:
+20 order requests and 10 refund requests per user per 10 minutes (`supabase/functions/_shared/rateLimit.ts`).
+The count lives in Postgres (`consume_rate_limit()`, migration `20261031000002`, service role only),
+because edge functions run as many short-lived instances. Over budget: 429 with `Retry-After`. If the
+budget cannot be checked the function fails closed with 503. The webhook has no budget — Razorpay must
+never be throttled, and it verifies the signature before touching the database. See
+[`SECURITY_AUDIT.md`](./SECURITY_AUDIT.md) F-17.
+
+### Remaining risks
+
+- **No Razorpay reconciliation.** `payments-reconcile` has no Razorpay adapter,
+  so a payment whose `payment.captured` never arrives — after Razorpay's 24 hours
+  of retries — stays "awaiting confirmation" until someone checks the Razorpay
+  Dashboard. Razorpay's retries make this rare, not impossible. (The sweep
+  itself runs only for a caller presenting the service-role key —
+  [`SECURITY_AUDIT.md`](./SECURITY_AUDIT.md) F-01.)
+- **Webhook failure is silent inside Ocasio.** After 24 hours of failed
+  deliveries Razorpay disables the webhook; its alert email is the only notice,
+  so it must go to an inbox someone reads (deployment guide §6.1).
+- **Never exercised against Razorpay itself.** Every test uses a stand-in for
+  Razorpay's API and fake keys. The ₹1 live payment and refund in the deployment
+  guide's §6.5 is the first real verification.
+- **Automatic capture is assumed.** With manual capture configured, nothing
+  captures payments (§6.1 of the deployment guide).
+- **Audit rows that need a person** have no alerting or admin screen yet:
+  `payment.needs_review`, `payment.capture_conflict`, `payment.duplicate_capture`,
+  `payment.verification_failed`, `refund.verification_failed`,
+  `refund.state_conflict`.
+- **No disputes or chargebacks** handling, and no settlement to vendors
+  (Razorpay Route) — payments land in Ocasio's Razorpay account.

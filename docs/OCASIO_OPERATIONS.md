@@ -13,13 +13,20 @@ The sweep rescues those. Phase 5 built it; Phase 5.1 schedules it.
 ```
 pg_cron (*/15 * * * *)
    └─► public.invoke_payment_reconciliation()        [service_role only]
-          └─► pg_net POST  ──►  payments-reconcile   [edge function]
+          └─► pg_net POST  ──►  payments-reconcile   [edge function, service-role key only]
                                    └─► reconcile_payment()  [service_role only]
 ```
 
 There is **one** reconciliation implementation. The scheduler only invokes it;
 every rule — idempotency, replay protection, "an inconclusive answer changes
 nothing" — lives where it did before, in `reconcile_payment()`.
+
+`payments-reconcile` answers **403** to any caller whose bearer token is not the
+service-role key (compared in constant time). The gateway's JWT check is not
+enough on its own: the public anon key is itself a valid JWT, and before this
+check anyone holding it could trigger a sweep
+([`SECURITY_AUDIT.md`](./SECURITY_AUDIT.md) F-01). The Vault secret below is the
+key the scheduler presents.
 
 ### Required setup
 
@@ -91,8 +98,10 @@ select public.invoke_payment_reconciliation();
 `cron.job` is not exposed through PostgREST, so the schedule itself is not
 covered by the automated suite — the function the job runs is, along with its
 fail-closed path and its authorization. The registration is verified with the
-query above. The edge function likewise runs on Deno and is not exercised in CI;
-the database function it calls is.
+query above. The edge function's caller check is exercised against the real Deno
+runtime by `tests/edge/functions.test.ts` (anon key → 403, signed-in user → 403,
+service role → 200); the database function it calls is covered by the main
+suite.
 
 ---
 
