@@ -187,7 +187,7 @@ then shows it refused. Details are in [docs/OCASIO_BOOKINGS.md](docs/OCASIO_BOOK
 | Payments | Razorpay: Orders, Standard Checkout, Refunds, webhooks |
 | Hosting | Vercel (static), with security headers in `vercel.json` |
 | Testing | Vitest (with `pg` for concurrency), Playwright (desktop and mobile) |
-| CI | GitHub Actions: six jobs, SHA-pinned actions, gitleaks, dependency review |
+| CI | GitHub Actions on every push to `main`: six jobs, SHA-pinned actions, gitleaks, dependency review |
 
 ---
 
@@ -382,10 +382,10 @@ DENO_NO_PACKAGE_JSON=1 npx deno@2 check supabase/functions/*/index.ts
 
 ## CI/CD
 
-Six jobs run on every pull request and every push to `main`:
+Development happens directly on `main`. Six jobs run on every push to `main`, and on demand:
 
 1. typecheck, lint and build;
-2. security: dependency audit, gitleaks and dependency review;
+2. security: dependency audit, gitleaks, and a review of the dependencies each push adds;
 3. Deno type-check;
 4. integration tests on a database rebuilt from zero;
 5. the edge functions, live;

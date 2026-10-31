@@ -1,13 +1,13 @@
 # Ocasio — CI/CD
 
-**Audience:** anyone changing the pipeline, reviewing a pull request, or deploying.
+**Audience:** anyone changing the pipeline, pushing to `main`, or deploying.
 
 Code moves through one workflow, [`.github/workflows/ci.yml`](../.github/workflows/ci.yml), and
 deploys through Vercel's Git integration and an explicit, human-run Supabase step. Nothing in CI
 deploys anything.
 
 ```
-pull request / push to main
+push to main  (or a manual run: Actions → CI → Run workflow)
         │
         ▼
  ┌──────────────── CI (GitHub Actions) — six jobs, all required ────────────────┐
@@ -15,7 +15,7 @@ pull request / push to main
  └───────────────────────────────────────────────────────────────────────────────┘
         │ all green, reviewed, merged to main
         ▼
- Vercel builds main → production (a preview for every PR)     Supabase: `supabase db push`
+ Vercel builds main → production                             Supabase: `supabase db push`
  build failure = no deployment                                and `functions deploy`, by a person
 ```
 
@@ -26,7 +26,7 @@ pull request / push to main
 | Job | Runs | Proves |
 |---|---|---|
 | **Typecheck, lint and build** | `npm ci`, `tsc -b`, `eslint --max-warnings=0`, `vite build` | The code compiles, lints clean, and bundles |
-| **Security (dependencies and secrets)** | `npm audit --omit=dev --audit-level=high` (blocking); `npm audit` (reported); gitleaks 8.30.1 with `.gitleaks.toml`; dependency review on PRs (fails on high) | Nothing shipped to browsers carries a high or critical advisory; no secret enters the repository; a PR adds no vulnerable dependency |
+| **Security (dependencies and secrets)** | `npm audit --omit=dev --audit-level=high` (blocking); `npm audit` (reported); gitleaks 8.30.1 with `.gitleaks.toml`; dependency review of everything the push added, previous `main` → this commit (fails on high) | Nothing shipped to browsers carries a high or critical advisory; no secret enters the repository; a push adds no vulnerable dependency |
 | **Edge functions (deno check)** | `deno check supabase/functions/*/index.ts` | Every function type-checks as Supabase will run it |
 | **Integration tests (Vitest + Postgres)** | `supabase start` on an empty runner — **every migration applied from zero**, then the seed; `supabase db lint --fail-on warning`; `npm test` | The schema builds from source control alone; functions pass plpgsql_check; 458 tests against real RLS, real locks and real transactions, Razorpay stubbed at the HTTP boundary |
 | **Edge functions (live, Deno runtime)** | `supabase start` with the edge runtime, `supabase functions serve` with test-only configuration, `npm run test:edge` | The real Deno entry points behind Supabase's gateway: per-function JWT settings, CORS, webhook signatures, the scheduler-only check, Razorpay outage handling |
@@ -65,11 +65,10 @@ removed, such a test still passed).
 - **Pinned actions.** Every third-party action is pinned to a full commit SHA, with its release tag in
   a comment. A moved or compromised tag cannot change what runs. Update by re-resolving the tag to a
   SHA, never by switching back to a tag.
-- **Least privilege.** The workflow token is `contents: read`; the security job adds
-  `pull-requests: read` for gitleaks. Checkouts set `persist-credentials: false`.
+- **Least privilege.** The workflow token is `contents: read` for every job. Checkouts set
+  `persist-credentials: false`.
 - **No secrets.** No job needs one: the stack is local and uses Supabase's published development keys,
-  and the Razorpay values in the live edge job are fake, pointed at a closed port. Pull requests from
-  forks therefore run the same checks with nothing to leak.
+  and the Razorpay values in the live edge job are fake, pointed at a closed port.
 - **No `pull_request_target`.** Untrusted code never runs with a write token or secrets.
 - **No interpolated untrusted input** in `run:` steps.
 - **Artifacts.** Only Playwright traces and screenshots of synthetic test data, on failure, kept
@@ -99,11 +98,11 @@ with `npx supabase stop --workdir <tmp> --no-backup`, then restart yours.
 
 | | Frontend (Vercel) | Database and edge functions (Supabase) |
 |---|---|---|
-| Trigger | Vercel's GitHub integration: production from `main`, a preview for every pull request | A person runs `npx supabase db push` and `npx supabase functions deploy …` — see [OCASIO_DEPLOYMENT.md](./OCASIO_DEPLOYMENT.md) |
+| Trigger | Vercel's GitHub integration: production from `main` (any other branch pushed gets a preview) | A person runs `npx supabase db push` and `npx supabase functions deploy …` — see [OCASIO_DEPLOYMENT.md](./OCASIO_DEPLOYMENT.md) |
 | Environments | Preview and Production have **separate** environment variables; Preview points at a staging project | Separate staging and production projects, each with its own secrets |
 | Build failure | `npm run build` fails without valid configuration, so Vercel never promotes the deployment | — |
 | Secrets | Only public `VITE_*` values live in Vercel | Server secrets via `supabase secrets set`; none in GitHub |
-| Status | Vercel posts a deployment status on each commit and PR | Recorded by whoever runs the command |
+| Status | Vercel posts a deployment status on each commit | Recorded by whoever runs the command |
 | Rollback | Vercel → Deployments → **Instant Rollback** (or *Promote* an earlier deployment) | Migrations are append-only; roll forward with a new migration. Redeploy the previous function code from its commit |
 
 Order of operations for a release that changes both: database migration first (migrations here are
@@ -116,23 +115,27 @@ environment uses the staging project's public values only.
 
 ## 5. GitHub configuration (once)
 
-1. Settings → Rules → Rulesets → New branch ruleset, target `main` (Default branch), enforcement
-   **Active**, no bypass list:
-   - **Restrict deletions** and **Block force pushes**;
-   - **Require a pull request before merging**: 1 approval, dismiss stale approvals on new commits,
-     require conversation resolution. A solo maintainer cannot approve their own PR — use 0 approvals
-     until a second reviewer exists, and keep the rest;
-   - **Require status checks to pass**, with **Require branches to be up to date**, selecting all six:
-     **Typecheck, lint and build**, **Security (dependencies and secrets)**,
-     **Edge functions (deno check)**, **Integration tests (Vitest + Postgres)**,
-     **Edge functions (live, Deno runtime)**, **End-to-end tests (Playwright)**. A check can be
-     selected only after it has run once;
-   - optionally **Require linear history**.
+1. Settings → Rules → Rulesets → New branch ruleset `main-protection`, target the default branch
+   (`main`), enforcement **Active**, bypass list **empty** (not even administrators):
+   - **Restrict deletions** — `main` cannot be deleted;
+   - **Block force pushes** — history on `main` is never rewritten;
+   - **Require status checks to pass**, selecting all six: **Typecheck, lint and build**,
+     **Security (dependencies and secrets)**, **Edge functions (deno check)**,
+     **Integration tests (Vitest + Postgres)**, **Edge functions (live, Deno runtime)**,
+     **End-to-end tests (Playwright)**;
+   - **no** pull-request or approval requirement: work is pushed directly to `main`.
 
-   Changes that reach production outside this rule — `supabase db push`, `functions deploy`, Razorpay
-   and Vercel settings — are reviewed by a second person before they are run, if there is one.
-2. Settings → Actions → General: workflow permissions **read-only**; do not allow Actions to approve
-   pull requests.
+   Required checks and direct pushes interact: a required check has to have passed on the commit
+   being pushed, so with that rule active a direct push of a new commit is refused until its checks
+   have run. For direct development, leave **Require status checks** off the ruleset and treat a
+   green CI run on `main` as the gate for deploying — Vercel can be set to wait for checks
+   (Settings → Git → "Wait for checks") — or push to a short-lived branch, let CI pass there, then
+   fast-forward `main`.
+
+   Changes that reach production outside Git — `supabase db push`, `functions deploy`, Razorpay and
+   Vercel settings — are applied only from a commit whose CI run on `main` passed.
+2. Settings → Actions → General: workflow permissions **read-only**; do not allow Actions to create
+   or approve pull requests.
 3. Settings → Code security: enable the **dependency graph** (needed by dependency review),
    Dependabot alerts, and private vulnerability reporting (`SECURITY.md` relies on it; it is off
    today — [SECURITY_AUDIT.md](./SECURITY_AUDIT.md) F-19).

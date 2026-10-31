@@ -11,7 +11,7 @@ cp .env.local.example .env
 npm run dev
 ```
 
-## Before opening a pull request
+## Before pushing to `main`
 
 ```bash
 npm run typecheck                       # must be clean
@@ -34,7 +34,7 @@ npm run test:edge                       # 14 tests
 `npm run build` runs `tsc -b` first, so a type error fails the build rather than
 shipping.
 
-CI runs all of this on every pull request in six jobs — static checks,
+Work lands directly on `main`. CI runs all of this on every push to `main` in six jobs — static checks,
 security, Deno check, integration, live edge functions, end-to-end — described
 in [`docs/CI_CD.md`](docs/CI_CD.md). Locally the integration suites skip when
 Supabase is not running; with `OCASIO_REQUIRE_SUPABASE=1` (always set in CI)
@@ -133,7 +133,7 @@ runs under that policy and will fail. See
 The Terms, Privacy and Cancellation & Refund pages describe the product as it is
 built. A change to booking, cancellation, payment, refund or review behaviour, or
 to what personal data is stored or who can read it, updates those pages in the
-same pull request.
+same commit.
 
 ## Security issues
 

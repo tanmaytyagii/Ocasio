@@ -1,7 +1,7 @@
 # Ocasio CI — what each job proves, and why, is in docs/CI_CD.md.
 #
 #   static               typecheck, lint (zero warnings), production build
-#   security             dependency audit, secret scan, dependency review (PRs)
+#   security             dependency audit, secret scan, dependency review of each push
 #   edge-functions       deno check on every edge function
 #   integration          every migration on an EMPTY database, schema lint, then
 #                        Vitest against real Postgres (RLS is what is under test)
@@ -15,8 +15,9 @@
 # Security posture of this workflow:
 #   - every third-party action is pinned to a full commit SHA (tag in comment);
 #   - the token is read-only, and checkouts do not persist it;
-#   - no job needs a secret, so pull requests from forks run the same checks
-#     with nothing to leak; pull_request_target is deliberately not used;
+#   - no job needs a secret; pull_request_target is deliberately not used;
+#   - work lands directly on main, so every check runs on each push to main
+#     (and on demand), not on pull requests;
 #   - nothing deploys from here. Vercel deploys from its own Git integration.
 
 name: CI
@@ -24,7 +25,6 @@ name: CI
 on:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -79,8 +79,6 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
-      # gitleaks lists a pull request's commits through the API.
-      pull-requests: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -113,12 +111,27 @@ jobs:
           # The report is not uploaded: it would sit in the run's artifacts.
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'
 
-      - name: Dependency review (pull requests)
-        if: github.event_name == 'pull_request'
+      # Dependency review without pull requests: compare the dependency graph
+      # of everything this push added — from the previous main to this commit —
+      # and fail on any newly introduced dependency with a high or critical
+      # advisory. A manual run reviews the latest commit.
+      - name: Dependency review range
+        id: range
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          base="$BEFORE"
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            base="$(git rev-parse HEAD~1)"
+          fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+
+      - name: Dependency review (changes in this push)
         uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
+          base-ref: ${{ steps.range.outputs.base }}
+          head-ref: ${{ github.sha }}
           fail-on-severity: high
-          comment-summary-in-pr: never
 
   edge-functions:
     name: Edge functions (deno check)

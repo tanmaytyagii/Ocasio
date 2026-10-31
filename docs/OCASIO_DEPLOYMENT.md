@@ -17,7 +17,7 @@ Environments are separated by **where values are set**, never by committed files
 |---|---|---|---|
 | Local | `npm run dev` | local stack (`npx supabase start`) | `.env` copied from `.env.local.example` |
 | CI | `vite preview` inside the runner | local stack inside the runner | `.github/workflows/ci.yml` — no secrets |
-| Preview | Vercel preview deployment per PR | **a separate staging project** (recommended) | Vercel env vars, scope *Preview* |
+| Preview | Vercel preview deployment for any non-`main` branch pushed (none in the direct-to-`main` workflow) | **a separate staging project** (recommended) | Vercel env vars, scope *Preview* |
 | Production | Vercel production deployment | production project | Vercel env vars, scope *Production* |
 
 Point Preview at a staging project, not production: preview deployments are built from unreviewed
@@ -78,18 +78,12 @@ branches.
 
 ## 4. GitHub
 
-1. Settings → Branches → add a protection rule (or ruleset) for `main`:
-   - require a pull request before merging;
-   - require status checks to pass, selecting all six CI jobs:
-     **Typecheck, lint and build**, **Security (dependencies and secrets)**,
-     **Edge functions (deno check)**, **Integration tests (Vitest + Postgres)**,
-     **Edge functions (live, Deno runtime)**, **End-to-end tests (Playwright)**;
-   - require branches to be up to date before merging.
+1. Protect `main` as described in [`CI_CD.md`](./CI_CD.md) §5: block deletion and force pushes,
+   no bypass, no pull-request requirement — development happens directly on `main`.
 
-   A check appears in the list only after it has run once, so push the workflow first.
 2. Settings → Actions → General: leave the default `GITHUB_TOKEN` permissions at read-only, and do
-   not allow Actions to approve pull requests. The workflow declares `contents: read` (plus
-   `pull-requests: read` for the security job) and needs nothing more.
+   not allow Actions to create or approve pull requests. The workflow declares `contents: read` and
+   needs nothing more.
 3. Settings → Code security: enable the **dependency graph** — dependency review needs it —
    Dependabot alerts, and **private vulnerability reporting**, which `SECURITY.md` sends reporters
    to and which is currently off ([SECURITY_AUDIT](./SECURITY_AUDIT.md) F-19).
