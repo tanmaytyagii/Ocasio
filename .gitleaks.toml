@@ -1,0 +1,42 @@
+# gitleaks configuration — used by CI (.github/workflows/ci.yml) and locally.
+#
+# Extends gitleaks' default rules. Every allowlist entry below is either a value
+# that grants access to nothing, or one known historical finding whose
+# remediation is tracked. Add an entry only with a comment saying which — an
+# unexplained allowlist entry is a hidden finding.
+#
+# See docs/SECURITY_AUDIT.md (secrets) and docs/CI_CD.md.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Published local-development keys, deliberately fake test fixtures, and one tracked historical finding"
+
+regexes = [
+  # Supabase's published local-development JWTs (iss: "supabase-demo"). Identical on
+  # every machine; they open only a throwaway local container.
+  '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIi[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+''',
+  # Fake values in the Razorpay and edge-function tests and the CI workflow.
+  '''not-a-real-secret-[0-9]+''',
+  '''whsec-test-ocasio-[0-9]+''',
+  '''edge-(suite|test)-[a-z-]*secret''',
+  # Deliberately forged tokens the tests use to prove they are refused.
+  '''eyJhbGciOiJIUzI1NiJ9\.eyJzdWIiOiJmb3JnZWQifQ\.c2lnbmF0dXJl''',
+  '''eyJhbGciOiJIUzI1NiJ9\.eyJyb2xlIjoiYW5vbiJ9\.c2ln''',
+]
+
+paths = [
+  # Generated locally by the Supabase CLI; gitignored, never committed.
+  '''supabase/\.temp/''',
+  '''node_modules/''',
+  '''(^|/)dist/''',
+  '''test-results/''',
+]
+
+# The initial commit (2025-12-26) contains a hosted Supabase project's anon key.
+# An anon key is public by design, but this one identifies a real project. It
+# cannot be removed from history without a force-push, so it is tracked
+# instead: rotate or retire that project — docs/SECURITY_AUDIT.md finding F-10,
+# docs/OCASIO_DEPLOYMENT.md §7.
+commits = ["6dc2bc15897385160ce37fd9ee589c08275387b5"]

@@ -72,14 +72,29 @@ export async function deleteTestUser(user: TestUser): Promise<void> {
   await serviceClient().auth.admin.deleteUser(user.id);
 }
 
-/** True when the local stack is reachable, so tests can skip with a clear reason. */
+/**
+ * True when the local stack is reachable, so tests can skip with a clear reason.
+ *
+ * Skipping is a local convenience only. With OCASIO_REQUIRE_SUPABASE=1 — set by
+ * CI — an unreachable stack throws instead, so a run that never touched
+ * Postgres cannot report the authorization suites as green.
+ */
 export async function stackIsRunning(): Promise<boolean> {
+  let running: boolean;
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/`, { headers: { apikey: ANON_KEY } });
-    return res.status < 500;
+    running = res.status < 500;
   } catch {
-    return false;
+    running = false;
   }
+
+  if (!running && process.env.OCASIO_REQUIRE_SUPABASE === '1') {
+    throw new Error(
+      `Supabase is not reachable at ${SUPABASE_URL}, and OCASIO_REQUIRE_SUPABASE=1 forbids ` +
+        'skipping the integration suites. Start it with `npx supabase start`.',
+    );
+  }
+  return running;
 }
 
 /**

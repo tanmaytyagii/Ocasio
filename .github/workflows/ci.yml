@@ -1,0 +1,285 @@
+# Ocasio CI — what each job proves, and why, is in docs/CI_CD.md.
+#
+#   static               typecheck, lint (zero warnings), production build
+#   security             dependency audit, secret scan, dependency review (PRs)
+#   edge-functions       deno check on every edge function
+#   integration          every migration on an EMPTY database, schema lint, then
+#                        Vitest against real Postgres (RLS is what is under test)
+#   edge-functions-live  the real Deno functions behind Supabase's gateway
+#   e2e                  Playwright, desktop + mobile, under the production CSP
+#
+# Nothing is skipped silently: the database suites fail, rather than skip, when
+# Supabase is unreachable (OCASIO_REQUIRE_SUPABASE=1), and the live edge suite
+# fails when the functions are not being served.
+#
+# Security posture of this workflow:
+#   - every third-party action is pinned to a full commit SHA (tag in comment);
+#   - the token is read-only, and checkouts do not persist it;
+#   - no job needs a secret, so pull requests from forks run the same checks
+#     with nothing to leak; pull_request_target is deliberately not used;
+#   - nothing deploys from here. Vercel deploys from its own Git integration.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+  # Pinned so a CLI release cannot change the local stack under the tests.
+  # Keep in step with the version used locally (`npx supabase --version`).
+  SUPABASE_CLI_VERSION: '2.122.0'
+  # Services the database suites do not use. Fewer images to pull.
+  SUPABASE_EXCLUDE: studio,imgproxy,edge-runtime,logflare,vector,supavisor
+
+jobs:
+  static:
+    name: Typecheck, lint and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+
+      - name: Production build
+        run: npm run build
+        env:
+          # The build refuses to run without these (vite.config.ts). These
+          # values only prove the bundle compiles; nothing is deployed from CI.
+          VITE_SUPABASE_URL: https://ci-build-check.supabase.co
+          VITE_SUPABASE_ANON_KEY: ci-build-check
+
+  security:
+    name: Security (dependencies and secrets)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      # gitleaks lists a pull request's commits through the API.
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Blocking: what ships to browsers may not carry a high or critical
+      # advisory. Reads the lockfile; no install, so no install scripts run.
+      - name: Runtime dependencies — no high or critical advisories
+        run: npm audit --omit=dev --audit-level=high
+
+      # Reported, not blocking — and visible as a warning on every run, not
+      # hidden. The remaining dev-tooling advisories need major upgrades and are
+      # tracked with their exposure analysis in docs/SECURITY_AUDIT.md (F-05).
+      - name: All dependencies — full report (dev tooling tracked in SECURITY_AUDIT.md)
+        continue-on-error: true
+        run: npm audit
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_CONFIG: .gitleaks.toml
+          GITLEAKS_ENABLE_COMMENTS: 'false'
+          # The report is not uploaded: it would sit in the run's artifacts.
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'
+
+      - name: Dependency review (pull requests)
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: never
+
+  edge-functions:
+    name: Edge functions (deno check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.x
+
+      - name: Type-check edge functions
+        env:
+          # The functions resolve their own imports (jsr:, npm:) as they do on
+          # Supabase. Without this, Deno adopts the root package.json and looks
+          # for those packages in the frontend's node_modules.
+          DENO_NO_PACKAGE_JSON: '1'
+        run: deno check supabase/functions/*/index.ts
+
+  integration:
+    name: Integration tests (Vitest + Postgres)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      # A runner starts with no database, so this applies every migration to an
+      # empty one, then the seed — the same path a new environment takes.
+      - name: Start Supabase (every migration from zero, then the seed)
+        run: supabase start -x "$SUPABASE_EXCLUDE"
+
+      - name: Lint database functions (plpgsql_check)
+        run: supabase db lint --local --level warning --fail-on warning
+
+      - name: Vitest
+        run: npm test
+        env:
+          OCASIO_REQUIRE_SUPABASE: '1'
+
+  edge-functions-live:
+    name: Edge functions (live, Deno runtime)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Start Supabase (with the edge runtime)
+        run: supabase start -x studio,imgproxy,logflare,vector,supavisor
+
+      # Test-only configuration. The Razorpay values are fake, and the API base
+      # is a closed local port: no request leaves the runner.
+      - name: Serve the edge functions
+        run: |
+          cat > "$RUNNER_TEMP/functions.env" <<'ENV'
+          RAZORPAY_KEY_ID=rzp_test_EdgeSuite01
+          RAZORPAY_KEY_SECRET=edge-suite-not-a-secret
+          RAZORPAY_WEBHOOK_SECRET=edge-test-webhook-secret
+          RAZORPAY_API_BASE=http://127.0.0.1:9/v1
+          ENV
+          supabase functions serve --env-file "$RUNNER_TEMP/functions.env" > "$RUNNER_TEMP/functions.log" 2>&1 &
+          for _ in $(seq 1 60); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:54321/functions/v1/payments-webhook)" = "405" ]; then
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Edge functions did not start:"
+          cat "$RUNNER_TEMP/functions.log"
+          exit 1
+
+      - name: Live edge-function tests
+        run: npm run test:edge
+        env:
+          OCASIO_REQUIRE_SUPABASE: '1'
+          OCASIO_EDGE_WEBHOOK_SECRET: edge-test-webhook-secret
+
+      - name: Function logs
+        if: failure()
+        run: cat "$RUNNER_TEMP/functions.log"
+
+  e2e:
+    name: End-to-end tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Start Supabase (every migration from zero, then the seed)
+        run: supabase start -x "$SUPABASE_EXCLUDE"
+
+      - name: Resolve Playwright version
+        id: playwright
+        run: echo "version=$(npx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Chromium system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      # Playwright builds the app and serves it with `vite preview`, pointed at
+      # the local stack, with the vercel.json headers (playwright.config.ts).
+      - name: Playwright
+        run: npm run test:e2e
+
+      # Traces and screenshots of synthetic test data only; kept 7 days.
+      - name: Upload failure traces and screenshots
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-test-results
+          path: test-results/
+          retention-days: 7
