@@ -128,7 +128,7 @@ test.describe('vendor activation', () => {
     await signIn(page, vendorUser.email);
     await page.goto('/vendor/dashboard');
 
-    await page.getByRole('button', { name: 'Profile' }).click();
+    await page.getByRole('button', { name: 'Profile', exact: true }).click();
     await page.getByRole('button', { name: 'Edit profile' }).click();
 
     await page.getByLabel('Description').fill('We photograph weddings across Maharashtra.');
@@ -152,7 +152,7 @@ test.describe('vendor activation', () => {
     await page.goto('/auth');
     await signIn(page, vendorUser.email);
     await page.goto('/vendor/dashboard');
-    await page.getByRole('button', { name: 'Services' }).click();
+    await page.getByRole('button', { name: 'Services', exact: true }).click();
 
     // The panel says plainly that nobody can book yet.
     await expect(page.getByText(/Customers cannot book you yet/i)).toBeVisible();
@@ -207,7 +207,10 @@ test.describe('vendor activation', () => {
 
   test('the marketplace reflects the edited profile', async ({ page }) => {
     await page.goto(`/search?q=${encodeURIComponent(businessName)}`);
-    await expect(page.getByRole('heading', { name: businessName })).toBeVisible();
+    // exact: the page's own heading echoes the query ("Results for …"), so a
+    // substring match is satisfied before any result loads — and fails on
+    // strict mode once the vendor's card renders beside it.
+    await expect(page.getByRole('heading', { name: businessName, exact: true })).toBeVisible();
   });
 
   test('a customer sees the service, price and portfolio, and can start a booking', async ({
@@ -250,7 +253,7 @@ test.describe('vendor activation', () => {
     await page.goto('/auth');
     await signIn(page, vendorUser.email);
     await page.goto('/vendor/dashboard');
-    await page.getByRole('button', { name: 'Services' }).click();
+    await page.getByRole('button', { name: 'Services', exact: true }).click();
     await page.getByRole('button', { name: 'Deactivate' }).click();
 
     // "Inactive" is both the section heading and the badge on the row; assert

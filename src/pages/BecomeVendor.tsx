@@ -56,6 +56,31 @@ const StatusPanel = ({
   </div>
 );
 
+/**
+ * Page frame shared by every stage. It must stay at module scope: defined
+ * inside BecomeVendor, it was a new component on every render, so React
+ * remounted the whole form on each keystroke — the field lost focus after the
+ * first character and typing went nowhere.
+ */
+const Shell = ({ children }: { children: React.ReactNode }) => (
+  <div className="bg-canvas">
+    <div className="shell py-[clamp(2.5rem,5vw,4.5rem)]">
+      <header className="mx-auto max-w-2xl text-center">
+        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-brand-700">
+          For vendors
+        </p>
+        <h1 className="mt-4 text-display-sm text-ink">List your business on Ocasio</h1>
+        <p className="mt-4 text-[1.0625rem] leading-relaxed text-muted">
+          Tell us about your events business. Applications are reviewed before a listing goes
+          live, and listing is free — Ocasio does not charge vendors today.
+        </p>
+      </header>
+
+      <div className="mt-10">{children}</div>
+    </div>
+  </div>
+);
+
 const BecomeVendor = () => {
   usePageMeta(
     'List your business on Ocasio',
@@ -189,25 +214,6 @@ const BecomeVendor = () => {
       setStage('form');
     }
   };
-
-  const Shell = ({ children }: { children: React.ReactNode }) => (
-    <div className="bg-canvas">
-      <div className="shell py-[clamp(2.5rem,5vw,4.5rem)]">
-        <header className="mx-auto max-w-2xl text-center">
-          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-brand-700">
-            For vendors
-          </p>
-          <h1 className="mt-4 text-display-sm text-ink">List your business on Ocasio</h1>
-          <p className="mt-4 text-[1.0625rem] leading-relaxed text-muted">
-            Tell us about your events business. Applications are reviewed before a listing goes
-            live, and listing is free — Ocasio does not charge vendors today.
-          </p>
-        </header>
-
-        <div className="mt-10">{children}</div>
-      </div>
-    </div>
-  );
 
   if (authLoading || stage === 'checking') {
     return (

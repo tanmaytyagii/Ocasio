@@ -74,6 +74,20 @@ test.describe('vendor supply funnel', () => {
     );
   });
 
+  test('typing in the form keeps every character and the focus', async ({ page }) => {
+    // fill() sets a whole value in one event, so it cannot see a field that
+    // loses focus between keystrokes — which this form did while its page
+    // frame was defined inside the component and remounted on every render.
+    // Type key by key, as a person does.
+    await page.goto('/become-vendor');
+    const name = page.getByLabel('Business name');
+    await name.click();
+    await page.keyboard.type('Lotus Studio');
+
+    await expect(name).toHaveValue('Lotus Studio');
+    await expect(name).toBeFocused();
+  });
+
   test('a signed-out applicant is returned to the form after signing in', async ({ page }) => {
     await page.goto('/become-vendor');
 
@@ -176,7 +190,9 @@ test.describe('vendor supply funnel', () => {
 
   test('the approved vendor is now discoverable by anyone', async ({ page }) => {
     await page.goto(`/search?q=${encodeURIComponent(businessName)}`);
-    await expect(page.getByRole('heading', { name: businessName })).toBeVisible();
+    // exact: "Results for …" echoes the query, so only the vendor's own card
+    // proves it is discoverable.
+    await expect(page.getByRole('heading', { name: businessName, exact: true })).toBeVisible();
   });
 
   test('the applicant now sees an active profile instead of the form', async ({ page }) => {

@@ -343,8 +343,10 @@ test.describe('composition', () => {
         );
       expect(controls.length).toBeGreaterThan(0);
       for (const control of controls) {
+        // Rounded to the hundredth: getBoundingClientRect on a translated
+        // element reports float noise (an h-11 button measured 43.99994).
         expect(
-          control.h,
+          Math.round(control.h * 100) / 100,
           `${control.tag} "${control.label}" at ${width}px`,
         ).toBeGreaterThanOrEqual(44);
       }

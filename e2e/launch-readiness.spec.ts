@@ -163,6 +163,32 @@ test.describe('legal pages', () => {
   });
 });
 
+test.describe('responsive layout at tablet width', () => {
+  // Desktop and phone widths are covered by the two projects; this fills the
+  // gap between them, where two-column layouts are most likely to overflow.
+  const paths = ['/', '/vendors', '/about', '/contact', '/become-vendor', '/terms', '/privacy', '/auth'];
+
+  for (const path of paths) {
+    test(`nothing overflows sideways at 768px on ${path}`, async ({ page }) => {
+      await page.setViewportSize({ width: 768, height: 1024 });
+      await page.goto(path);
+      await page.waitForLoadState('networkidle');
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(overflow).toBeLessThanOrEqual(0);
+    });
+  }
+
+  test('nothing overflows sideways at 768px on a vendor page', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.goto('/vendors');
+    await page.locator('a[href^="/vendors/"]').first().click();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+});
+
 test.describe('placeholders removed', () => {
   test('the footer no longer links to the blog, and /blog is not a page', async ({ page }) => {
     await page.goto('/');
@@ -170,6 +196,15 @@ test.describe('placeholders removed', () => {
 
     await page.goto('/blog');
     await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+  });
+
+  test('a seeded vendor\'s invented rating is labelled, never shown as customer reviews', async ({ page }) => {
+    // Seeded vendors carry an invented review count as well as a rating; the
+    // page once showed it as "331 reviews". Aranya Lawns is a seeded venue.
+    await page.goto('/vendors/aranya-lawns');
+    await expect(page.getByRole('heading', { level: 1, name: 'Aranya Lawns' })).toBeVisible();
+    await expect(page.getByText('Sample rating — no customer reviews yet')).toBeVisible();
+    await expect(page.getByText(/^\d+ reviews?$/)).toHaveCount(0);
   });
 
   test('the contact page shows no placeholder address', async ({ page }) => {

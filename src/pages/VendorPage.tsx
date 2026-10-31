@@ -152,7 +152,11 @@ const VendorPage = () => {
                 <p className="mt-2 text-muted">{vendor.category}</p>
               </div>
               <div className="text-right">
-                {vendor.review_count > 0 || !vendor.rating_is_demo ? (
+                {/* rating_is_demo alone decides: seeded vendors carry an invented
+                    review_count too, so testing the count showed fabricated
+                    reviews as real. The flag clears for good on the first
+                    genuine review. */}
+                {!vendor.rating_is_demo ? (
                   <>
                     <div className="flex items-center justify-end">
                       <Star className="h-6 w-6 fill-current text-amber-400" aria-hidden="true" />
