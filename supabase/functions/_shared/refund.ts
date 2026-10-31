@@ -22,10 +22,13 @@
 import type { Db } from './db.ts';
 import { RazorpayError, type RazorpayApi, type RazorpayRefund } from './razorpay.ts';
 import { UUID, bearer, dbErrorResponse, json, preflight, readJson } from './http.ts';
+import { type RateLimit, spendRateLimit } from './rateLimit.ts';
 
 export interface RefundDeps {
   db: Db;
   razorpay: RazorpayApi | null;
+  /** Defaults to RATE_LIMITS['payments-refund']. */
+  rateLimit?: RateLimit;
 }
 
 interface RefundRow {
@@ -160,6 +163,9 @@ export async function handleRefund(req: Request, deps: RefundDeps): Promise<Resp
 
   const user = await deps.db.userFor(authorization);
   if (!user) return json(401, { error: 'Your session has expired. Sign in again.' });
+
+  const limited = await spendRateLimit(deps.db, 'payments-refund', user.id, deps.rateLimit);
+  if (limited) return limited;
 
   const body = await readJson(req);
   const paymentId = body?.payment_id;

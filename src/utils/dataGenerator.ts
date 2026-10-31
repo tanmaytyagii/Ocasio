@@ -18,9 +18,12 @@ export interface Vendor {
 
 const categories = {
   venues: {
+    // Invented names. These were real hotel brands, which made the demo
+    // catalogue present real businesses as Ocasio vendors with made-up ratings
+    // and prices (docs/SECURITY_AUDIT.md, F-08).
     names: [
-      'Taj Palace', 'The Leela Palace', 'ITC Grand', 'The Oberoi', 'Ritz-Carlton',
-      'JW Marriott', 'Grand Hyatt', 'The Lalit', 'Radisson Blu', 'Shangri-La',
+      'Aranya Lawns', 'Kesar Mahal', 'The Banyan Courtyard', 'Moonstone Terrace', 'Neelkamal Banquets',
+      'Rangoli Gardens', 'Sandalwood Hall', 'Tamarind Pavilion', 'The Peacock Atrium', 'Vaanya Riverside',
     ],
     services: [
       'Banquet Halls', 'Outdoor Gardens', 'Poolside Venue', 'Rooftop Terrace',
@@ -172,6 +175,13 @@ export function generateVendorData(): Vendor[] {
 
       const slug = name.toLowerCase().replace(/\s+/g, '');
 
+      // Contact details are fictional by construction, not just made up: a
+      // random Indian mobile number can belong to a real person, and a .com
+      // domain to a real business. No Indian number has a 0 after the country
+      // code, and RFC 2606 reserves .example. Both random draws are kept so the
+      // rest of the catalogue stays byte-for-byte deterministic.
+      const fictionalPhone = (_unusedDraw: number, tail: number) => `+91 00000 ${tail}`;
+
       vendors.push({
         id,
         name,
@@ -181,9 +191,9 @@ export function generateVendorData(): Vendor[] {
         image: `${data.images[index]}?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80`,
         location: cities[cityIndex],
         description: `Premier ${category} service provider specializing in ${eventTypes.join(', ')} events. Known for exceptional service and attention to detail.`,
-        phone: `+91 ${randomInt(rng, 70000, 99999)} ${randomInt(rng, 10000, 99999)}`,
-        email: `contact@${slug}.com`,
-        website: `www.${slug}.com`,
+        phone: fictionalPhone(randomInt(rng, 70000, 99999), randomInt(rng, 10000, 99999)),
+        email: `contact@${slug}.example`,
+        website: `www.${slug}.example`,
         businessHours: '10:00 AM - 8:00 PM',
         services: data.services,
         pricing: `Starting from ₹${randomInt(rng, 25000, 500000).toLocaleString('en-IN')} onwards`,

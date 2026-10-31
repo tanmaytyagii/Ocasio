@@ -31,6 +31,8 @@ import { supabaseDb } from '../supabase/functions/_shared/db.ts';
 import { handleCreateOrder } from '../supabase/functions/_shared/createOrder.ts';
 import { handleRefund } from '../supabase/functions/_shared/refund.ts';
 import { handleWebhook } from '../supabase/functions/_shared/webhook.ts';
+import { RATE_LIMITS, type RateLimit, spendRateLimit } from '../supabase/functions/_shared/rateLimit.ts';
+import type { Db } from '../supabase/functions/_shared/db.ts';
 import {
   RazorpayError,
   hmacSha256Hex,
@@ -48,6 +50,13 @@ const KEY_ID = 'rzp_test_OcasioFake01';
 const WEBHOOK_SECRET = 'whsec-test-ocasio-0123456789';
 const SERVICE_PRICE = 40_000; // rupees
 const AMOUNT_MINOR = SERVICE_PRICE * 100;
+
+/**
+ * The shared fixtures make far more payment calls in one run than any person
+ * would, so the suite gives them a large budget. The real limits are tested on
+ * fresh users in 'request budgets' below.
+ */
+const HARNESS_LIMIT: RateLimit = { max: 10_000, windowSeconds: 600 };
 
 const db = supabaseDb((url, key, options) => createClient(url, key, options), {
   url: SUPABASE_URL,
@@ -151,6 +160,8 @@ let customer: TestUser;
 let otherCustomer: TestUser;
 let vendor: VendorFixture;
 let otherVendor: VendorFixture;
+/** A vendor of its own, so its refund budget starts untouched. */
+let budgetVendor: VendorFixture | undefined;
 let dayCursor = 200;
 
 const futureDate = (days: number) =>
@@ -188,7 +199,7 @@ beforeAll(async () => {
 afterAll(async () => {
   if (!running) return;
   const admin = serviceClient();
-  const vendorIds = [vendor?.vendorId, otherVendor?.vendorId].filter(Boolean) as string[];
+  const vendorIds = [vendor?.vendorId, otherVendor?.vendorId, budgetVendor?.vendorId].filter(Boolean) as string[];
 
   // Payments and refunds RESTRICT deletes, so children first.
   const { data: payments } = await admin.from('payments').select('id').in('vendor_id', vendorIds);
@@ -203,7 +214,9 @@ afterAll(async () => {
   await admin.from('vendor_services').delete().in('vendor_id', vendorIds);
   await admin.from('vendors').delete().in('id', vendorIds);
   await Promise.all(
-    [customer, otherCustomer, vendor?.owner, otherVendor?.owner].filter(Boolean).map(deleteTestUser),
+    [customer, otherCustomer, vendor?.owner, otherVendor?.owner, budgetVendor?.owner]
+      .filter((u): u is TestUser => Boolean(u))
+      .map(deleteTestUser),
   );
 });
 
@@ -247,7 +260,7 @@ async function call(
 
 const createOrder = async (bookingId: string, as: TestUser | null = customer, extra: object = {}) =>
   call(
-    (req) => handleCreateOrder(req, { db, razorpay, keyId: KEY_ID }),
+    (req) => handleCreateOrder(req, { db, razorpay, keyId: KEY_ID, rateLimit: HARNESS_LIMIT }),
     { booking_id: bookingId, ...extra },
     as ? await bearerFor(as) : null,
   );
@@ -259,7 +272,7 @@ const requestRefund = async (
   as: TestUser | null = vendor.owner,
 ) =>
   call(
-    (req) => handleRefund(req, { db, razorpay }),
+    (req) => handleRefund(req, { db, razorpay, rateLimit: HARNESS_LIMIT }),
     { payment_id: paymentId, amount_minor: amountMinor, idempotency_key: key, reason: 'Test refund' },
     as ? await bearerFor(as) : null,
   );
@@ -446,7 +459,7 @@ describe.runIf(running)('creating a Razorpay order', () => {
 
     expect((await createOrder(bookingId, null)).status).toBe(401);
     const forged = await call(
-      (req) => handleCreateOrder(req, { db, razorpay, keyId: KEY_ID }),
+      (req) => handleCreateOrder(req, { db, razorpay, keyId: KEY_ID, rateLimit: HARNESS_LIMIT }),
       { booking_id: bookingId },
       'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmb3JnZWQifQ.c2lnbmF0dXJl',
     );
@@ -574,7 +587,7 @@ describe.runIf(running)('creating a Razorpay order', () => {
   it('fails closed when Razorpay credentials are not configured', async () => {
     const bookingId = await acceptedBooking();
     const { status } = await call(
-      (req) => handleCreateOrder(req, { db, razorpay: null, keyId: null }),
+      (req) => handleCreateOrder(req, { db, razorpay: null, keyId: null, rateLimit: HARNESS_LIMIT }),
       { booking_id: bookingId },
       await bearerFor(customer),
     );
@@ -1208,5 +1221,207 @@ describe.runIf(running)('the audit trail cannot be written from outside', () => 
       .select('*', { count: 'exact', head: true })
       .eq('metadata->>marker', marker);
     expect(count).toBe(0);
+  });
+});
+
+// ===========================================================================
+// Request budgets (SECURITY_AUDIT F-17)
+// ===========================================================================
+
+describe.runIf(running)('request budgets', () => {
+  const fresh: TestUser[] = [];
+
+  afterAll(async () => {
+    const ids = [...fresh.map((u) => u.id), budgetVendor?.owner.id].filter(Boolean) as string[];
+    const admin = serviceClient();
+    for (const id of ids) {
+      await admin.from('rate_limit_counters').delete().like('bucket', `%:${id}`);
+    }
+    // Payments of the fresh customers belong to the shared vendor; the main
+    // afterAll removes them with the vendor's other rows.
+    await Promise.all(fresh.map(deleteTestUser));
+  });
+
+  it('a customer who keeps calling create-order is refused with 429 and Retry-After, and Razorpay is not called again', async () => {
+    const { max, windowSeconds } = RATE_LIMITS['payments-create-order'];
+    const someone = await createTestUser('rzp-budget-cust');
+    fresh.push(someone);
+    const bookingId = await acceptedBooking(vendor, someone);
+    const auth = await bearerFor(someone);
+    const send = () => call((req) => handleCreateOrder(req, { db, razorpay, keyId: KEY_ID }), { booking_id: bookingId }, auth);
+
+    for (let i = 0; i < max; i++) expect((await send()).status).toBe(200);
+    const refused = await send();
+
+    expect(refused.status).toBe(429);
+    const retryAfter = Number(refused.raw.headers.get('retry-after'));
+    expect(retryAfter).toBeGreaterThan(0);
+    expect(retryAfter).toBeLessThanOrEqual(windowSeconds);
+    expect(refused.raw.headers.get('access-control-expose-headers')).toBe('retry-after');
+    // One order for all of it: the retries reopened it, the refusal never reached Razorpay.
+    expect(razorpay.calls.createOrder).toBe(1);
+    expect(razorpay.calls.findOrderByReceipt).toBe(1);
+
+    // The budget is per person: someone else is unaffected.
+    const other = await createTestUser('rzp-budget-other');
+    fresh.push(other);
+    const theirs = await acceptedBooking(vendor, other);
+    const ok = await call(
+      (req) => handleCreateOrder(req, { db, razorpay, keyId: KEY_ID }),
+      { booking_id: theirs },
+      await bearerFor(other),
+    );
+    expect(ok.status).toBe(200);
+  });
+
+  it('a vendor cannot split a payment into an unlimited number of refunds', async () => {
+    const { max } = RATE_LIMITS['payments-refund'];
+    budgetVendor = await createVendor('budget', SERVICE_PRICE);
+    const bookingId = await acceptedBooking(budgetVendor, customer);
+    const { body } = await createOrder(bookingId);
+    const captured = await deliver(paymentEvent('payment.captured', body.order_id as string, `pay_${token()}`));
+    expect(captured.status).toBe(200);
+    const paymentId = body.payment_id as string;
+    const auth = await bearerFor(budgetVendor.owner);
+    const send = (i: number) =>
+      call(
+        (req) => handleRefund(req, { db, razorpay }),
+        { payment_id: paymentId, amount_minor: 100, idempotency_key: `budget:${paymentId}:${i}`, reason: 'Test refund' },
+        auth,
+      );
+
+    // 202: a submitted refund is pending until refund.processed.
+    for (let i = 0; i < max; i++) {
+      const accepted = await send(i);
+      expect(accepted.status).toBe(202);
+      expect(accepted.body.submitted).toBe(true);
+    }
+    const refused = await send(max);
+
+    expect(refused.status).toBe(429);
+    expect(Number(refused.raw.headers.get('retry-after'))).toBeGreaterThan(0);
+    // Exactly the allowed requests reached Razorpay, and the refused one left no row.
+    expect(razorpay.calls.createRefund).toBe(max);
+    expect((await refundRows(paymentId)).length).toBe(max);
+  });
+
+  it('only the service role can spend a budget, and no client can read the counters', async () => {
+    const args = { p_bucket: `payments-refund:${customer.id}`, p_max: 1, p_window_seconds: 60 };
+    const anonymous = await anonClient().rpc('consume_rate_limit', args);
+    const signedIn = await customer.client.rpc('consume_rate_limit', args);
+    // Refused at the function, not merely by the table underneath it: with an
+    // EXECUTE grant the body would fail later on the table, which hides a
+    // regression in the grant itself.
+    expect(anonymous.error?.message).toMatch(/permission denied for function consume_rate_limit/i);
+    expect(signedIn.error?.message).toMatch(/permission denied for function consume_rate_limit/i);
+    const pgc = new pg.Client(DB_URL);
+    await pgc.connect();
+    try {
+      const { rows } = await pgc.query(
+        `select r, has_function_privilege(r, 'public.consume_rate_limit(text,integer,integer)', 'execute') as can
+           from unnest(array['anon', 'authenticated', 'service_role']) r`,
+      );
+      expect(Object.fromEntries(rows.map((x) => [x.r, x.can]))).toEqual({ anon: false, authenticated: false, service_role: true });
+    } finally {
+      await pgc.end();
+    }
+
+    const read = await customer.client.from('rate_limit_counters').select('*');
+    expect(read.data ?? []).toEqual([]);
+  });
+
+  it('budgets are separate for each user and each kind of request', async () => {
+    const one = { max: 1, windowSeconds: 600 };
+    const a = `itest-a-${Date.now()}`;
+    const b = `itest-b-${Date.now()}`;
+    try {
+      expect(await spendRateLimit(db, 'payments-create-order', a, one)).toBeNull();
+      expect((await spendRateLimit(db, 'payments-create-order', a, one))?.status).toBe(429);
+      // Same person, other kind of request: its own budget.
+      expect(await spendRateLimit(db, 'payments-refund', a, one)).toBeNull();
+      // Same kind of request, other person: their own budget.
+      expect(await spendRateLimit(db, 'payments-create-order', b, one)).toBeNull();
+    } finally {
+      await serviceClient().from('rate_limit_counters').delete().or(`bucket.like.%:${a},bucket.like.%:${b}`);
+    }
+  });
+
+  it('Retry-After is the time left in the current window', async () => {
+    const subject = `itest-retry-${Date.now()}`;
+    const windowSeconds = 600;
+    try {
+      await spendRateLimit(db, 'payments-refund', subject, { max: 1, windowSeconds });
+      const refused = (await spendRateLimit(db, 'payments-refund', subject, { max: 1, windowSeconds }))!;
+      const retryAfter = Number(refused.headers.get('retry-after'));
+      // Windows are aligned to multiples of the window length since 2000-01-01T00:00Z.
+      const origin = Date.UTC(2000, 0, 1);
+      const left = Math.ceil((windowSeconds * 1000 - ((Date.now() - origin) % (windowSeconds * 1000))) / 1000);
+      expect(Math.abs(retryAfter - left)).toBeLessThanOrEqual(2);
+    } finally {
+      await serviceClient().from('rate_limit_counters').delete().like('bucket', `%:${subject}`);
+    }
+  });
+
+  it('fails closed: if the budget cannot be checked, the request is refused with 503', async () => {
+    const broken: Db = {
+      ...db,
+      rpcAsService: async () => ({ data: null, error: { message: 'relation does not exist' } }),
+    };
+    const response = await spendRateLimit(broken, 'payments-refund', 'anyone');
+    expect(response?.status).toBe(503);
+
+    // And through the handler: no Razorpay call is made.
+    const someone = await createTestUser('rzp-budget-broken');
+    fresh.push(someone);
+    const bookingId = await acceptedBooking(vendor, someone);
+    const res = await call(
+      (req) => handleCreateOrder(req, { db: broken, razorpay, keyId: KEY_ID }),
+      { booking_id: bookingId },
+      await bearerFor(someone),
+    );
+    expect(res.status).toBe(503);
+    expect(razorpay.calls.createOrder + razorpay.calls.findOrderByReceipt).toBe(0);
+  });
+
+  it('concurrent requests are serialised: the second waits on the first\'s row lock, then counts', async () => {
+    const bucket = `itest-lock:${Date.now()}`;
+    const [t1, t2, observer] = [new pg.Client(DB_URL), new pg.Client(DB_URL), new pg.Client(DB_URL)];
+    await Promise.all([t1.connect(), t2.connect(), observer.connect()]);
+    const spend = (c: pg.Client) =>
+      c.query('select allowed from public.consume_rate_limit($1, 1, 600)', [bucket]).then((r) => r.rows[0].allowed as boolean);
+    try {
+      const { rows } = await t2.query('select pg_backend_pid() as pid');
+      await t1.query('begin');
+      expect(await spend(t1)).toBe(true); // holds the counter row until commit
+
+      await t2.query('begin');
+      const second = spend(t2);
+      // Blocked on the lock — not racing ahead with its own count of 1.
+      await expect
+        .poll(async () => (await observer.query('select wait_event_type from pg_stat_activity where pid = $1', [rows[0].pid])).rows[0]?.wait_event_type)
+        .toBe('Lock');
+
+      await t1.query('commit');
+      expect(await second).toBe(false); // sees the first hit: over the budget of 1
+      await t2.query('commit');
+    } finally {
+      await observer.query('delete from public.rate_limit_counters where bucket = $1', [bucket]);
+      await Promise.all([t1.end(), t2.end(), observer.end()]);
+    }
+  });
+
+  it('many simultaneous connections cannot exceed the budget', async () => {
+    const bucket = `itest-burst:${Date.now()}`;
+    const clients = Array.from({ length: 20 }, () => new pg.Client(DB_URL));
+    await Promise.all(clients.map((c) => c.connect()));
+    try {
+      const verdicts = await Promise.all(
+        clients.map((c) => c.query('select allowed from public.consume_rate_limit($1, 5, 600)', [bucket])),
+      );
+      expect(verdicts.filter((v) => v.rows[0].allowed).length).toBe(5);
+    } finally {
+      await clients[0].query('delete from public.rate_limit_counters where bucket = $1', [bucket]);
+      await Promise.all(clients.map((c) => c.end()));
+    }
   });
 });

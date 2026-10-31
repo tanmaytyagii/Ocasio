@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:edge": "vitest run --config vitest.edge.config.ts",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > src/types/supabase.generated.ts",
     "db:seed:generate": "tsx scripts/generate-seed.ts > supabase/seed.sql",
@@ -18,7 +19,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.7",
+    "@supabase/supabase-js": "^2.50.0",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

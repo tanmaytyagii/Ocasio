@@ -182,7 +182,7 @@ describe.runIf(running)('rating provenance', () => {
     const { data } = await anonClient()
       .from('vendors')
       .select('rating, review_count, rating_is_demo')
-      .eq('slug', 'taj-palace')
+      .eq('slug', 'aranya-lawns')
       .single();
 
     expect(data!.rating_is_demo).toBe(true);

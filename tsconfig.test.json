@@ -26,6 +26,7 @@
     "scripts",
     "e2e",
     "vitest.config.ts",
+    "vitest.edge.config.ts",
     "playwright.config.ts"
   ]
 }

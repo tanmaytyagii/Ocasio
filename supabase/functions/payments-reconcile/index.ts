@@ -9,9 +9,11 @@
  * therefore the existing ones.
  *
  * Intended to run on a schedule (Supabase cron) or be invoked by an operator.
- * It is authenticated by the service-role key and is not reachable from a
- * browser: both find_stale_payments() and reconcile_payment() are granted to
- * service_role alone.
+ * The caller must present the service-role key (the scheduler sends it from
+ * Vault). Supabase's JWT check alone did not ensure that: the public anon key
+ * is a valid JWT, so until this check existed anyone holding the site's anon
+ * key could start a service-role sweep and write audit rows
+ * (docs/SECURITY_AUDIT.md, finding F-01).
  *
  * ---------------------------------------------------------------------------
  * WHERE A REAL PROVIDER PLUGS IN
@@ -29,6 +31,7 @@
  *                                never exposed to Vite or the browser
  */
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { hasServiceRoleKey } from '../_shared/http.ts';
 
 /** What the provider says about a payment. Deliberately includes "I can't tell". */
 export type ProviderPaymentStatus = 'succeeded' | 'failed' | 'pending' | 'unknown';
@@ -64,6 +67,13 @@ const providers = new Map<string, ReconciliationProvider>([
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
+  }
+
+  if (!hasServiceRoleKey(req, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))) {
+    return new Response(JSON.stringify({ error: 'forbidden' }), {
+      status: 403,
+      headers: { 'content-type': 'application/json' },
+    });
   }
 
   const providerName = Deno.env.get('PAYMENT_PROVIDER') ?? 'test';

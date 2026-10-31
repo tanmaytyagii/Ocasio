@@ -20,12 +20,15 @@
 import type { Db } from './db.ts';
 import { RazorpayError, type RazorpayApi, type RazorpayOrder } from './razorpay.ts';
 import { UUID, bearer, dbErrorResponse, json, preflight, readJson } from './http.ts';
+import { type RateLimit, spendRateLimit } from './rateLimit.ts';
 
 export interface CreateOrderDeps {
   db: Db;
   /** Null when RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET are not set. */
   razorpay: RazorpayApi | null;
   keyId: string | null;
+  /** Defaults to RATE_LIMITS['payments-create-order']. */
+  rateLimit?: RateLimit;
 }
 
 interface PaymentRow {
@@ -75,6 +78,9 @@ export async function handleCreateOrder(req: Request, deps: CreateOrderDeps): Pr
 
   const user = await deps.db.userFor(authorization);
   if (!user) return json(401, { error: 'Your session has expired. Sign in again to pay.' });
+
+  const limited = await spendRateLimit(deps.db, 'payments-create-order', user.id, deps.rateLimit);
+  if (limited) return limited;
 
   const body = await readJson(req);
   const bookingId = body?.booking_id;

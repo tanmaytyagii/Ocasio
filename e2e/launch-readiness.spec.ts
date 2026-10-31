@@ -82,6 +82,28 @@ test.describe('security headers', () => {
     expect(headers['permissions-policy']).toContain('camera=()');
   });
 
+  test('images and requests are pinned to this build\'s own Supabase project', async ({ page }) => {
+    // The header allows any *.supabase.co; the build adds a meta policy naming
+    // only its own project (vite.config.ts, SECURITY_AUDIT F-12). A vendor
+    // image hosted in somebody else's project must be refused.
+    const violations = await collectCspViolations(page);
+    await page.goto('/');
+    const meta = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content');
+    expect(meta).toMatch(/^img-src [^;]*; connect-src [^;]*$/);
+    expect(meta).not.toContain('*');
+
+    await page.evaluate(() => {
+      const img = document.createElement('img');
+      img.src = 'https://another-project-entirely.supabase.co/storage/v1/object/public/pixel.png';
+      document.body.append(img);
+    });
+    await expect
+      .poll(async () =>
+        (await violations()).some((v) => v.startsWith('img-src blocked https://another-project-entirely.supabase.co')),
+      )
+      .toBe(true);
+  });
+
   test('the CSP does not block the marketplace, vendor pages or sign-in', async ({ page }) => {
     const violations = await collectCspViolations(page);
 

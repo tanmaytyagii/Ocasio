@@ -25,6 +25,33 @@ export function json(status: number, body: unknown, cors = true): Response {
 
 export const preflight = () => new Response(null, { status: 204, headers: CORS_HEADERS });
 
+/**
+ * Constant-time string comparison, so a secret cannot be recovered byte by
+ * byte from response timing. Lengths are compared first; they are not secret.
+ */
+export function constantTimeEqual(a: string, b: string): boolean {
+  const x = new TextEncoder().encode(a);
+  const y = new TextEncoder().encode(b);
+  if (x.length !== y.length) return false;
+  let diff = 0;
+  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
+  return diff === 0;
+}
+
+/**
+ * True only when the request carries the service-role key itself.
+ *
+ * For functions that only the scheduler or an operator may call. Supabase's
+ * gateway JWT check is not enough for that: the public anon key is a valid JWT
+ * too, so with verification alone anyone holding the site's anon key could
+ * call the function.
+ */
+export function hasServiceRoleKey(req: Request, serviceRoleKey: string | null | undefined): boolean {
+  if (!serviceRoleKey) return false;
+  const match = /^Bearer\s+(\S+)$/i.exec((req.headers.get('authorization') ?? '').trim());
+  return match !== null && constantTimeEqual(match[1], serviceRoleKey);
+}
+
 /** The `Authorization: Bearer …` header, or null. */
 export function bearer(req: Request): string | null {
   const header = req.headers.get('authorization') ?? '';

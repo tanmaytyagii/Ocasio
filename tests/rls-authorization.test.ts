@@ -76,10 +76,10 @@ describe.runIf(await stackIsRunning())('public (unauthenticated) access', () => 
     const { data, error } = await anonClient()
       .from('vendors')
       .select(`${PUBLIC_VENDOR_COLUMNS}, vendor_services(*), vendor_media(*)`)
-      .eq('slug', 'taj-palace')
+      .eq('slug', 'aranya-lawns')
       .single();
     expect(error).toBeNull();
-    expect(data!.business_name).toBe('Taj Palace');
+    expect(data!.business_name).toBe('Aranya Lawns');
     expect(data!.vendor_services.length).toBeGreaterThan(0);
   });
 

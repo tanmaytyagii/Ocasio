@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 /**
@@ -78,6 +78,55 @@ function productionHeaders(supabaseUrl: string | undefined): Record<string, stri
   return headers;
 }
 
+/**
+ * img-src and connect-src from vercel.json, with `https://*.supabase.co`
+ * replaced by this build's own Supabase origin (docs/SECURITY_AUDIT.md, F-12).
+ *
+ * The header has to name every Supabase project, because one vercel.json
+ * serves Preview and Production alike. The wildcard matches any project, and
+ * vendors control image URLs, so an approved vendor could embed a tracking
+ * pixel from a project of their own. A meta policy, added to the HTML at build
+ * time, is enforced together with the header — a resource must pass both — so
+ * each build is pinned to the one project it was built for. Nothing else is
+ * restricted further, and nothing is relaxed.
+ */
+export function pinnedSupabasePolicy(headerPolicy: string, supabaseUrl: string): string {
+  const origin = new URL(supabaseUrl).origin;
+  const directives = headerPolicy
+    .split(';')
+    .map((directive) => directive.trim())
+    .filter((directive) => /^(img-src|connect-src)\s/.test(directive));
+  if (directives.length !== 2) {
+    throw new Error('vercel.json: the Content-Security-Policy must set img-src and connect-src.');
+  }
+  return directives
+    .map((directive) => {
+      const [name, ...sources] = directive.split(/\s+/);
+      const pinned = sources.map((source) => (source === 'https://*.supabase.co' ? origin : source));
+      return [name, ...new Set(pinned)].join(' ');
+    })
+    .join('; ');
+}
+
+const pinSupabaseOrigin = (supabaseUrl: string): Plugin => ({
+  name: 'ocasio:pin-supabase-origin',
+  apply: 'build',
+  transformIndexHtml: () => [
+    {
+      tag: 'meta',
+      attrs: {
+        'http-equiv': 'Content-Security-Policy',
+        content: pinnedSupabasePolicy(
+          productionHeaders(undefined)['Content-Security-Policy'] ?? '',
+          supabaseUrl,
+        ),
+      },
+      // First in <head>: a meta policy covers only what loads after it.
+      injectTo: 'head-prepend',
+    },
+  ],
+});
+
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode, isPreview }) => {
   // Includes VITE_* from process.env, which takes priority over .env files —
@@ -87,7 +136,7 @@ export default defineConfig(({ command, mode, isPreview }) => {
   if (command === 'build') assertBuildEnv(env);
 
   return {
-    plugins: [react()],
+    plugins: [react(), ...(command === 'build' ? [pinSupabaseOrigin(env.VITE_SUPABASE_URL)] : [])],
     optimizeDeps: {
       exclude: ['lucide-react'],
     },

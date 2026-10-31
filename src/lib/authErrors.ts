@@ -19,7 +19,7 @@
  * Mirrors `auth.minimum_password_length` in supabase/config.toml. The database
  * is what enforces it; this is only what we say and what the field asks for.
  */
-export const MIN_PASSWORD_LENGTH = 6;
+export const MIN_PASSWORD_LENGTH = 8;
 
 export const GENERIC_AUTH_ERROR = 'Something went wrong. Please try again.';
 
