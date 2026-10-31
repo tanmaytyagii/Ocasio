@@ -14,7 +14,9 @@ const SearchResults = lazy(() => import('./pages/SearchResults'));
 const AboutUs = lazy(() => import('./pages/AboutUs'));
 const Contact = lazy(() => import('./pages/Contact'));
 const BecomeVendor = lazy(() => import('./pages/BecomeVendor'));
-const Blog = lazy(() => import('./pages/Blog'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const CancellationRefunds = lazy(() => import('./pages/CancellationRefunds'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Favorites = lazy(() => import('./pages/Favorites'));
 const Bookings = lazy(() => import('./pages/Bookings'));
@@ -95,7 +97,9 @@ function App() {
                     <Route path="/about" element={<AboutUs />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/become-vendor" element={<BecomeVendor />} />
-                    <Route path="/blog" element={<Blog />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/cancellation-and-refunds" element={<CancellationRefunds />} />
 
                     {/* Vendor workspace: same shell as the rest of the product,
                         gated on the database-backed vendor role. Declared

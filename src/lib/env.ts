@@ -62,6 +62,20 @@ export const missingPublicEnv = (): RequiredPublicEnv[] =>
     name === 'VITE_SUPABASE_URL' ? !isUsableUrl(raw[name]) : !isPresent(raw[name])
   );
 
+/**
+ * The public support inbox, from VITE_SUPPORT_EMAIL.
+ *
+ * Optional: the site starts without it. Returns null when it is unset or does
+ * not look like an address, so pages can say the inbox is not configured
+ * rather than render a placeholder address that receives no mail.
+ */
+export const readSupportEmail = (): string | null => {
+  const value: unknown = import.meta.env.VITE_SUPPORT_EMAIL;
+  if (!isPresent(value)) return null;
+  const trimmed = value.trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) ? trimmed : null;
+};
+
 export type SupabaseConfig = { url: string; anonKey: string };
 
 /**

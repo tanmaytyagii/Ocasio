@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Mail, Store, HelpCircle } from 'lucide-react';
+import { Mail, Store, HelpCircle, type LucideIcon } from 'lucide-react';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { SITE } from '../lib/site';
 
 /**
  * Contact page.
@@ -9,17 +10,25 @@ import { usePageMeta } from '../hooks/usePageMeta';
  * message had been sent when nothing was. Routing enquiries to a real inbox is
  * the honest option until there is somewhere for submissions to go.
  *
- * TODO: replace SUPPORT_EMAIL with Ocasio's real address before launch. It is a
- * placeholder and does not receive mail.
+ * The inbox comes from SITE.supportEmail (VITE_SUPPORT_EMAIL). When a
+ * deployment has not set one, the page says so instead of showing an address
+ * that does not receive mail.
  */
-const SUPPORT_EMAIL = 'hello@ocasio.example';
+type ContactAction = { label: string; href?: string; to?: string } | null;
 
-const CONTACT_ROUTES = [
+const CONTACT_ROUTES: {
+  icon: LucideIcon;
+  title: string;
+  body: string;
+  action: ContactAction;
+}[] = [
   {
     icon: HelpCircle,
     title: 'General enquiries',
     body: 'Questions about Ocasio, finding a vendor, or how the platform works.',
-    action: { label: SUPPORT_EMAIL, href: `mailto:${SUPPORT_EMAIL}` },
+    action: SITE.supportEmail
+      ? { label: SITE.supportEmail, href: `mailto:${SITE.supportEmail}` }
+      : null,
   },
   {
     icon: Store,
@@ -55,7 +64,11 @@ const Contact = () => {
               <h2 className="text-xl font-semibold text-ink">{title}</h2>
               <p className="text-muted mt-2">{body}</p>
               <div className="mt-4">
-                {action.href ? (
+                {!action ? (
+                  <p className="text-sm text-muted">
+                    Our support inbox is not set up yet. Please check back soon.
+                  </p>
+                ) : action.href ? (
                   <a
                     href={action.href}
                     className="inline-flex items-center text-brand-700 font-medium hover:underline"

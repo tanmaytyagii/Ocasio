@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
+import { LEGAL_PAGES } from './legal/legalPages';
 
 /**
  * Site footer — the page's closing surface.
  *
  * Every entry links to a route that exists (checked against the route table in
- * App.tsx). There are no social icons, no Privacy / Terms / Sitemap row, no
- * newsletter box and no trust badges, because none of those exist. A footer
- * full of links that go nowhere is the opposite of premium.
+ * App.tsx). There are no social icons, no sitemap, no newsletter box and no
+ * trust badges, because none of those exist. A footer full of links that go
+ * nowhere is the opposite of premium. The legal pages do exist, and sit in the
+ * closing row where people expect to find them.
  *
  * The city links carry `location`, which is the parameter the marketplace
  * actually reads (useMarketplaceParams), and all five have active vendors
@@ -50,7 +52,6 @@ const COLUMNS = [
     links: [
       { label: 'About us', to: '/about' },
       { label: 'Contact', to: '/contact' },
-      { label: 'Blog', to: '/blog' },
       { label: 'List your business', to: '/become-vendor' },
     ],
   },
@@ -143,10 +144,24 @@ const Footer = () => (
         </div>
 
         {/* ── closing utility row ─────────────────────────────────────── */}
-        <div className="mt-[clamp(2.5rem,4vw,3.5rem)] flex flex-col gap-2 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+        <div className="mt-[clamp(2.5rem,4vw,3.5rem)] flex flex-col gap-3 border-t border-line pt-6 xl:flex-row xl:items-center xl:justify-between xl:gap-6">
           <p className="text-[0.875rem] text-muted">
             © {new Date().getFullYear()} Ocasio. All rights reserved.
           </p>
+          <nav aria-label="Legal">
+            <ul className="flex flex-wrap gap-x-5 gap-y-2">
+              {LEGAL_PAGES.map((page) => (
+                <li key={page.to}>
+                  <Link
+                    to={page.to}
+                    className="text-[0.875rem] text-muted transition-colors duration-200 hover:text-brand-700"
+                  >
+                    {page.short}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
           {/* Accurate description of the catalogue's status. Stays visible at
               every width rather than being tucked away. */}
           <p className="text-[0.875rem] text-muted">
