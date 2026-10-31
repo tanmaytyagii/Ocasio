@@ -52,6 +52,8 @@ export interface VendorProfilePatch {
   business_hours: string | null;
   starting_price: number | null;
   hero_image_url: string | null;
+  /** Enforced when a booking is accepted; see migration 20261030000002. */
+  daily_capacity: number;
 }
 
 export async function updateMyVendor(
@@ -62,7 +64,7 @@ export async function updateMyVendor(
     .from('vendors')
     .update(patch)
     .eq('id', vendorId)
-    .select(PUBLIC_VENDOR_COLUMNS)
+    .select(`${PUBLIC_VENDOR_COLUMNS}, daily_capacity`)
     .single();
 
   if (error) {
@@ -75,6 +77,9 @@ export async function updateMyVendor(
     }
     if (/vendors_name_length/i.test(error.message)) {
       throw new Error('Business name must be between 2 and 160 characters.');
+    }
+    if (/vendors_daily_capacity_range/i.test(error.message)) {
+      throw new Error('Bookings per day must be between 1 and 100.');
     }
     throw new Error('We could not save your profile. Please try again.');
   }

@@ -125,8 +125,10 @@ const SECTIONS: LegalSection[] = [
           full scope and price of the service may need to be agreed with the vendor.
         </p>
         <p>
-          Ocasio does not currently manage vendors’ calendars, so a vendor may receive more than one
-          request for the same date. It is the vendor’s responsibility to accept only bookings they
+          Each vendor sets how many bookings it can accept for one date, and Ocasio will not let it
+          accept more than that. A vendor may still receive more requests for a date than it can
+          take; a request it cannot take is declined, and a sent request is not a reservation. It is
+          the vendor’s responsibility to set that limit accurately and to accept only bookings it
           can fulfil. After the event, the vendor marks the booking as completed.
         </p>
         <p>

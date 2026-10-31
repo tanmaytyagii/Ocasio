@@ -14,6 +14,7 @@ import { registerProvider, type AuthorizeRequest, type AuthorizeResult, type Pay
  */
 export const testPaymentProvider: PaymentProvider = {
   name: 'test',
+  usesServerOrder: false,
 
   async authorize(request: AuthorizeRequest): Promise<AuthorizeResult> {
     if (!request.paymentId) {
@@ -21,7 +22,7 @@ export const testPaymentProvider: PaymentProvider = {
     }
     // Deterministic: the same payment always yields the same reference, so a
     // retried authorisation does not orphan the previous one.
-    return { providerPaymentId: `test_${request.paymentId}` };
+    return { outcome: 'submitted', providerPaymentId: `test_${request.paymentId}` };
   },
 };
 

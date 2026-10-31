@@ -215,9 +215,11 @@ export async function getMyVendor(): Promise<PublicVendor | null> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
 
+  // daily_capacity is the owner's own setting, so it is read here and not on
+  // the public marketplace queries.
   const { data, error } = await supabase
     .from('vendors')
-    .select(PUBLIC_VENDOR_COLUMNS)
+    .select(`${PUBLIC_VENDOR_COLUMNS}, daily_capacity`)
     .eq('owner_id', auth.user.id)
     .maybeSingle();
 

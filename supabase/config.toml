@@ -384,6 +384,21 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# Payment functions. Customers and vendors call create-order and refund with
+# their session, so Supabase verifies the JWT before the function runs.
+# Razorpay calls the webhook and sends no Supabase JWT — its own HMAC signature
+# is the authentication, checked inside the function — so verification is off
+# for that one function only. With it on, every Razorpay delivery is rejected
+# at the gateway.
+[functions.payments-create-order]
+verify_jwt = true
+
+[functions.payments-refund]
+verify_jwt = true
+
+[functions.payments-webhook]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

@@ -41,6 +41,7 @@ const VendorProfilePanel = ({ vendor, onSaved }: Props) => {
     website: vendor.website ?? '',
     business_hours: vendor.business_hours ?? '',
     starting_price: vendor.starting_price === null ? '' : String(vendor.starting_price),
+    daily_capacity: String(vendor.daily_capacity ?? 1),
   };
 
   const [form, setForm] = useState(initial);
@@ -75,6 +76,10 @@ const VendorProfilePanel = ({ vendor, onSaved }: Props) => {
       const n = Number(form.starting_price);
       if (!Number.isFinite(n) || n < 0) errors.starting_price = 'Enter a number, or leave it blank.';
     }
+    const capacity = Number(form.daily_capacity);
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 100) {
+      errors.daily_capacity = 'Enter a whole number from 1 to 100.';
+    }
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -97,6 +102,7 @@ const VendorProfilePanel = ({ vendor, onSaved }: Props) => {
         website: form.website.trim() || null,
         business_hours: form.business_hours.trim() || null,
         starting_price: form.starting_price.trim() ? Number(form.starting_price) : null,
+        daily_capacity: Number(form.daily_capacity),
       });
       onSaved(updated);
       setEditing(false);
@@ -126,6 +132,7 @@ const VendorProfilePanel = ({ vendor, onSaved }: Props) => {
       ['Email', vendor.email ?? 'Not set'],
       ['Website', vendor.website ?? 'Not set'],
       ['Business hours', vendor.business_hours ?? 'Not set'],
+      ['Bookings per day', String(vendor.daily_capacity ?? 1)],
     ];
 
     return (
@@ -248,6 +255,21 @@ const VendorProfilePanel = ({ vendor, onSaved }: Props) => {
           maxLength={MAX.website}
           onChange={(e) => set('website', e.target.value)}
         />
+
+        <div className="sm:w-1/2 sm:pr-2.5">
+          <TextField
+            label="Bookings per day"
+            type="number"
+            min={1}
+            max={100}
+            step={1}
+            inputMode="numeric"
+            value={form.daily_capacity}
+            error={fieldErrors.daily_capacity}
+            hint="How many bookings you can accept for the same date. A venue is usually 1."
+            onChange={(e) => set('daily_capacity', e.target.value)}
+          />
+        </div>
 
         {error && (
           <p className="text-sm text-red-700" role="alert">

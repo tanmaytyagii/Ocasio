@@ -28,6 +28,7 @@
     "@eslint/js": "^9.9.1",
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.2",
+    "@types/pg": "^8.23.1",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
@@ -37,6 +38,7 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
     "globals": "^15.9.0",
+    "pg": "^8.23.1",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.3",
@@ -44,7 +46,7 @@
     "vite": "^5.4.2",
     "vitest": "^2.1.9"
   },
-  "description": "An event vendor marketplace \u2014 discover vendors, request bookings, pay, and review the work. React + Supabase/Postgres with database-enforced authorization.",
+  "description": "An event vendor marketplace — discover vendors, request bookings, pay, and review the work. React + Supabase/Postgres with database-enforced authorization.",
   "keywords": [
     "marketplace",
     "supabase",

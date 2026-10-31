@@ -63,6 +63,25 @@ test.describe('security headers', () => {
     });
   }
 
+  test('lets Razorpay Checkout in, and only Razorpay', async ({ request }) => {
+    // Established by loading checkout.js under this policy and recording every
+    // violation (docs/OCASIO_DEPLOYMENT.md §5). The payment form is a frame
+    // from api.razorpay.com; no other origin may be framed.
+    const headers = (await request.get('/')).headers();
+    const directives = Object.fromEntries(
+      headers['content-security-policy'].split(';').map((d) => {
+        const [name, ...values] = d.trim().split(/\s+/);
+        return [name, values];
+      }),
+    );
+    expect(directives['script-src']).toEqual(
+      expect.arrayContaining(['https://checkout.razorpay.com', 'https://cdn.razorpay.com']),
+    );
+    expect(directives['frame-src']).toEqual(['https://api.razorpay.com']);
+    expect(headers['permissions-policy']).toContain('payment=(self "https://api.razorpay.com")');
+    expect(headers['permissions-policy']).toContain('camera=()');
+  });
+
   test('the CSP does not block the marketplace, vendor pages or sign-in', async ({ page }) => {
     const violations = await collectCspViolations(page);
 

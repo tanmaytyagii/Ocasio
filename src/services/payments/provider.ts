@@ -17,33 +17,52 @@ export interface AuthorizeRequest {
   amountMinor: number;
   currency: string;
   bookingReference: string;
+  /**
+   * The order the server created, for providers that settle against one
+   * (Razorpay). The browser opens Checkout with it; it never creates one.
+   */
+  order?: { id: string; publicKey: string };
+  /** Shown in the provider's form so the customer does not retype it. */
+  prefill?: { email?: string };
 }
 
-export interface AuthorizeResult {
-  /** The provider's own identifier for this attempt. */
-  providerPaymentId: string;
-  /** Where to send the customer, when the provider uses a hosted page. */
-  redirectUrl?: string;
-}
+/**
+ * How the customer left the provider's checkout. None of these means "paid":
+ *
+ *   submitted  the provider says the customer completed it. The payment is
+ *              confirmed only when the provider's webhook says so.
+ *   dismissed  closed before finishing.
+ *   failed     the provider reported a failed attempt, with its reason.
+ */
+export type AuthorizeResult =
+  | { outcome: 'submitted'; providerPaymentId?: string }
+  | { outcome: 'dismissed' }
+  | { outcome: 'failed'; reason: string };
 
 export interface PaymentProvider {
   readonly name: string;
   /**
-   * Begins authorisation. Returning successfully means "handed to the
-   * provider", never "paid" — the payment moves to `processing`, and only a
-   * webhook can take it further.
+   * True when the server creates the payment and the provider's order
+   * (payments-create-order) before authorize() runs. False when the browser
+   * creates the payment itself, then hands it over with start_payment() — the
+   * test adapter's flow.
+   */
+  readonly usesServerOrder: boolean;
+  /**
+   * Begins authorisation. Resolving means the customer is done with the
+   * provider's form, never "paid" — only a webhook can settle a payment.
    */
   authorize(request: AuthorizeRequest): Promise<AuthorizeResult>;
 }
 
 /**
- * Where a real provider plugs in.
+ * Providers register themselves here; VITE_PAYMENT_PROVIDER picks the one that
+ * starts new payments. An existing payment always continues with the provider
+ * it was started with.
  *
- * Adding Razorpay means: implement PaymentProvider with their checkout SDK,
- * register it here, and set VITE_PAYMENT_PROVIDER=razorpay. Nothing in the
- * payment domain, the database functions or the webhook processor changes —
- * only the signature-verification block in the edge function, which is
- * provider-specific by nature.
+ * Razorpay: ./razorpayProvider.ts in the browser, and the payments-create-order,
+ * payments-webhook and payments-refund edge functions on the server. See
+ * docs/OCASIO_PAYMENTS.md.
  */
 const registry = new Map<string, PaymentProvider>();
 

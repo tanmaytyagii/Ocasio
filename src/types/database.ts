@@ -46,6 +46,11 @@ export interface Vendor {
    */
   rating_is_demo: boolean;
   starting_price: number | null;
+  /**
+   * Bookings the vendor can accept for one event date (1–100). Read only on
+   * the owner's own queries — the public marketplace never selects it.
+   */
+  daily_capacity?: number;
   created_at: string;
   updated_at: string;
 }

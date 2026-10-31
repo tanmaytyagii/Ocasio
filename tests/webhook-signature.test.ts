@@ -1,87 +1,102 @@
 /**
- * Webhook signature verification.
+ * Razorpay webhook signature verification.
  *
- * The edge function itself runs on Deno and is not exercised by this suite, so
- * the part that actually gates access — the HMAC comparison — is tested here
- * against the same Web Crypto API it uses. If this logic is wrong, an attacker
- * can forge settlement events, so it is worth testing separately from the
- * database rules.
+ * Tests the code the payments-webhook function actually runs —
+ * supabase/functions/_shared/razorpay.ts, imported directly — not a copy of
+ * it. If this logic is wrong, anyone can forge "payment captured" and settle a
+ * booking without paying, so it is tested apart from the database rules.
  *
- * Kept byte-identical to supabase/functions/payments-webhook/index.ts.
+ * Razorpay signs the raw request body: HMAC-SHA256 keyed by the webhook
+ * secret, hex-encoded, in X-Razorpay-Signature.
  */
 import { describe, expect, it } from 'vitest';
-
-function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-async function hmacSha256Hex(secret: string, body: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body));
-  return Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-async function verifySignature(
-  secret: string | undefined,
-  rawBody: string,
-  signature: string | null,
-): Promise<boolean> {
-  if (!secret || !signature) return false;
-  return timingSafeEqual(await hmacSha256Hex(secret, rawBody), signature);
-}
+import {
+  hmacSha256Hex,
+  verifyWebhookSignature,
+  webhookEventId,
+} from '../supabase/functions/_shared/razorpay.ts';
 
 const SECRET = 'test-webhook-secret';
 const BODY = JSON.stringify({
-  event_id: 'evt_1',
-  event_type: 'payment.succeeded',
-  provider_payment_id: 'pp_1',
+  entity: 'event',
+  event: 'payment.captured',
+  payload: { payment: { entity: { id: 'pay_TESTabc123', order_id: 'order_TESTabc123', amount: 50000 } } },
 });
 
 describe('webhook signature verification', () => {
+  it('matches the published HMAC-SHA256 test vector', async () => {
+    // The well-known vector, so the primitive is checked against the outside
+    // world and not only against itself.
+    expect(await hmacSha256Hex('key', 'The quick brown fox jumps over the lazy dog')).toBe(
+      'f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8',
+    );
+  });
+
   it('accepts a correctly signed body', async () => {
     const sig = await hmacSha256Hex(SECRET, BODY);
-    expect(await verifySignature(SECRET, BODY, sig)).toBe(true);
+    expect(await verifyWebhookSignature(BODY, sig, SECRET)).toBe(true);
+  });
+
+  it('accepts the signature in upper case and with surrounding whitespace', async () => {
+    const sig = await hmacSha256Hex(SECRET, BODY);
+    expect(await verifyWebhookSignature(BODY, `  ${sig.toUpperCase()} `, SECRET)).toBe(true);
   });
 
   it('rejects a body that was tampered with after signing', async () => {
     const sig = await hmacSha256Hex(SECRET, BODY);
-    const tampered = BODY.replace('pp_1', 'pp_victim');
-    expect(await verifySignature(SECRET, tampered, sig)).toBe(false);
+    const tampered = BODY.replace('50000', '100');
+    expect(await verifyWebhookSignature(tampered, sig, SECRET)).toBe(false);
+  });
+
+  it('rejects the same JSON re-serialised: only the raw body verifies', async () => {
+    const sig = await hmacSha256Hex(SECRET, BODY);
+    const reformatted = JSON.stringify(JSON.parse(BODY), null, 2);
+    expect(await verifyWebhookSignature(reformatted, sig, SECRET)).toBe(false);
   });
 
   it('rejects a signature made with the wrong secret', async () => {
     const sig = await hmacSha256Hex('not-the-secret', BODY);
-    expect(await verifySignature(SECRET, BODY, sig)).toBe(false);
+    expect(await verifyWebhookSignature(BODY, sig, SECRET)).toBe(false);
   });
 
   it('rejects a missing signature', async () => {
-    expect(await verifySignature(SECRET, BODY, null)).toBe(false);
+    expect(await verifyWebhookSignature(BODY, null, SECRET)).toBe(false);
   });
 
   it('fails closed when no secret is configured', async () => {
     // A misconfigured deployment must reject everything rather than wave it
     // through, which is the difference between an outage and an open door.
     const sig = await hmacSha256Hex(SECRET, BODY);
-    expect(await verifySignature(undefined, BODY, sig)).toBe(false);
+    expect(await verifyWebhookSignature(BODY, sig, undefined)).toBe(false);
+    expect(await verifyWebhookSignature(BODY, sig, '')).toBe(false);
   });
 
-  it('rejects a truncated signature without throwing', async () => {
+  it('rejects truncated, padded and non-hex signatures without throwing', async () => {
     const sig = await hmacSha256Hex(SECRET, BODY);
-    expect(await verifySignature(SECRET, BODY, sig.slice(0, 10))).toBe(false);
+    expect(await verifyWebhookSignature(BODY, sig.slice(0, 10), SECRET)).toBe(false);
+    expect(await verifyWebhookSignature(BODY, `${sig}00`, SECRET)).toBe(false);
+    expect(await verifyWebhookSignature(BODY, 'z'.repeat(64), SECRET)).toBe(false);
   });
 
   it('is deterministic for the same secret and body', async () => {
     expect(await hmacSha256Hex(SECRET, BODY)).toBe(await hmacSha256Hex(SECRET, BODY));
+  });
+});
+
+describe('webhook event ids', () => {
+  it('uses x-razorpay-event-id when present', async () => {
+    expect(await webhookEventId('HwXYZ123abc', BODY)).toBe('HwXYZ123abc');
+  });
+
+  it('falls back to the body hash, which a redelivery repeats', async () => {
+    const first = await webhookEventId(null, BODY);
+    expect(first).toMatch(/^body-sha256:[0-9a-f]{64}$/);
+    expect(await webhookEventId('', BODY)).toBe(first);
+    expect(await webhookEventId(null, `${BODY} `)).not.toBe(first);
+  });
+
+  it('does not trust a header that is not an id', async () => {
+    expect(await webhookEventId('x'.repeat(500), BODY)).toMatch(/^body-sha256:/);
+    expect(await webhookEventId("evt'; drop table", BODY)).toMatch(/^body-sha256:/);
   });
 });

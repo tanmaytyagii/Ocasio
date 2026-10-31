@@ -1,18 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CreditCard, Loader2, Info, RotateCcw } from 'lucide-react';
 import {
-  authorizeAndStartPayment,
+  canResendRefund,
   canVendorRefund,
   cancelPayment,
-  createPaymentForBooking,
   formatMinor,
   getPaymentForBooking,
   getRefundsForPayment,
   isBookingPayable,
   refundPayment,
   refundableBalanceMinor,
+  startPayment,
+  startsWithServerOrder,
   PAYMENT_STATUS_LABELS,
 } from '../services/payments';
+import { useAuth } from '../contexts/AuthContext';
 import type { BookingWithDetails, Payment, PaymentStatus, Refund } from '../types/database';
 
 /**
@@ -25,7 +27,9 @@ import type { BookingWithDetails, Payment, PaymentStatus, Refund } from '../type
  *
  * The panel never claims a payment succeeded on the strength of a local
  * action. Handing the payment to the provider moves it to "awaiting
- * confirmation", and only a webhook makes it "Paid".
+ * confirmation", and only a webhook makes it "Paid". When Razorpay's Checkout
+ * reports success, the panel says so and watches the database for the
+ * webhook's verdict; it does not take the browser's word for it.
  */
 const BADGE: Record<PaymentStatus, string> = {
   pending: 'bg-canvas text-ink-soft border-line',
@@ -41,6 +45,18 @@ const REFUND_LABEL: Record<Refund['status'], string> = {
   pending: 'Refund requested',
   succeeded: 'Refunded',
   failed: 'Refund failed',
+};
+
+/** How long the panel watches for the webhook after Checkout reports success. */
+const CONFIRM_POLL_MS = 2_000;
+const CONFIRM_POLL_ATTEMPTS = 15;
+
+type Notice = { tone: 'info' | 'warning' | 'error'; text: string };
+
+const NOTICE_STYLE: Record<Notice['tone'], string> = {
+  info: 'border-blue-200 bg-blue-50 text-blue-900',
+  warning: 'border-amber-300 bg-amber-50 text-amber-900',
+  error: 'border-red-200 bg-red-50 text-red-800',
 };
 
 const formatTimestamp = (iso: string) =>
@@ -68,6 +84,17 @@ const PaymentPanel = ({
   const [busy, setBusy] = useState(false);
   const [refundAmount, setRefundAmount] = useState('');
   const [refundReason, setRefundReason] = useState('');
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const { user } = useAuth();
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -101,12 +128,55 @@ const PaymentPanel = ({
     }
   };
 
+  /**
+   * After Checkout reports success: wait for the webhook to settle the payment
+   * in the database. If it has not arrived in about half a minute, say so —
+   * the page will show it once it does, and paying again is never needed.
+   */
+  const waitForConfirmation = async () => {
+    setConfirming(true);
+    try {
+      for (let attempt = 0; attempt < CONFIRM_POLL_ATTEMPTS; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, CONFIRM_POLL_MS));
+        if (!mounted.current) return;
+        const latest = await getPaymentForBooking(booking.id);
+        if (latest && latest.status !== 'processing') {
+          setNotice(null);
+          await load();
+          return;
+        }
+      }
+      setNotice({
+        tone: 'warning',
+        text: 'Razorpay has not confirmed this payment yet. It will show as paid here as soon as it does — you do not need to pay again.',
+      });
+    } finally {
+      if (mounted.current) setConfirming(false);
+    }
+  };
+
+  // Outcomes are shown as notices rather than thrown: run() then reloads, so
+  // the panel reflects whatever the webhook has recorded meanwhile.
   const handlePay = () =>
     run(async () => {
-      // Scoped to the booking so a double submit reuses the same payment
-      // instead of opening a second one.
-      const created = await createPaymentForBooking(booking.id, `booking:${booking.id}:payment`);
-      await authorizeAndStartPayment(created);
+      setNotice(null);
+      const result = await startPayment(booking.id, user?.email);
+
+      if (result.outcome === 'failed') {
+        setNotice({ tone: 'error', text: `Payment failed: ${result.reason} You can try again.` });
+        return;
+      }
+      if (result.outcome === 'dismissed') {
+        setNotice({
+          tone: 'info',
+          text: 'Checkout was closed before the payment finished. If you did complete a payment, it will show here once Razorpay confirms it; otherwise you can continue whenever you are ready.',
+        });
+        return;
+      }
+      if (startsWithServerOrder()) {
+        setNotice({ tone: 'info', text: 'Payment submitted. Waiting for Razorpay to confirm it…' });
+        void waitForConfirmation();
+      }
     });
 
   const handleRefund = () =>
@@ -118,13 +188,20 @@ const PaymentPanel = ({
       }
       const minor = Math.round(rupees * 100);
       await refundPayment(
-        payment.id,
+        payment,
         minor,
         `refund:${payment.id}:${minor}:${refunds.length}`,
         refundReason,
       );
       setRefundAmount('');
       setRefundReason('');
+    });
+
+  /** Sends a saved Razorpay refund again, under its original key. */
+  const handleResend = (refund: Refund) =>
+    run(async () => {
+      if (!payment) return;
+      await refundPayment(payment, refund.amount_minor, refund.idempotency_key, refund.reason);
     });
 
   if (loading) {
@@ -136,8 +213,9 @@ const PaymentPanel = ({
     );
   }
 
-  const payable = isCustomer && isBookingPayable(booking.status, payment);
-  const showRefundForm = isVendor && payment && canVendorRefund(payment);
+  const payable = isCustomer && !confirming && isBookingPayable(booking.status, payment);
+  const showRefundForm = isVendor && payment && canVendorRefund(payment, refunds);
+  const resuming = payment?.provider === 'razorpay' && payment.status === 'processing';
 
   return (
     <section className="mt-6 rounded-card border border-line bg-surface p-6 sm:p-8">
@@ -156,6 +234,20 @@ const PaymentPanel = ({
       {error && (
         <div className="mb-4 rounded-control border border-red-200 bg-red-50 p-3" role="alert">
           <p className="text-sm text-red-800">{error}</p>
+        </div>
+      )}
+
+      {notice && (
+        <div
+          className={`mb-4 flex gap-3 rounded-control border p-3 ${NOTICE_STYLE[notice.tone]}`}
+          role={notice.tone === 'error' ? 'alert' : 'status'}
+        >
+          {confirming ? (
+            <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
+          ) : (
+            <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          )}
+          <p className="text-sm">{notice.text}</p>
         </div>
       )}
 
@@ -215,7 +307,7 @@ const PaymentPanel = ({
             ) : (
               <CreditCard className="h-4 w-4" aria-hidden="true" />
             )}
-            {busy ? 'Starting payment…' : 'Pay this booking'}
+            {busy ? 'Starting payment…' : resuming ? 'Continue payment' : 'Pay this booking'}
           </button>
           <p className="mt-2 text-xs text-muted">
             You will be taken to the payment provider. Ocasio never sees or stores your card
@@ -242,12 +334,24 @@ const PaymentPanel = ({
           <h3 className="mb-3 text-sm font-medium text-muted">Refunds</h3>
           <ul className="space-y-2">
             {refunds.map((refund) => (
-              <li key={refund.id} className="flex items-center justify-between text-sm">
+              <li key={refund.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
                 <span className="text-ink">
                   {formatMinor(refund.amount_minor)} — {REFUND_LABEL[refund.status]}
                   {refund.reason && <span className="text-muted"> · {refund.reason}</span>}
                 </span>
-                <span className="text-muted">{formatTimestamp(refund.created_at)}</span>
+                <span className="flex items-center gap-3 text-muted">
+                  {isVendor && canResendRefund(payment!, refund) && (
+                    <button
+                      type="button"
+                      onClick={() => handleResend(refund)}
+                      disabled={busy}
+                      className="text-brand-700 underline hover:text-brand-800 disabled:opacity-60"
+                    >
+                      Send to Razorpay again
+                    </button>
+                  )}
+                  {formatTimestamp(refund.created_at)}
+                </span>
               </li>
             ))}
           </ul>
@@ -258,7 +362,7 @@ const PaymentPanel = ({
         <div className="mt-6 border-t pt-6">
           <h3 className="mb-3 text-sm font-medium text-ink">Issue a refund</h3>
           <p className="mb-3 text-xs text-muted">
-            Refundable balance: {formatMinor(refundableBalanceMinor(payment), payment.currency)}
+            Refundable balance: {formatMinor(refundableBalanceMinor(payment, refunds), payment.currency)}
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="sm:w-40">
