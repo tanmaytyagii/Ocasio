@@ -1,0 +1,40 @@
+name: Verify fresh platform
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: ocasio
+          POSTGRES_PASSWORD: ci_only
+          POSTGRES_DB: ocasio_dev
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ocasio -d ocasio_dev"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+      mailpit:
+        image: axllent/mailpit:v1.27.10
+        ports: ["1025:1025", "8035:8025"]
+    env:
+      DATABASE_URL: postgresql://ocasio:ci_only@127.0.0.1:55432/ocasio_dev
+      WEB_ORIGIN: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: platform/package-lock.json
+      - name: Prepare ephemeral session key
+        run: node -e "require('node:fs').appendFileSync(process.env.GITHUB_ENV, 'SESSION_SECRET=' + require('node:crypto').randomBytes(48).toString('hex') + '\n')"
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run db:migrate
+      - run: npm test
+      - run: npm run test:integration
+      - run: npm run build

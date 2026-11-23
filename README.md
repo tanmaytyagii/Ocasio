@@ -1,3 +1,5 @@
+> **Current implementation:** Start with [SESSION-HANDOFF.md](SESSION-HANDOFF.md), then [platform/README.md](platform/README.md). The root application and the older README content below are historical reference, not the new product requirements.
+
 <h1 align="center">Ocasio</h1>
 
 <p align="center">

@@ -1,0 +1,6 @@
+{
+  "name":"@ocasio/database", "version":"0.0.1", "private":true,
+  "main":"dist/index.js", "types":"dist/index.d.ts",
+  "scripts":{"build":"tsc -p tsconfig.json","typecheck":"tsc --noEmit -p tsconfig.json"},
+  "dependencies":{"pg":"8.23.1","dotenv":"^17.2.3","@ocasio/contracts":"0.0.1"}
+}

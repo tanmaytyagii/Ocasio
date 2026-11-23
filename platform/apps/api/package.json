@@ -1,0 +1,32 @@
+{
+  "name": "@ocasio/api",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k \"tsc -p tsconfig.json --watch --preserveWatchOutput\" \"node --watch-path=dist --watch-path=../../packages/database/dist --watch-path=../../packages/contracts/dist dist/main.js\"",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@nestjs/common": "12.6.0",
+    "@nestjs/core": "12.6.0",
+    "@nestjs/platform-express": "12.6.0",
+    "@nestjs/swagger": "12.1.2",
+    "@ocasio/contracts": "0.0.1",
+    "@ocasio/database": "0.0.1",
+    "better-auth": "^1.7.27",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
+    "connect-pg-simple": "^10.0.0",
+    "express-session": "^1.19.0",
+    "helmet": "^8.1.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/connect-pg-simple": "^7.0.3",
+    "@types/express": "^5.0.5",
+    "@types/express-session": "^1.19.0"
+  }
+}

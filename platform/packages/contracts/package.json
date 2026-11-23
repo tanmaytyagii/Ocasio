@@ -1,0 +1,6 @@
+{
+  "name": "@ocasio/contracts", "version": "0.0.1", "private": true,
+  "main": "dist/index.js", "types": "dist/index.d.ts",
+  "scripts": {"build": "tsc -p tsconfig.json", "typecheck": "tsc --noEmit -p tsconfig.json"},
+  "dependencies": {"zod": "4.6.7"}
+}

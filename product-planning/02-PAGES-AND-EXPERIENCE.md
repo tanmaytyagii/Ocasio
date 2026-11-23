@@ -1,0 +1,91 @@
+# 02 · Proposed pages and feature behaviour
+
+All pages below are proposals for review, not a confirmed sitemap. Page families may share routes, tabs or drawers; URL design follows approval of information architecture. No page is inherited from the historical repository. Decision IDs refer to document 01.
+
+## Common page contract
+
+Every enabled page needs an explicit audience, authoritative data source, allowed actions, validation, permission checks, loading/empty/error/success states, mobile and keyboard behaviour, analytics and an operational owner. Public content and private account data must not share caches. Forms preserve recoverable input after errors; success appears only after durable acknowledgement. Unknown values remain unknown, not zero or implicitly included.
+
+Proposed public navigation: Explore occasions, Discover ideas, Find services, How Ocasio works, Partner with Ocasio, and account entry. Location context should remain visible. Labels and primary CTA are open for review. Customer, vendor and staff navigation should follow their tasks rather than exposing one overloaded menu.
+
+## A. Brand, inspiration and discovery
+
+Latest confirmed-flow additions and phase mapping, including P51–P55 for package configuration, paid assistance, vendor billing and legal/privacy operations, are in [execution coverage](09-EXECUTION-BACKLOG-AND-COVERAGE.md). Any earlier instant-confirmation alternatives below are unselected: vendor acceptance confirms without deposit.
+
+| ID / page family | Sections and options | Behaviour and end-to-end requirements | Review dependencies |
+|---|---|---|---|
+| P01 Home | Clear proposition; occasion and service entry points; location selector; curated ideas; vendor selection explanation; genuine work/reviews when available; partner entry | Each card/CTA reaches an actual discovery or enquiry flow. Content comes from published records. Coverage claims reflect supported services. No fabricated traction counters | D03, D04, D14, D15, D21 |
+| P02 Occasion explorer | Approved occasion categories; possible service needs; style/space/guest-count context; relevant local ideas | Selecting an occasion passes context into ideas, services and saved brief. Suggestions are optional; no automatic addition of paid services | D01, D14 |
+| P03 Occasion detail | What is possible; practical considerations; service combinations; indicative price basis; relevant suppliers | Distinguish educational ideas from products. Budget figures need scope, locality and freshness; absence of price must not become a false estimate | D02, D14, D21 |
+| P04 Inspiration collection | Image-led collections; search; occasion/style/space filters; save action | Media has provenance and publishing rights. Filtering uses actual tags. Concept images are labelled. Saved item survives sign-in according to approved guest policy | D16, D21 |
+| P05 Idea detail | Gallery; desired experience; necessary components; setup/space/lead-time requirements; feasibility; related local services | “Use this idea” adds a reference to the brief, not a binding order. Show whether exact replication is available, requires adaptation or has not been checked | D01–D03, D21 |
+| P06 City and coverage | NCR/localities, Karnal, Muzaffarnagar; category coverage; local content; travel rules | Distinguish bookable, enquiry-only and unsupported areas. Address eligibility is rechecked before commitment. Location selection is not a guarantee of supply | D15 |
+| P07 Service explorer/results | Search; category-specific filters; sort; vendor/package cards; save/compare; result count | Use URL-based recoverable filters. Date filters only make claims supported by reliable capacity data. Price sorts require comparable units. Empty state preserves selections | D02, D14, D15, D20 |
+| P08 Vendor profile | Business identity; services/coverage; original work; specific checks; review provenance/count; pricing method; enquiry options | Public fields explicitly allowlisted. Do not publish verification documents or private addresses. Inactive vendor cannot receive new commitments; historical bookings remain readable by authorised parties | D03, D11, D12, D17 |
+| P09 Service/package detail | Exact scope; units; inclusions/exclusions; options/add-ons; setup/service/teardown; travel/site requirements; price basis | Conditional on packages. Calculate selected options server-side. “From” price is not the final quote. Availability request, quote request and instant confirmation are distinct actions | D01, D02, D07–D09 |
+| P10 Compare | Vendor evidence and like-for-like service/quote comparison; differences; missing data; total versus due now | Persist selected identifiers, revalidate current offers and compare the actual versions. Unknown extras shown as unknown. Expired offers remain clearly non-acceptible | D01, D02, D20 |
+| P11 Trust/how it works | Vendor-selection process; meaning of badges; role of Ocasio/vendor; booking steps; review policy; support boundaries | Copy reflects implemented checks and actual commitments. Content owner maintains revision history. No universal quality, refund or replacement guarantee without approved policy | D04, D11–D13 |
+| P12 About/founder story | Genuine three-founder origin; customer problem; purpose; real people and contact identity | Names/photos/story require founder inputs and permission. Do not invent credentials, founding events, client logos or years of expertise | D21 |
+| P13 Help/contact | Searchable guidance; customer/vendor enquiry; booking-specific support; operational contact channels | Any form persists a case or delivers to a configured monitored destination. Show acknowledgement/reference. Failed delivery remains actionable for staff | D13, D18 |
+| P14 Policies | Privacy; service terms; cancellation/change/refund guidance; accessibility/contact information as applicable | Publish approved entity/policy details, effective dates and version links. Checkout links to the applicable version. Generic template copy does not constitute professional approval | D09, D22, D23, D28 |
+
+## B. Customer workspace and purchase
+
+| ID / page family | Sections and options | Behaviour and end-to-end requirements | Review dependencies |
+|---|---|---|---|
+| P15 Identity and recovery | Sign-in/register; verification; recovery; session errors; safe return to intended action | Method remains open. Never discard an existing brief during auth. Rate-limit sensitive actions; prevent account enumeration where relevant; handle expired/reused links | D16, D23 |
+| P16 My occasions | Draft, active and past occasions; upcoming actions; create occasion | Ownership and invitations control access. An occasion groups context; its status cannot falsely imply every vendor is confirmed | D01, D19 |
+| P17 Brief builder | Occasion; exact/flexible/unknown date; service location; guest range; budget basis; selected services; inspiration; venue status; constraints; communication preferences | Save/resume with versioning; validate per category. Collect only required location precision at each step. Sharing preview makes vendor recipients/data visible. No broadcast without approved rules | D03, D14–D19, D23 |
+| P18 Saved ideas/shortlists | Saved vendors, ideas and packages; notes; attach to occasion; optional sharing | Recheck withdrawn items and changed prices. Shared access is revocable and cannot expose private booking data. Guest persistence and collaboration are conditional | D16, D19 |
+| P19 Request tracker | Brief snapshot; recipients/matching explanation; vendor responses; clarification; close request | Submission creates one durable request. Repeated submit cannot flood suppliers. Edits create revisions with explicit notification. Closing stops future distribution under approved policy | D02, D03, D18 |
+| P20 Quotes and quote detail | Quote versions; line items; scope; dependencies; availability/hold; expiry; milestones; terms; clarification/revision; comparison | Supplier edits cannot rewrite an issued version. Acceptance references exact version and server validates expiry/capacity/authority. A quoted date is not necessarily reserved | D01, D02, D07–D09 |
+| P21 Confirmation review | Parties; exact scope; event timing; price breakdown; amount due now; remaining obligations; policies; acceptance evidence | Conditional checkout path follows commercial model. Revalidate all conditions. Clear distinction between request submitted, supplier accepted, payment pending and booking confirmed | D05–D09, D28 |
+| P22 Payment outcome | Pending/confirmed/failed states; references; safe retry; return to booking | Conditional on integrated payment. Browser success screen cannot settle money. Recover state after closed tab or delayed callback. Do not create a second charge to resolve uncertain first payment | D06, D08, D26 |
+| P23 Occasion detail | Brief; saved choices; vendor requests/quotes/bookings; upcoming actions; documents; support | Distinct state per supplier. One failed service does not automatically cancel others unless approved bundle rules say so. Combined totals label commitment/payment completeness | D01, D19 |
+| P24 Booking detail | Accepted agreement; vendor contact per policy; schedule; readiness; obligations; history; payment evidence; support | Historical contract survives live catalogue edits. Display next actor/action. Private downloads need authorisation. No generic “paid” status when only deposit is paid | D04, D06–D10, D18 |
+| P25 Amend/reschedule/cancel | Change request; old/new terms; availability; financial consequences; acceptance; cancellation acknowledgement | A pending amendment preserves prior agreement. Any revised charge needs approved acceptance. Cancellation status and refund status remain independent. Concurrent requests are conflict-checked | D07–D09 |
+| P26 Conversations/notifications | Contextual threads; messages; safe attachments; delivery/read status if supported; preferences | Conditional on D18. Persist before notification; failed email does not erase a message. Access follows participants and staff scope. Sensitive event details are excluded from lock-screen previews | D13, D18, D23 |
+| P27 Issue and resolution | Booking-linked issue; evidence; severity; assigned owner; approved remedies; timeline; refund/replacement progress | A submitted complaint is not a guaranteed refund. Staff actions have authority checks and audit history. Replacement is a new explicit proposal, not a silent vendor swap | D04, D09, D13, D24 |
+| P28 Completion/review | Delivery acknowledgement; disagreement; review form; applicable rating dimensions; moderation status | Eligibility cannot depend solely on an unchallengeable vendor button. Public review hides private details. Editing, response and appeal rules remain open | D10, D12 |
+| P29 Account/privacy/security | Contacts; verified changes; sessions; preferences; data requests; account closure; shared access | Changes reverify sensitive contact ownership. Closure considers active obligations and retention policy. Preferences separate necessary transaction communication from marketing | D16, D19, D23 |
+
+## C. Vendor partnership and workspace
+
+| ID / page family | Sections and options | Behaviour and end-to-end requirements | Review dependencies |
+|---|---|---|---|
+| P30 Partnership overview | Who can apply; actual benefits; admission process; commercial explanation; application entry | No promised demand or revenue numbers without evidence. Application is not listing approval | D05, D11, D14 |
+| P31 Application/evidence | Business/contact data; services; coverage; portfolio rights; evidence/references; terms acknowledgement | Draft/resume; private documents; upload quarantine; correction requests; submit validation. Separate eligibility review from public profile publishing | D11, D17, D23, D28 |
+| P32 Application status | Stage; required corrections; decisions/reasons; appeal/reapply options if approved | Decisions notify actual recipients and preserve audit trail. Rejected, withdrawn and incomplete are different states | D11, D13 |
+| P33 Vendor overview | Incoming work; expiring offers; upcoming commitments; pending actions; alerts | Counts derive from authoritative records. Revenue is not quote totals. Vendor status changes affect new work without hiding existing obligations | D05, D10, D17 |
+| P34 Business/team/profile | Public preview; private settings; branches; team invitations/roles; service areas; badges | Team features conditional. Users cannot self-award checks. Sensitive ownership/bank changes have separate authority and verification | D11, D15, D17, D24 |
+| P35 Services and portfolio | Service scopes; price units; packages/options; availability mode; work media; publish/archive | Publishing validates completeness; historical offers remain immutable. Changing scope can require re-review. Media rights/provenance tracked | D01, D02, D11, D21 |
+| P36 Availability/resources | Working hours; time-off; teams/equipment; setup/travel buffers; holds and confirmed commitments | Resource model is open. No double booking through concurrent acceptance. Date-only capacity cannot pretend to represent time-specific inventory | D02, D07, D17 |
+| P37 Enquiries/quote editor | Relevant brief; clarification; itemised offer; version preview; validity; terms; submit/revise/withdraw | Supplier sees only shared necessary fields. Issue creates immutable version; revisions do not alter accepted work. Quote validity is distinct from capacity hold | D02, D03, D08, D18 |
+| P38 Booking operations | Accepted scope; readiness; staff assignment; customer dependencies; changes; delivery evidence | Assignment visibility and customer approval follow policy. Supplier cannot mark payment settled from browser input or erase disputes | D04, D07–D10 |
+| P39 Finance | Fees; invoices/receivables; payment/refund/settlement status; reconciliation exceptions | Conditional structure follows money flow. Show actual payment evidence and fee basis; limit finance access. No payout balance if no settlement system exists | D05, D06, D24, D28 |
+| P40 Quality/support/reviews | Customer feedback; replies; operational quality; case history; improvement actions | No paid review removal. Private quality evidence stays private. Vendors can contest evidence through approved process without editing customer facts | D11–D13 |
+
+## D. Staff operations and content
+
+| ID / page family | Sections and options | Behaviour and end-to-end requirements | Review dependencies |
+|---|---|---|---|
+| P41 Operations overview | Enquiry/quote/booking exceptions; upcoming at-risk events; assigned workload | Data filtered by staff permissions and locality. Alerts link to actionable records, not just charts | D04, D13, D24 |
+| P42 Supplier admission | Queue; evidence; checks; references; correction requests; decisions; publishing eligibility | Record actor, evidence scope, reason and expiry. Commercial payment cannot grant a quality badge. Revocation preserves history | D11, D24 |
+| P43 Matching/request desk | Brief completeness; serviceability; suitable suppliers; invitations; response status | Explain eligibility versus ranking. Staff cannot share addresses/contact information beyond approved purpose. Match overrides require reason | D03, D15, D20, D23 |
+| P44 Booking/support desk | Contract history; cases; supplier/customer communication; amendments; reassignment proposals | Role/scoped access; no silent accepted-term edits. Escalation and remedy actions have explicit permissions and audit | D04, D09, D13, D24 |
+| P45 Finance/reconciliation | Provider/receipt exceptions; fees; refunds; settlements; approval queue; exports | Separate claim, approval, execution and reconciliation. Competing refund requests cannot exceed eligible funds. Protect sensitive exports | D05, D06, D24, D28 |
+| P46 Content studio | Occasions; ideas; location content; media rights; draft/review/publish; preview | Publish only accurate serviceability/claims. Preview requires access, scheduled publishing is recoverable, content revisions are auditable | D14, D15, D21 |
+| P47 Reviews/trust moderation | Flags; private evidence; source/eligibility; redaction; decision; appeal | Policy-based moderation, no arbitrary suppression. Recompute rating consistently with approved visibility policy | D11, D12, D24 |
+| P48 Coverage/taxonomy settings | Categories; localities; category-specific briefs; eligibility and policy configuration | Version impactful changes. Configuration changes cannot rewrite existing agreements. Reject contradictory/unpublishable settings | D09, D14, D15 |
+| P49 Access/audit/data requests | Staff roles/scopes; session revocation; audit queries; privacy cases; sensitive export approvals | No shared administrator account. Deny-by-default grants; log purpose for exceptional access. Deletion is not blanket erasure of legally required records | D23, D24, D28 |
+| P50 Reporting/system health | Funnel; fulfilment; quality; support; financial definitions; failed jobs/integrations | Distinguish enquiry, quote, event, vendor booking, booking value, collected money, fee revenue and contribution. Show period/timezone and exclusions | D05, D25 |
+
+## E. System pages and behaviour
+
+Explicitly design not-found/removed content, unsupported locality, expired invite, expired quote, access denied, expired session, service outage, rate limit, upload failure, empty results and maintenance. Search/filter state should survive recoverable failures. Show a case/reference when an operation may have succeeded but confirmation was lost. Never replace uncertain transactional state with a generic success illustration.
+
+## Proposed design-system deliverables
+
+Brand tokens; typography and spacing; accessible controls; responsive navigation; scope-aware price components; trust/evidence labels; status vocabulary; timeline; itemised offer comparison; upload states; conflict and retry messaging. Include actual long business names, variable image quality, missing prices, zero reviews, large itemised quotes and slow mobile conditions in design review. Visual polish and operational truth should reinforce each other.
+
+Research patterns informing these proposals are documented separately; they do not establish founder approval or customer preference.

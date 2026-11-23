@@ -1,0 +1,35 @@
+{
+  "name": "ocasio-platform",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "scripts": {
+    "dev": "npm run build:packages && npm run build -w @ocasio/api && npm run build -w @ocasio/worker && concurrently -k -n api,web,worker \"npm run dev -w @ocasio/api\" \"npm run dev -w @ocasio/web\" \"npm run dev -w @ocasio/worker\"",
+    "build:packages": "npm run build -w @ocasio/contracts && npm run build -w @ocasio/database",
+    "build": "npm run build:packages && npm run build -w @ocasio/api && npm run build -w @ocasio/worker && npm run build -w @ocasio/web",
+    "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
+    "test": "npm run build:packages && tsx --test tests/*.test.ts",
+    "test:integration": "npm run build:packages && npm run build -w @ocasio/api && tsx --test --test-concurrency=1 tests/integration/*.test.ts",
+    "db:up": "docker compose up -d --wait db",
+    "db:migrate": "npm run build:packages && tsx scripts/migrate.ts",
+    "db:seed": "npm run build:packages && tsx scripts/seed.ts",
+    "db:probe": "npm run build:packages && tsx scripts/probe.ts",
+    "db:backup": "node scripts/backup.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "preview": "concurrently -k -n api,web,worker \"npm run start -w @ocasio/api\" \"npm run start -w @ocasio/web\" \"npm run start -w @ocasio/worker\"",
+    "setup:local": "node scripts/setup-local.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "@types/pg": "^8.15.6",
+    "concurrently": "^9.2.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  }
+}
